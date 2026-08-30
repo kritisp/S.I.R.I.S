@@ -1,5 +1,6 @@
 package com.crimelens.audit.entity;
 
+import com.crimelens.user.entity.User;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -16,6 +17,10 @@ public class AuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_relation_id")
+    private User user;
 
     @Column(name = "user_id", length = 50)
     private String userId;
@@ -52,6 +57,20 @@ public class AuditLog {
 
     public AuditLog(String userId, String userName, String userRole, String stationId, String action,
                     String resourceType, String resourceId, String ipAddress, String details) {
+        this.userId = userId;
+        this.userName = userName;
+        this.userRole = userRole;
+        this.stationId = stationId;
+        this.action = action;
+        this.resourceType = resourceType;
+        this.resourceId = resourceId;
+        this.ipAddress = ipAddress;
+        this.details = details;
+    }
+
+    public AuditLog(User user, String userId, String userName, String userRole, String stationId, String action,
+                    String resourceType, String resourceId, String ipAddress, String details) {
+        this.user = user;
         this.userId = userId;
         this.userName = userName;
         this.userRole = userRole;
@@ -155,5 +174,13 @@ public class AuditLog {
 
     public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

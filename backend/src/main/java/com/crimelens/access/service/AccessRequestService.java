@@ -106,6 +106,9 @@ public class AccessRequestService {
                     + request.getTargetStation().getId() + ") can process access requests.");
         }
 
+        User approverUser = userRepository.findById(actor.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", actor.getUsername()));
+        request.setApprover(approverUser);
         request.setStatus(newStatus);
         AccessRequest saved = accessRequestRepository.save(request);
 

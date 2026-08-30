@@ -15,6 +15,8 @@ public class AccessRequestDTO {
     private String targetStationName;
     private String targetCaseId;
     private String targetCaseTitle;
+    private String approverId;
+    private String approverName;
     private String reason;
     private RequestStatus status;
     private Instant createdAt;
@@ -40,6 +42,10 @@ public class AccessRequestDTO {
             if (entity.getTargetCase() != null) {
                 this.targetCaseId = entity.getTargetCase().getId();
                 this.targetCaseTitle = entity.getTargetCase().getTitle();
+            }
+            if (entity.getApprover() != null) {
+                this.approverId = entity.getApprover().getId();
+                this.approverName = entity.getApprover().getName();
             }
             this.reason = entity.getReason();
             this.status = entity.getStatus();
@@ -145,5 +151,21 @@ public class AccessRequestDTO {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getApproverId() {
+        return approverId;
+    }
+
+    public void setApproverId(String approverId) {
+        this.approverId = approverId;
+    }
+
+    public String getApproverName() {
+        return approverName;
+    }
+
+    public void setApproverName(String approverName) {
+        this.approverName = approverName;
     }
 }

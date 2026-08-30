@@ -19,6 +19,10 @@ public class CreateEvidenceRequest {
     @NotBlank(message = "Evidence type is required")
     private String type;
 
+    private String source;
+
+    private String fileMetadata;
+
     private List<ExtractedEntity> entitiesExtracted;
 
     public CreateEvidenceRequest() {
@@ -54,6 +58,22 @@ public class CreateEvidenceRequest {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getFileMetadata() {
+        return fileMetadata;
+    }
+
+    public void setFileMetadata(String fileMetadata) {
+        this.fileMetadata = fileMetadata;
     }
 
     public List<ExtractedEntity> getEntitiesExtracted() {

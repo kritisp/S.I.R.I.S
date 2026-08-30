@@ -36,6 +36,10 @@ public class AccessRequest {
     @JoinColumn(name = "target_case_id", nullable = false)
     private CaseRecord targetCase;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approver_id")
+    private User approver;
+
     @Column(name = "reason", columnDefinition = "TEXT", nullable = false)
     private String reason;
 
@@ -55,6 +59,17 @@ public class AccessRequest {
         this.requestingOfficer = requestingOfficer;
         this.targetStation = targetStation;
         this.targetCase = targetCase;
+        this.reason = reason;
+        this.status = status != null ? status : RequestStatus.PENDING;
+    }
+
+    public AccessRequest(String id, PoliceStation requestingStation, User requestingOfficer, PoliceStation targetStation, CaseRecord targetCase, User approver, String reason, RequestStatus status) {
+        this.id = id;
+        this.requestingStation = requestingStation;
+        this.requestingOfficer = requestingOfficer;
+        this.targetStation = targetStation;
+        this.targetCase = targetCase;
+        this.approver = approver;
         this.reason = reason;
         this.status = status != null ? status : RequestStatus.PENDING;
     }
@@ -126,5 +141,13 @@ public class AccessRequest {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public User getApprover() {
+        return approver;
+    }
+
+    public void setApprover(User approver) {
+        this.approver = approver;
     }
 }

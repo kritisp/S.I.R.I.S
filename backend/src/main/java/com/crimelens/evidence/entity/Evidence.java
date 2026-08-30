@@ -2,6 +2,7 @@ package com.crimelens.evidence.entity;
 
 import com.crimelens.casefile.entity.CaseRecord;
 import com.crimelens.intelligence.entity.ExtractedEntity;
+import com.crimelens.user.entity.User;
 
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -19,6 +20,16 @@ public class Evidence {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)
     private CaseRecord caseRecord;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploader_id")
+    private User uploader;
+
+    @Column(name = "source", length = 200)
+    private String source;
+
+    @Column(name = "file_metadata", columnDefinition = "TEXT")
+    private String fileMetadata;
 
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
@@ -39,6 +50,18 @@ public class Evidence {
     public Evidence(String id, CaseRecord caseRecord, String description, String type, Instant uploadedAt, List<ExtractedEntity> entitiesExtracted) {
         this.id = id;
         this.caseRecord = caseRecord;
+        this.description = description;
+        this.type = type;
+        this.uploadedAt = uploadedAt != null ? uploadedAt : Instant.now();
+        this.entitiesExtracted = entitiesExtracted != null ? entitiesExtracted : new ArrayList<>();
+    }
+
+    public Evidence(String id, CaseRecord caseRecord, User uploader, String source, String fileMetadata, String description, String type, Instant uploadedAt, List<ExtractedEntity> entitiesExtracted) {
+        this.id = id;
+        this.caseRecord = caseRecord;
+        this.uploader = uploader;
+        this.source = source;
+        this.fileMetadata = fileMetadata;
         this.description = description;
         this.type = type;
         this.uploadedAt = uploadedAt != null ? uploadedAt : Instant.now();
@@ -66,6 +89,30 @@ public class Evidence {
 
     public void setCaseRecord(CaseRecord caseRecord) {
         this.caseRecord = caseRecord;
+    }
+
+    public User getUploader() {
+        return uploader;
+    }
+
+    public void setUploader(User uploader) {
+        this.uploader = uploader;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getFileMetadata() {
+        return fileMetadata;
+    }
+
+    public void setFileMetadata(String fileMetadata) {
+        this.fileMetadata = fileMetadata;
     }
 
     public String getDescription() {

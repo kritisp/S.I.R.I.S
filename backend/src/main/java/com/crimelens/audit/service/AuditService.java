@@ -7,6 +7,7 @@ import com.crimelens.common.dto.PagedResponse;
 import com.crimelens.audit.entity.AuditLog;
 import com.crimelens.audit.repository.AuditLogRepository;
 import com.crimelens.security.UserPrincipal;
+import com.crimelens.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,9 +23,11 @@ public class AuditService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuditService.class);
     private final AuditLogRepository auditLogRepository;
+    private final UserRepository userRepository;
 
-    public AuditService(AuditLogRepository auditLogRepository) {
+    public AuditService(AuditLogRepository auditLogRepository, UserRepository userRepository) {
         this.auditLogRepository = auditLogRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -32,7 +35,11 @@ public class AuditService {
                           String action, String resourceType, String resourceId,
                           String ipAddress, String details) {
         try {
-            AuditLog log = new AuditLog(userId, userName, userRole, stationId, action, resourceType, resourceId, ipAddress, details);
+            User user = null;
+            if (userId != null && !userId.equalsIgnoreCase("ANONYMOUS")) {
+                user = userRepository.findById(userId).orElse(null);
+            }
+            AuditLog log = new AuditLog(user, userId, userName, userRole, stationId, action, resourceType, resourceId, ipAddress, details);
             auditLogRepository.save(log);
             logger.info("AUDIT: User [{}] Role [{}] Station [{}] Action [{}] Resource [{}:{}]",
                     userId, userRole, stationId, action, resourceType, resourceId);

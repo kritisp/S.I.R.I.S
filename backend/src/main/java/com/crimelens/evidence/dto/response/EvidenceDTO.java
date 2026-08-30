@@ -13,6 +13,10 @@ public class EvidenceDTO {
     private String type;
     private Instant uploadedAt;
     private List<ExtractedEntity> entitiesExtracted;
+    private String uploaderId;
+    private String uploaderName;
+    private String source;
+    private String fileMetadata;
 
     public EvidenceDTO() {
     }
@@ -27,6 +31,12 @@ public class EvidenceDTO {
             this.type = entity.getType();
             this.uploadedAt = entity.getUploadedAt();
             this.entitiesExtracted = entity.getEntitiesExtracted();
+            if (entity.getUploader() != null) {
+                this.uploaderId = entity.getUploader().getId();
+                this.uploaderName = entity.getUploader().getName();
+            }
+            this.source = entity.getSource();
+            this.fileMetadata = entity.getFileMetadata();
         }
     }
 
@@ -80,5 +90,37 @@ public class EvidenceDTO {
 
     public void setEntitiesExtracted(List<ExtractedEntity> entitiesExtracted) {
         this.entitiesExtracted = entitiesExtracted;
+    }
+
+    public String getUploaderId() {
+        return uploaderId;
+    }
+
+    public void setUploaderId(String uploaderId) {
+        this.uploaderId = uploaderId;
+    }
+
+    public String getUploaderName() {
+        return uploaderName;
+    }
+
+    public void setUploaderName(String uploaderName) {
+        this.uploaderName = uploaderName;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getFileMetadata() {
+        return fileMetadata;
+    }
+
+    public void setFileMetadata(String fileMetadata) {
+        this.fileMetadata = fileMetadata;
     }
 }

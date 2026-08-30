@@ -203,6 +203,9 @@ public class DataInitializer implements CommandLineRunner {
         Evidence ev1 = new Evidence(
                 "EVID-000001",
                 case2,
+                invBbsr1,
+                "Unit IV Crime Scene",
+                "{\"fileName\":\"evidence_burner_phone.jpg\",\"fileSize\":12450,\"mimeType\":\"image/jpeg\"}",
                 "Burner mobile phone recovered from getaway path.",
                 "Mobile Phone",
                 Instant.now().minusSeconds(86400 * 4),
@@ -211,6 +214,9 @@ public class DataInitializer implements CommandLineRunner {
         Evidence ev2 = new Evidence(
                 "EVID-000002",
                 case4,
+                invCtc1,
+                "Badambadi Square Traffic Cam",
+                "{\"fileName\":\"getaway_van_clip.mp4\",\"fileSize\":8540000,\"mimeType\":\"video/mp4\"}",
                 "CCTV footage copy showing getaway white commercial van.",
                 "Video File",
                 Instant.now().minusSeconds(86400 * 1),
@@ -225,10 +231,21 @@ public class DataInitializer implements CommandLineRunner {
                 invCtc1,
                 stBbsr,
                 case2,
+                null,
                 "Suspect white van from Cuttack heist matches Unit IV burglary description.",
                 RequestStatus.PENDING
         );
-        accessRequestRepository.save(req1);
+        AccessRequest req2 = new AccessRequest(
+                "REQ-000002",
+                stBbsr,
+                invBbsr2,
+                stCtc,
+                case4,
+                iicCtc,
+                "Need to verify CDR linkages for cell towers near Badambadi.",
+                RequestStatus.APPROVED
+        );
+        accessRequestRepository.saveAll(Arrays.asList(req1, req2));
 
         // 6. Seed Alerts
         IntelligenceAlert alt1 = new IntelligenceAlert(

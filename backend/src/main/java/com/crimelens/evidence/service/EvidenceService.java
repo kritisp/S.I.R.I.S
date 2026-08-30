@@ -1,17 +1,18 @@
 package com.crimelens.evidence.service;
 
 import com.crimelens.audit.service.AuditService;
-
 import com.crimelens.evidence.dto.request.CreateEvidenceRequest;
 import com.crimelens.evidence.dto.response.EvidenceDTO;
 import com.crimelens.casefile.entity.CaseRecord;
 import com.crimelens.evidence.entity.Evidence;
+import com.crimelens.user.entity.User;
 import com.crimelens.access.entity.enums.RequestStatus;
 import com.crimelens.common.exceptions.ResourceNotFoundException;
 import com.crimelens.common.exceptions.UnauthorizedAccessException;
 import com.crimelens.access.repository.AccessRequestRepository;
 import com.crimelens.casefile.repository.CaseRecordRepository;
 import com.crimelens.evidence.repository.EvidenceRepository;
+import com.crimelens.user.repository.UserRepository;
 import com.crimelens.security.StationSecurityEvaluator;
 import com.crimelens.security.UserPrincipal;
 import org.springframework.stereotype.Service;
@@ -28,17 +29,20 @@ public class EvidenceService {
     private final EvidenceRepository evidenceRepository;
     private final CaseRecordRepository caseRepository;
     private final AccessRequestRepository accessRequestRepository;
+    private final UserRepository userRepository;
     private final StationSecurityEvaluator securityEvaluator;
     private final AuditService auditService;
 
     public EvidenceService(EvidenceRepository evidenceRepository,
                            CaseRecordRepository caseRepository,
                            AccessRequestRepository accessRequestRepository,
+                           UserRepository userRepository,
                            StationSecurityEvaluator securityEvaluator,
                            AuditService auditService) {
         this.evidenceRepository = evidenceRepository;
         this.caseRepository = caseRepository;
         this.accessRequestRepository = accessRequestRepository;
+        this.userRepository = userRepository;
         this.securityEvaluator = securityEvaluator;
         this.auditService = auditService;
     }
@@ -76,9 +80,15 @@ public class EvidenceService {
             evidenceId = "EVID-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         }
 
+        User uploader = userRepository.findById(actor.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", actor.getUsername()));
+
         Evidence evidence = new Evidence(
                 evidenceId,
                 caseRecord,
+                uploader,
+                request.getSource(),
+                request.getFileMetadata(),
                 request.getDescription(),
                 request.getType(),
                 Instant.now(),
