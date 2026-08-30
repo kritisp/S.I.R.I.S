@@ -1,10 +1,12 @@
 package com.crimelens.dto.request;
 
+import com.crimelens.entities.ExtractedEntity;
 import com.crimelens.entities.enums.CasePriority;
 import com.crimelens.entities.enums.CaseStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.util.List;
 
 public class CreateCaseRequest {
 
@@ -34,6 +36,15 @@ public class CreateCaseRequest {
     private CasePriority priority = CasePriority.MEDIUM;
 
     private Instant incidentDate;
+
+    private List<String> bnsSections;
+    private List<String> suspects;
+    private List<String> vehicles;
+    private List<String> locations;
+    private List<String> evidenceRefs;
+    private List<String> cctvRefs;
+    private List<String> linkedCaseIds;
+    private List<ExtractedEntity> entities;
 
     public CreateCaseRequest() {
     }
@@ -131,5 +142,69 @@ public class CreateCaseRequest {
 
     public void setIncidentDate(Instant incidentDate) {
         this.incidentDate = incidentDate;
+    }
+
+    public List<String> getBnsSections() {
+        return bnsSections;
+    }
+
+    public void setBnsSections(List<String> bnsSections) {
+        this.bnsSections = bnsSections;
+    }
+
+    public List<String> getSuspects() {
+        return suspects;
+    }
+
+    public void setSuspects(List<String> suspects) {
+        this.suspects = suspects;
+    }
+
+    public List<String> getVehicles() {
+        return vehicles;
+    }
+
+    public void setVehicles(List<String> vehicles) {
+        this.vehicles = vehicles;
+    }
+
+    public List<String> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<String> locations) {
+        this.locations = locations;
+    }
+
+    public List<String> getEvidenceRefs() {
+        return evidenceRefs;
+    }
+
+    public void setEvidenceRefs(List<String> evidenceRefs) {
+        this.evidenceRefs = evidenceRefs;
+    }
+
+    public List<String> getCctvRefs() {
+        return cctvRefs;
+    }
+
+    public void setCctvRefs(List<String> cctvRefs) {
+        this.cctvRefs = cctvRefs;
+    }
+
+    public List<String> getLinkedCaseIds() {
+        return linkedCaseIds;
+    }
+
+    public void setLinkedCaseIds(List<String> linkedCaseIds) {
+        this.linkedCaseIds = linkedCaseIds;
+    }
+
+    public List<ExtractedEntity> getEntities() {
+        return entities;
+    }
+
+    public void setEntities(List<ExtractedEntity> entities) {
+        this.entities = entities;
     }
 }

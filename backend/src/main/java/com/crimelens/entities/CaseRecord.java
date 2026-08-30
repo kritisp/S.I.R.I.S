@@ -4,6 +4,8 @@ import com.crimelens.entities.enums.CasePriority;
 import com.crimelens.entities.enums.CaseStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "case_records", indexes = {
@@ -55,6 +57,45 @@ public class CaseRecord {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_bns_sections", joinColumns = @JoinColumn(name = "case_id"))
+    @Column(name = "section")
+    private List<String> bnsSections = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_suspects", joinColumns = @JoinColumn(name = "case_id"))
+    @Column(name = "suspect")
+    private List<String> suspects = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_vehicles", joinColumns = @JoinColumn(name = "case_id"))
+    @Column(name = "vehicle")
+    private List<String> vehicles = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_locations", joinColumns = @JoinColumn(name = "case_id"))
+    @Column(name = "location")
+    private List<String> locations = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_evidence_refs", joinColumns = @JoinColumn(name = "case_id"))
+    @Column(name = "evidence_ref")
+    private List<String> evidenceRefs = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_cctv_refs", joinColumns = @JoinColumn(name = "case_id"))
+    @Column(name = "cctv_ref")
+    private List<String> cctvRefs = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_linked_ids", joinColumns = @JoinColumn(name = "case_id"))
+    @Column(name = "linked_case_id")
+    private List<String> linkedCaseIds = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "case_extracted_entities", joinColumns = @JoinColumn(name = "case_id"))
+    private List<ExtractedEntity> entities = new ArrayList<>();
 
     public CaseRecord() {
     }
@@ -182,5 +223,69 @@ public class CaseRecord {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<String> getBnsSections() {
+        return bnsSections;
+    }
+
+    public void setBnsSections(List<String> bnsSections) {
+        this.bnsSections = bnsSections;
+    }
+
+    public List<String> getSuspects() {
+        return suspects;
+    }
+
+    public void setSuspects(List<String> suspects) {
+        this.suspects = suspects;
+    }
+
+    public List<String> getVehicles() {
+        return vehicles;
+    }
+
+    public void setVehicles(List<String> vehicles) {
+        this.vehicles = vehicles;
+    }
+
+    public List<String> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<String> locations) {
+        this.locations = locations;
+    }
+
+    public List<String> getEvidenceRefs() {
+        return evidenceRefs;
+    }
+
+    public void setEvidenceRefs(List<String> evidenceRefs) {
+        this.evidenceRefs = evidenceRefs;
+    }
+
+    public List<String> getCctvRefs() {
+        return cctvRefs;
+    }
+
+    public void setCctvRefs(List<String> cctvRefs) {
+        this.cctvRefs = cctvRefs;
+    }
+
+    public List<String> getLinkedCaseIds() {
+        return linkedCaseIds;
+    }
+
+    public void setLinkedCaseIds(List<String> linkedCaseIds) {
+        this.linkedCaseIds = linkedCaseIds;
+    }
+
+    public List<ExtractedEntity> getEntities() {
+        return entities;
+    }
+
+    public void setEntities(List<ExtractedEntity> entities) {
+        this.entities = entities;
     }
 }

@@ -1,16 +1,8 @@
 package com.crimelens.config;
 
-import com.crimelens.entities.CaseRecord;
-import com.crimelens.entities.PoliceStation;
-import com.crimelens.entities.User;
-import com.crimelens.entities.enums.CasePriority;
-import com.crimelens.entities.enums.CaseStatus;
-import com.crimelens.entities.enums.StationStatus;
-import com.crimelens.entities.enums.UserRole;
-import com.crimelens.entities.enums.UserStatus;
-import com.crimelens.repositories.CaseRecordRepository;
-import com.crimelens.repositories.PoliceStationRepository;
-import com.crimelens.repositories.UserRepository;
+import com.crimelens.entities.*;
+import com.crimelens.entities.enums.*;
+import com.crimelens.repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -18,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,15 +22,24 @@ public class DataInitializer implements CommandLineRunner {
     private final PoliceStationRepository stationRepository;
     private final UserRepository userRepository;
     private final CaseRecordRepository caseRepository;
+    private final EvidenceRepository evidenceRepository;
+    private final AccessRequestRepository accessRequestRepository;
+    private final IntelligenceAlertRepository alertRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(PoliceStationRepository stationRepository,
                            UserRepository userRepository,
                            CaseRecordRepository caseRepository,
+                           EvidenceRepository evidenceRepository,
+                           AccessRequestRepository accessRequestRepository,
+                           IntelligenceAlertRepository alertRepository,
                            PasswordEncoder passwordEncoder) {
         this.stationRepository = stationRepository;
         this.userRepository = userRepository;
         this.caseRepository = caseRepository;
+        this.evidenceRepository = evidenceRepository;
+        this.accessRequestRepository = accessRequestRepository;
+        this.alertRepository = alertRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -98,6 +100,14 @@ public class DataInitializer implements CommandLineRunner {
                 CasePriority.HIGH,
                 Instant.now().minusSeconds(86400 * 3)
         );
+        case1.setBnsSections(Arrays.asList("BNS 303", "BNS 331"));
+        case1.setSuspects(Arrays.asList("Unknown masked male"));
+        case1.setVehicles(Arrays.asList("White commercial van"));
+        case1.setLocations(Arrays.asList("Unit IV, Bhubaneswar"));
+        case1.setEntities(Arrays.asList(
+                new ExtractedEntity(EntityType.VEHICLE, "White Commercial Van"),
+                new ExtractedEntity(EntityType.LOCATION, "Unit IV, Bhubaneswar")
+        ));
 
         CaseRecord case2 = new CaseRecord(
                 "OD-BBSR-2026-0001",
@@ -111,6 +121,16 @@ public class DataInitializer implements CommandLineRunner {
                 CasePriority.HIGH,
                 Instant.now().minusSeconds(86400 * 5)
         );
+        case2.setBnsSections(Arrays.asList("BNS 303", "BNS 305"));
+        case2.setSuspects(Arrays.asList("Ramesh", "Suresh"));
+        case2.setVehicles(Arrays.asList("White commercial van"));
+        case2.setLocations(Arrays.asList("100ft road, Unit IV, Bhubaneswar"));
+        case2.setEvidenceRefs(new ArrayList<>(Arrays.asList("EVID-000001")));
+        case2.setEntities(Arrays.asList(
+                new ExtractedEntity(EntityType.VEHICLE, "White Commercial Van"),
+                new ExtractedEntity(EntityType.PHONE, "+91-9876543210"),
+                new ExtractedEntity(EntityType.PERSON, "Ramesh")
+        ));
 
         CaseRecord case3 = new CaseRecord(
                 "OD-BBSR-2026-0042",
@@ -124,6 +144,14 @@ public class DataInitializer implements CommandLineRunner {
                 CasePriority.MEDIUM,
                 Instant.now().minusSeconds(86400 * 7)
         );
+        case3.setBnsSections(Arrays.asList("BNS 303"));
+        case3.setSuspects(Arrays.asList("Unknown thief"));
+        case3.setVehicles(Arrays.asList("Black Honda Activa OD-02-X-9988"));
+        case3.setLocations(Arrays.asList("Saheed Nagar Market, Bhubaneswar"));
+        case3.setEntities(Arrays.asList(
+                new ExtractedEntity(EntityType.VEHICLE, "Black Honda Activa OD-02-X-9988"),
+                new ExtractedEntity(EntityType.LOCATION, "Saheed Nagar, Bhubaneswar")
+        ));
 
         CaseRecord case4 = new CaseRecord(
                 "OD-CTC-2026-00981",
@@ -137,9 +165,72 @@ public class DataInitializer implements CommandLineRunner {
                 CasePriority.CRITICAL,
                 Instant.now().minusSeconds(86400 * 2)
         );
+        case4.setBnsSections(Arrays.asList("BNS 309", "BNS 310"));
+        case4.setSuspects(Arrays.asList("Ramesh", "Unknown Rider"));
+        case4.setVehicles(Arrays.asList("White commercial van", "Black Pulsar Motorcycle"));
+        case4.setLocations(Arrays.asList("Badambadi Square, Cuttack"));
+        case4.setEvidenceRefs(new ArrayList<>(Arrays.asList("EVID-000002")));
+        case4.setEntities(Arrays.asList(
+                new ExtractedEntity(EntityType.VEHICLE, "White Commercial Van"),
+                new ExtractedEntity(EntityType.VEHICLE, "Black Pulsar Motorcycle"),
+                new ExtractedEntity(EntityType.PHONE, "+91-9876543210"),
+                new ExtractedEntity(EntityType.PERSON, "Ramesh")
+        ));
 
         List<CaseRecord> cases = Arrays.asList(case1, case2, case3, case4);
         caseRepository.saveAll(cases);
+
+        // 4. Seed Evidence
+        Evidence ev1 = new Evidence(
+                "EVID-000001",
+                case2,
+                "Burner mobile phone recovered from getaway path.",
+                "Mobile Phone",
+                Instant.now().minusSeconds(86400 * 4),
+                Arrays.asList(new ExtractedEntity(EntityType.PHONE, "+91-9876543210"))
+        );
+        Evidence ev2 = new Evidence(
+                "EVID-000002",
+                case4,
+                "CCTV footage copy showing getaway white commercial van.",
+                "Video File",
+                Instant.now().minusSeconds(86400 * 1),
+                Arrays.asList(new ExtractedEntity(EntityType.VEHICLE, "White Commercial Van"))
+        );
+        evidenceRepository.saveAll(Arrays.asList(ev1, ev2));
+
+        // 5. Seed Access Request
+        AccessRequest req1 = new AccessRequest(
+                "REQ-000001",
+                stCtc,
+                invCtc1,
+                stBbsr,
+                case2,
+                "Suspect white van from Cuttack heist matches Unit IV burglary description.",
+                RequestStatus.PENDING
+        );
+        accessRequestRepository.save(req1);
+
+        // 6. Seed Alerts
+        IntelligenceAlert alt1 = new IntelligenceAlert(
+                "ALT-000001",
+                AlertType.CROSS_STATION_MATCH,
+                "CROSS-STATION MATCH DETECTED: Burner phone number +91-9876543210 linked in both Unit IV Burglary (Bhubaneswar) and Jewelry Heist (Cuttack).",
+                case2,
+                case4,
+                stBbsr,
+                false
+        );
+        IntelligenceAlert alt2 = new IntelligenceAlert(
+                "ALT-000002",
+                AlertType.NEW_HOTSPOT,
+                "CRIME HOTSPOT WARNING: Increased burglary frequency detected in Khordha district over last 7 days.",
+                null,
+                null,
+                stBbsr,
+                false
+        );
+        alertRepository.saveAll(Arrays.asList(alt1, alt2));
 
         logger.info("Successfully seeded {} stations, {} users, and {} case records.",
                 stations.size(), users.size(), cases.size());

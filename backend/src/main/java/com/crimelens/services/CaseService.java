@@ -15,11 +15,13 @@ import com.crimelens.exceptions.BadRequestException;
 import com.crimelens.exceptions.DuplicateResourceException;
 import com.crimelens.exceptions.ResourceNotFoundException;
 import com.crimelens.exceptions.UnauthorizedAccessException;
+import com.crimelens.repositories.AccessRequestRepository;
 import com.crimelens.repositories.CaseRecordRepository;
 import com.crimelens.repositories.PoliceStationRepository;
 import com.crimelens.repositories.UserRepository;
 import com.crimelens.security.StationSecurityEvaluator;
 import com.crimelens.security.UserPrincipal;
+import com.crimelens.entities.enums.RequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,17 +41,20 @@ public class CaseService {
     private final UserRepository userRepository;
     private final StationSecurityEvaluator securityEvaluator;
     private final AuditService auditService;
+    private final AccessRequestRepository accessRequestRepository;
 
     public CaseService(CaseRecordRepository caseRepository,
                        PoliceStationRepository stationRepository,
                        UserRepository userRepository,
                        StationSecurityEvaluator securityEvaluator,
-                       AuditService auditService) {
+                       AuditService auditService,
+                       AccessRequestRepository accessRequestRepository) {
         this.caseRepository = caseRepository;
         this.stationRepository = stationRepository;
         this.userRepository = userRepository;
         this.securityEvaluator = securityEvaluator;
         this.auditService = auditService;
+        this.accessRequestRepository = accessRequestRepository;
     }
 
     @Transactional
@@ -116,6 +121,15 @@ public class CaseService {
                 request.getIncidentDate() != null ? request.getIncidentDate() : Instant.now()
         );
 
+        if (request.getBnsSections() != null) caseRecord.setBnsSections(request.getBnsSections());
+        if (request.getSuspects() != null) caseRecord.setSuspects(request.getSuspects());
+        if (request.getVehicles() != null) caseRecord.setVehicles(request.getVehicles());
+        if (request.getLocations() != null) caseRecord.setLocations(request.getLocations());
+        if (request.getEvidenceRefs() != null) caseRecord.setEvidenceRefs(request.getEvidenceRefs());
+        if (request.getCctvRefs() != null) caseRecord.setCctvRefs(request.getCctvRefs());
+        if (request.getLinkedCaseIds() != null) caseRecord.setLinkedCaseIds(request.getLinkedCaseIds());
+        if (request.getEntities() != null) caseRecord.setEntities(request.getEntities());
+
         CaseRecord saved = caseRepository.save(caseRecord);
 
         auditService.logUserAction(actor, "CREATE_CASE", "CASE", saved.getId(),
@@ -129,7 +143,10 @@ public class CaseService {
         CaseRecord caseRecord = caseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CaseRecord", "id", id));
 
-        if (!securityEvaluator.canAccessCase(actor, caseRecord)) {
+        boolean hasRequestAccess = accessRequestRepository.existsByRequestingOfficerIdAndTargetCaseIdAndStatus(
+                actor.getUsername(), caseRecord.getId(), RequestStatus.APPROVED);
+
+        if (!securityEvaluator.canAccessCase(actor, caseRecord) && !hasRequestAccess) {
             auditService.logUserAction(actor, "UNAUTHORIZED_CASE_ACCESS_ATTEMPT", "CASE", id,
                     "Access denied to case " + id + " from station " + caseRecord.getStation().getId());
             throw new UnauthorizedAccessException("Access denied: You do not have permission to access case records from station " + caseRecord.getStation().getId());
@@ -208,6 +225,30 @@ public class CaseService {
         }
         if (request.getIncidentDate() != null) {
             caseRecord.setIncidentDate(request.getIncidentDate());
+        }
+        if (request.getBnsSections() != null) {
+            caseRecord.setBnsSections(request.getBnsSections());
+        }
+        if (request.getSuspects() != null) {
+            caseRecord.setSuspects(request.getSuspects());
+        }
+        if (request.getVehicles() != null) {
+            caseRecord.setVehicles(request.getVehicles());
+        }
+        if (request.getLocations() != null) {
+            caseRecord.setLocations(request.getLocations());
+        }
+        if (request.getEvidenceRefs() != null) {
+            caseRecord.setEvidenceRefs(request.getEvidenceRefs());
+        }
+        if (request.getCctvRefs() != null) {
+            caseRecord.setCctvRefs(request.getCctvRefs());
+        }
+        if (request.getLinkedCaseIds() != null) {
+            caseRecord.setLinkedCaseIds(request.getLinkedCaseIds());
+        }
+        if (request.getEntities() != null) {
+            caseRecord.setEntities(request.getEntities());
         }
 
         CaseRecord updated = caseRepository.save(caseRecord);
