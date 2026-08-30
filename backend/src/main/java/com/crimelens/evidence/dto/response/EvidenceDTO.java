@@ -30,7 +30,9 @@ public class EvidenceDTO {
             this.description = entity.getDescription();
             this.type = entity.getType();
             this.uploadedAt = entity.getUploadedAt();
-            this.entitiesExtracted = entity.getEntitiesExtracted();
+            if (entity.getEntitiesExtracted() != null) {
+                this.entitiesExtracted = new java.util.ArrayList<>(entity.getEntitiesExtracted());
+            }
             if (entity.getUploader() != null) {
                 this.uploaderId = entity.getUploader().getId();
                 this.uploaderName = entity.getUploader().getName();
