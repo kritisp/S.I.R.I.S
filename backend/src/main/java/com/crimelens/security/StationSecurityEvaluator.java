@@ -59,4 +59,24 @@ public class StationSecurityEvaluator {
         }
         return false;
     }
+
+    public boolean canAccessWorkspace(UserPrincipal principal, com.crimelens.workspace.entity.InvestigationWorkspace workspace) {
+        if (principal == null || workspace == null) {
+            return false;
+        }
+        if (principal.getRole() == UserRole.SUPER_ADMIN) {
+            return true;
+        }
+
+        String userStationId = principal.getStationId();
+        String workspaceStationId = workspace.getStation() != null ? workspace.getStation().getId() : null;
+
+        // Creator can access their workspace
+        if (workspace.getCreator() != null && principal.getUsername().equalsIgnoreCase(workspace.getCreator().getId())) {
+            return true;
+        }
+
+        // Station Admin & Officers in the same station can access station workspaces
+        return userStationId != null && userStationId.equalsIgnoreCase(workspaceStationId);
+    }
 }

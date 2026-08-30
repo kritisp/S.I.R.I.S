@@ -76,4 +76,42 @@ public class MockMlClient implements MlClientInterface {
         }
         return entities;
     }
+
+    @Override
+    public com.crimelens.workspace.entity.WorkspaceIntelligenceResult analyzeWorkspace(
+            com.crimelens.workspace.entity.InvestigationWorkspace workspace,
+            List<com.crimelens.casefile.entity.CaseRecord> cases,
+            List<String> scopes) {
+        
+        int caseCount = cases != null ? cases.size() : 0;
+        int relationships = Math.max(1, caseCount * 3 + 2);
+        int patterns = Math.max(1, caseCount + 1);
+        int nodes = Math.max(2, caseCount * 5 + 4);
+
+        String summary = "S.I.R.I.S. Mock Intelligence Engine successfully analyzed workspace '" + 
+                         (workspace != null ? workspace.getTitle() : "Workspace") + "'. Synthesized " + 
+                         relationships + " cross-case relationships and " + patterns + 
+                         " crime MO patterns across " + caseCount + " linked case records.";
+
+        String payloadJson = "{" +
+                "\"confidenceScore\": 94.5," +
+                "\"casesAnalyzed\":" + caseCount + "," +
+                "\"scopes\":" + (scopes != null ? scopes.toString() : "[]") + "," +
+                "\"relationshipsFound\":" + relationships + "," +
+                "\"patternsDetected\":" + patterns + "," +
+                "\"recommendations\":[\"Correlate CDR logs for shared mobile numbers\",\"Issue cross-station alert for matching getaway vehicle\",\"Request additional forensic evidence for weapon MO\"]" +
+                "}";
+
+        return new com.crimelens.workspace.entity.WorkspaceIntelligenceResult(
+                "RES-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
+                null,
+                workspace,
+                "COMPLETED",
+                summary,
+                relationships,
+                patterns,
+                nodes,
+                payloadJson
+        );
+    }
 }
