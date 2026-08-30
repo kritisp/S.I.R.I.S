@@ -38,8 +38,9 @@ class FIRIntakeParser:
     """
 
     def __init__(self, tesseract_cmd: Optional[str] = None):
-        if tesseract_cmd and pytesseract:
-            pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+        cmd = tesseract_cmd or os.getenv("TESSERACT_CMD")
+        if cmd and pytesseract:
+            pytesseract.pytesseract.tesseract_cmd = cmd
 
     def clean_text(self, text: str) -> str:
         """

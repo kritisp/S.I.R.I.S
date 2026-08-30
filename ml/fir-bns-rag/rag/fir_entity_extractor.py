@@ -177,17 +177,18 @@ class FIREntityExtractor:
         # Narrative fallback: "NAME reported that" / "NAME, the complainant, stated"
         if not people["complainant"]:
             m_narr_comp = re.search(
-                r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})\s*(?:,\s*the\s*complainant[,\s]|reported\s*that|lodged\s*a\s*complaint|stated\s*that|deposed\s*that)",
+                r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})\s*(?:(?:\([^\)]+\))?\s*)?(?:,\s*the\s*complainant[,\s]|reported\s*that|lodged\s*a\s*complaint|stated\s*that|deposed\s*that)",
                 text
             )
             if m_narr_comp:
                 narr_name = m_narr_comp.group(1).strip()
-                people["complainant"] = {
-                    "name": narr_name,
-                    "details": narr_name,
-                    "role": "Complainant / Informant",
-                    "relationship": self._detect_relationship(narr_name, text)
-                }
+                if narr_name and narr_name.lower() not in ["he", "she", "they", "it", "this", "that", "the", "an", "a"]:
+                    people["complainant"] = {
+                        "name": narr_name,
+                        "details": narr_name,
+                        "role": "Complainant / Informant",
+                        "relationship": self._detect_relationship(narr_name, text)
+                    }
 
         # 2. Accused / Suspects Extraction
         m_acc = re.search(

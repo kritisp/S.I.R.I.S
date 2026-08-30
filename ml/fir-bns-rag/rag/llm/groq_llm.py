@@ -19,12 +19,22 @@ class GroqLLM(BaseLLM):
     API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
     def __init__(self, model_name: Optional[str] = None, timeout: int = 30):
-        self.model_name = model_name or os.getenv("GROQ_MODEL", self.DEFAULT_MODEL)
-        self.api_key = os.getenv("GROQ_API_KEY", "").strip()
+        self.api_key = (
+            os.getenv("FIR_GROQ_API_KEY")
+            or os.getenv("GROQ_API_KEY")
+            or (os.getenv("GROQ_API_KEYS", "").split(",")[0] if os.getenv("GROQ_API_KEYS") else "")
+        ).strip()
+
+        self.model_name = (
+            model_name
+            or os.getenv("FIR_GROQ_MODEL")
+            or os.getenv("GROQ_MODEL")
+            or self.DEFAULT_MODEL
+        ).strip()
         self.timeout = timeout
 
     def is_available(self) -> bool:
-        """Returns True only if GROQ_API_KEY is configured in environment."""
+        """Returns True only if a Groq API key is configured in environment."""
         return bool(self.api_key)
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None, temperature: float = 0.1) -> str:
@@ -108,13 +118,19 @@ class GroqLLM(BaseLLM):
 
         req = urllib.request.Request(self.API_URL, data=data, headers=headers, method="POST")
 
-        with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-            if resp.status == 200:
-                resp_data = json.loads(resp.read().decode("utf-8"))
-                raw_json = resp_data["choices"][0]["message"]["content"]
-                return json.loads(raw_json)
-            else:
-                raise RuntimeError(f"Groq API returned HTTP {resp.status}")
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                if resp.status == 200:
+                    resp_data = json.loads(resp.read().decode("utf-8"))
+                    raw_json = resp_data["choices"][0]["message"]["content"]
+                    return json.loads(raw_json)
+                else:
+                    raise RuntimeError(f"Groq API returned HTTP {resp.status}")
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Groq API HTTP Error {e.code}: {err_body}")
+        except Exception as e:
+            raise RuntimeError(f"Groq API Structured Request failed: {e}")
 
 
 if __name__ == "__main__":
