@@ -12,20 +12,25 @@ from rag.llm.remote_qwen_llm import RemoteQwenLLM
 from rag.llm.groq_llm import GroqLLM
 
 
-def _load_env_file(env_path: str = ".env"):
-    """Parser for .env file."""
-    if not os.path.exists(env_path):
-        env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
+def _load_env_file():
+    """Parser for project root .env and module local .env files."""
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    env_paths = [
+        os.path.join(root_dir, ".env"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),
+        os.path.abspath(".env")
+    ]
 
-    if os.path.exists(env_path):
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    key = k.strip()
-                    if key not in os.environ:
-                        os.environ[key] = v.strip()
+    for env_path in env_paths:
+        if os.path.exists(env_path):
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        key = k.strip()
+                        if key not in os.environ:
+                            os.environ[key] = v.strip()
 
 
 _load_env_file()
