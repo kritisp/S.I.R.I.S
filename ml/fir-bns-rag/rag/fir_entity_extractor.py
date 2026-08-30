@@ -165,7 +165,7 @@ class FIREntityExtractor:
         )
         if m_comp:
             line_val = m_comp.group(1).strip()
-            name_part = re.split(r"(?:,\s*(?:Ph|Phone|Mob|Mobile|Age|r\/o|Address|s\/o|d\/o|w\/o)|;\s*)", line_val, flags=re.IGNORECASE)[0].strip()
+            name_part = re.split(r"(?:,\s*|\s+)(?:s\/o|d\/o|w\/o|r\/o|Ph|Phone|Mob|Mobile|Age|Address)\b|;\s*", line_val, flags=re.IGNORECASE)[0].strip()
             if name_part:
                 people["complainant"] = {
                     "name": name_part,

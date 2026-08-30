@@ -1,0 +1,74 @@
+[
+  {
+    "id": "FIR_001",
+    "domain": "property_crimes",
+    "description": "Structured Housebreaking & Theft FIR with header and full metadata",
+    "text": "FIRST INFORMATION REPORT\n(Under Section 154 Cr.P.C. / 173 BNSS)\n1. District: Khordha    P.S.: Khandagiri    Year: 2026    FIR No.: 0048/2026\n2. Acts & Sections: BNS 2023 - Sec 303(2), Sec 305\n3. Occurrence of Offence: Date: 15/08/2026 Time: 23:30 hrs\n4. Complainant: Rajesh Kumar s/o Mohan Lal, Mob: 9876543210, r/o House 42, Khandagiri\n5. Details of Suspect: Ramesh and Suresh\n6. Details of Witnesses: Witness Suresh saw suspects fleeing\n7. Brief Details: The complainant reported that at around 11:30 PM, suspects broke rear door lock, entered his residence at Khandagiri, brandished a knife, and stole gold ornaments worth Rs. 2,00,000/- and cash of Rs. 50,000/-. Getaway vehicle was OD-02-AB-1234."
+  },
+  {
+    "id": "FIR_002",
+    "domain": "property_crimes",
+    "description": "Narrative Armed Robbery & Snatching FIR",
+    "text": "On 12-08-2024 at around 10:45 PM, Priyadarshi Mohanty lodged a complaint at Saheed Nagar Police Station. He stated that while returning home near Saheed Nagar, two unknown motorcycle riders on OR-02-X-9999 blocked his path, threatened him at gunpoint with a pistol, and snatched his iPhone and wallet containing Rs. 15,000 cash. Eyewitness Amit Kumar witnessed the crime from a nearby shop."
+  },
+  {
+    "id": "FIR_003",
+    "domain": "violent_crimes",
+    "description": "Attempted Homicide & Weapon Assault FIR",
+    "text": "FIR No.: 0102/2026\nP.S.: Capital Police Station\nComplainant: Deepak Roy\nAccused: Suresh Mohapatra\nDetails: Accused Suresh Mohapatra attacked complainant Deepak Roy with a sharp dagger near Market Building at around 09:15 PM on 18-08-2026 intending to kill him. Victim sustained deep abdominal stab injuries and was rushed to Capital Hospital by witness Manoj Das."
+  },
+  {
+    "id": "FIR_004",
+    "domain": "cyber_crimes",
+    "description": "Cyber Phishing & Financial Fraud FIR",
+    "text": "FIR Date: 20/08/2026\nP.S.: Cyber Crime PS\nComplainant: Sunita Sharma, Phone: 9123456789\nDetails: Complainant received a deceptive phishing SMS link mimicking income tax refund portal on WhatsApp. Cyber fraudsters illegally withdrew Rs. 1,50,000 from her SBI bank account."
+  },
+  {
+    "id": "FIR_005",
+    "domain": "financial_crimes",
+    "description": "Financial Forgery & Document Fabrication FIR",
+    "text": "FIR No.: 0099/2026\nP.S.: Mangalabag Police Station\nComplainant: Subhash Chandra\nAccused: Alok Verma\nDetails: Accused employee Alok Verma submitted forged medical reimbursement bills and fake hospital receipts, cheating the company of Rs. 3,50,000/-."
+  },
+  {
+    "id": "FIR_006",
+    "domain": "offences_against_women",
+    "description": "Domestic Violence & Dowry Cruelty FIR",
+    "text": "P.S.: Mahila Police Station, Cuttack\nComplainant: Meena Kumari\nAccused: Husband Ramesh and In-laws\nDetails: Complainant reported that her husband Ramesh and mother-in-law mentally and physically tortured her demanding a luxury car and Rs. 5,00,000 in cash dowry."
+  },
+  {
+    "id": "FIR_007",
+    "domain": "property_crimes",
+    "description": "Vehicle Theft FIR",
+    "text": "FIR No.: 0215/2026\nP.S.: Tamando PS\nComplainant: Bikram Swain, Mob: 9988776655\nDetails: Complainant parked his Hyundai i20 car bearing registration number OD-02-Z-5555 outside his residence on 22-08-2026 at 10:00 PM. Next morning at 06:00 AM, the vehicle was missing. Unidentified thieves stole the car."
+  },
+  {
+    "id": "FIR_008",
+    "domain": "violent_crimes",
+    "description": "Reckless Driving & Hit and Run FIR",
+    "text": "P.S.: Highway Patrol PS\nComplainant: Inspector R.K. Sahu\nDetails: On 24-08-2026 at 11:30 PM, an unidentified heavy truck driver operated vehicle recklessly on the wrong side of NH-16 near Pitapalli Square, colliding with an auto-rickshaw and injuring driver Ramesh Chandra before fleeing."
+  },
+  {
+    "id": "FIR_009",
+    "domain": "property_crimes",
+    "description": "Criminal Trespass & Property Dispute FIR",
+    "text": "FIR No.: 0301/2026\nP.S.: Jatni PS\nComplainant: Sanjeev Nayak\nAccused: Kalia Behera and 3 associates\nDetails: Accused Kalia Behera along with 3 associates illegally broken open boundary fence and trespassed into complainant's agricultural land Plot No 104 on 25-08-2026 threatening him with wooden sticks."
+  },
+  {
+    "id": "FIR_010",
+    "domain": "general_penal",
+    "description": "Incomplete FIR with Missing Details",
+    "text": "Unidentified body found near railway tracks near Mancheswar station on 26/08/2026. No FIR number or suspect details specified. Cause of death unknown."
+  },
+  {
+    "id": "FIR_011",
+    "domain": "violent_crimes",
+    "description": "Multi-Accused Gang Assault FIR",
+    "text": "FIR No.: 0411/2026\nP.S.: Badagada PS\nComplainant: Tapan Kumar\nAccused: 1. Jitu Mohanty, 2. Papu Das, 3. 2 Unknown associates\nDetails: On 27-08-2026 at 09:00 PM, accused Jitu Mohanty and Papu Das along with 2 unknown associates surrounded complainant Tapan Kumar near Badagada canal road, beat him with iron pipes, and threatened to kill him over past rivalry."
+  },
+  {
+    "id": "FIR_012",
+    "domain": "property_crimes",
+    "description": "One-Line Short FIR",
+    "text": "Burglars broke main door lock at night at Plot 55 Saheed Nagar and stole cash locker containing Rs. 80,000."
+  }
+]

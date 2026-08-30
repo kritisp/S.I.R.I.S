@@ -228,16 +228,65 @@ class FIRIntakeParser:
 
         return None
 
+    def process_image(self, image_input: Union[str, bytes, io.BytesIO], source_name: str = "image.png") -> Dict[str, Any]:
+        """
+        Processes image files (.png, .jpg, .jpeg, .bmp, .tiff) via pytesseract OCR if available.
+        """
+        if not Image:
+            return self.process_raw_text(
+                "[OCR Warning] Image processing library (PIL) is unavailable.",
+                source_name=source_name
+            )
+
+        try:
+            if isinstance(image_input, str):
+                source_name = os.path.basename(image_input)
+                img = Image.open(image_input)
+            elif isinstance(image_input, (bytes, io.BytesIO)):
+                img_bytes = image_input if isinstance(image_input, bytes) else image_input.getvalue()
+                img = Image.open(io.BytesIO(img_bytes))
+            else:
+                raise ValueError(f"Unsupported image_input type: {type(image_input)}")
+
+            if pytesseract:
+                ocr_text = pytesseract.image_to_string(img)
+                cleaned = self.clean_text(ocr_text)
+                return {
+                    "source_type": "image",
+                    "source_name": source_name,
+                    "total_pages": 1,
+                    "is_ocr_applied": True,
+                    "pages": [{"page_number": 1, "text": cleaned, "char_count": len(cleaned), "is_ocr": True}],
+                    "full_text": cleaned,
+                    "char_count": len(cleaned)
+                }
+            else:
+                return {
+                    "source_type": "image",
+                    "source_name": source_name,
+                    "total_pages": 1,
+                    "is_ocr_applied": False,
+                    "pages": [{"page_number": 1, "text": "", "char_count": 0, "is_ocr": False}],
+                    "full_text": "",
+                    "char_count": 0,
+                    "warning": "Tesseract OCR engine (pytesseract) is not installed in the environment."
+                }
+        except Exception as e:
+            return self.process_raw_text(f"[OCR Error] Image processing failed: {e}", source_name=source_name)
+
     def ingest(self, input_data: Union[str, bytes, io.BytesIO], source_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Universal intake dispatcher.
-        Automatically detects whether input is a file path (.pdf/.txt), raw text string, or binary PDF stream.
+        Automatically detects whether input is a file path (.pdf/.txt/.png/.jpg), raw text string, or binary stream.
         """
         if isinstance(input_data, str):
             # Check if it's an existing file path
             if os.path.isfile(input_data):
-                if input_data.lower().endswith(".pdf"):
+                ext = os.path.splitext(input_data)[1].lower()
+                if ext == ".pdf":
                     return self.process_pdf(input_data, source_name=source_name or os.path.basename(input_data))
+                elif ext in [".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"]:
+                    return self.process_image(input_data, source_name=source_name or os.path.basename(input_data))
                 else:
                     with open(input_data, "r", encoding="utf-8", errors="replace") as f:
                         text_content = f.read()
