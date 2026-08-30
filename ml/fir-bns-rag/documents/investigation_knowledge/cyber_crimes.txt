@@ -1,0 +1,18 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: cyber_crimes
+SOURCE: cyber_crimes.txt
+
+[STAGE: Digital Evidence Preservation]
+ACTION: Issue emergency freeze notice to telecom service providers, ISP, and banking platforms under Section 94 BNSS.
+PURPOSE: Preserve IP logs, transaction trails, account statements, and SIM subscriber details before log deletion.
+EVIDENCE_GENERATED: ISP log preservation acknowledgement, frozen bank account confirmation memos.
+
+[STAGE: Digital Forensics Seizure]
+ACTION: Seize mobile phones, laptops, and hard drives using Faraday bags and compute cryptographic hashes (SHA-256).
+PURPOSE: Prevent remote wipe of digital evidence and guarantee bit-stream forensic image integrity.
+EVIDENCE_GENERATED: Cryptographic hash log, digital seizure memo, Section 63 BSHA certificate.
+
+[STAGE: Financial & IP Tracing]
+ACTION: Trace beneficiary bank account numbers and IP address routing nodes.
+PURPOSE: Map financial flow of fraudulent funds and identify suspect mule accounts.
+EVIDENCE_GENERATED: Bank transaction ledger analysis sheet, IP geolocation report.

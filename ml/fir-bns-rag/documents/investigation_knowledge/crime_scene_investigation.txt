@@ -1,0 +1,13 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: crime_scene_investigation
+SOURCE: crime_scene_investigation.txt
+
+[STAGE: Spot Inspection & Photography]
+ACTION: Conduct systematic grid search of crime scene and capture 360-degree high-definition photographs/videos.
+PURPOSE: Document spatial relationship of physical evidence before disturbance.
+EVIDENCE_GENERATED: Crime scene photo album, spot map drawing, audio-video recording media under BNSS 105.
+
+[STAGE: Witness & Informant Interview]
+ACTION: Interview first responder, complainant, and neighbors at scene.
+PURPOSE: Record immediate spontaneous disclosures before memory fade or intimidation.
+EVIDENCE_GENERATED: Initial statement notes, first responder duty log.

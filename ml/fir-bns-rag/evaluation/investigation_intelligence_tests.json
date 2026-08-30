@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "query": "My husband tried to kill me",
+    "expected_category": "violent_crimes",
+    "expected_priority": "CRITICAL",
+    "expected_immediate_actions": ["victim safety", "medical", "weapon", "FIR"],
+    "expected_evidence_types": ["Medical", "Weapon", "Biological", "CCTV", "Testimonial"],
+    "expected_witness_types": ["Eyewitness", "Family", "Medical"],
+    "expected_bnss_compliance": ["BNSS Section 173", "BNSS Section 105", "BNSS Section 180"],
+    "has_digital_strategy": true,
+    "reason": "Spousal attempted homicide - CRITICAL priority with full victim-centric, forensic, and legal compliance investigation strategy."
+  },
+  {
+    "id": 2,
+    "query": "Someone entered my house and stole jewellery",
+    "expected_category": "property_crimes",
+    "expected_priority": "HIGH",
+    "expected_immediate_actions": ["FIR", "scene inspection", "CCTV", "fingerprint"],
+    "expected_evidence_types": ["Physical", "Documentary", "CCTV", "Recovery"],
+    "expected_witness_types": ["Complainant", "Neighbour"],
+    "expected_bnss_compliance": ["BNSS Section 173", "BNSS Section 185", "BNSS Section 105"],
+    "has_digital_strategy": true,
+    "reason": "Dwelling house theft - property recovery strategy with scene forensics and market monitoring."
+  },
+  {
+    "id": 3,
+    "query": "Someone sent fake banking link and stole money",
+    "expected_category": "cyber_crimes",
+    "expected_priority": "HIGH",
+    "expected_immediate_actions": ["FIR", "bank freeze", "digital evidence", "IP log"],
+    "expected_evidence_types": ["Transaction", "Communication", "Network", "Device"],
+    "expected_witness_types": ["Victim", "Bank"],
+    "expected_bnss_compliance": ["BNSS Section 173", "BNSS Section 105"],
+    "has_digital_strategy": true,
+    "reason": "Online phishing financial fraud - digital forensic strategy with transaction tracing and IP tracking."
+  },
+  {
+    "id": 4,
+    "query": "Someone murdered a person",
+    "expected_category": "violent_crimes",
+    "expected_priority": "CRITICAL",
+    "expected_immediate_actions": ["victim safety", "crime scene", "FIR", "inquest"],
+    "expected_evidence_types": ["Medical", "Biological", "Weapon", "CCTV", "Testimonial"],
+    "expected_witness_types": ["Eyewitness", "Family", "Medical"],
+    "expected_bnss_compliance": ["BNSS Section 173", "BNSS Section 105", "BNSS Section 180", "BNSS Section 35"],
+    "has_digital_strategy": true,
+    "reason": "Homicide - CRITICAL priority with post-mortem inquest procedure, full forensic collection, and accused apprehension timeline."
+  },
+  {
+    "id": 5,
+    "query": "Police recovered 5kg unknown powder from accused",
+    "expected_category": "narcotics_ndps",
+    "expected_priority": "CRITICAL",
+    "expected_immediate_actions": ["Secure seized", "Weigh", "FIR", "premises"],
+    "expected_evidence_types": ["Physical", "Forensic", "Digital", "Testimonial"],
+    "expected_witness_types": ["Independent", "Recovery", "Accused"],
+    "expected_bnss_compliance": ["BNSS Section 173", "BNSS Section 185", "BNSS Section 105"],
+    "has_digital_strategy": true,
+    "reason": "Narcotics contraband recovery - CRITICAL priority with independent witnesses, chemical testing, and supply chain tracing."
+  }
+]

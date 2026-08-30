@@ -1,0 +1,302 @@
+[
+  {
+    "id": 1,
+    "query": "A person pointed a loaded gun at me and forcefully snatched my watch and wallet on an empty road",
+    "expected_category": "property_crimes",
+    "expected_sections": ["309", "310"],
+    "sections_that_should_be_rejected": ["303"],
+    "reason": "Theft accompanied by immediate fear of death or physical hurt constitutes Robbery (BNS 309/310), not simple Theft (BNS 303).",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 2,
+    "query": "My neighbour is threatening me",
+    "expected_category": "general_penal",
+    "expected_sections": ["351"],
+    "sections_that_should_be_rejected": ["103", "109", "303"],
+    "reason": "Underspecified threat query. Engine must request specific details (words vs brandishing weapon vs physical act) rather than assigning heavy penal sections.",
+    "is_ambiguous": true,
+    "is_missing_info": true
+  },
+  {
+    "id": 3,
+    "query": "An employee entrusted with company bank account credentials transferred 50 lakhs into his personal account",
+    "expected_category": "financial_crimes",
+    "expected_sections": ["316"],
+    "sections_that_should_be_rejected": ["303", "318"],
+    "reason": "Misappropriation of property entrusted in capacity of employee constitutes Criminal Breach of Trust (BNS 316), distinguishing it from simple deception/cheating.",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 4,
+    "query": "A driver lost control on a sharp mountain turn due to sudden brake failure causing car damage",
+    "expected_category": "traffic_accidents",
+    "expected_sections": ["281"],
+    "sections_that_should_be_rejected": ["106", "109"],
+    "reason": "Mechanical failure accident without criminal negligence must be differentiated from intentional homicide or rash driving.",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 5,
+    "query": "Suspect fired three pistol shots into victim's chest shouting 'I will end your life', victim underwent surgery and survived",
+    "expected_category": "violent_crimes",
+    "expected_sections": ["109", "118"],
+    "sections_that_should_be_rejected": ["103", "106"],
+    "reason": "Clear intention to cause death where victim survived surgery is Attempt to Murder (BNS 109). Murder (BNS 103) must be rejected because victim survived.",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 6,
+    "query": "A man constantly taunts his wife about her appearance and demands money from her parents",
+    "expected_category": "offences_against_women",
+    "expected_sections": ["85"],
+    "sections_that_should_be_rejected": ["115", "109"],
+    "reason": "Mental harassment and monetary demands by husband against wife constitutes Cruelty under BNS 85, distinguished from physical assault.",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 7,
+    "query": "A stranger hit me on the shoulder during a argument outside a tea shop",
+    "expected_category": "violent_crimes",
+    "expected_sections": ["115"],
+    "sections_that_should_be_rejected": ["85", "109"],
+    "reason": "Simple physical hurt by stranger constitutes Voluntarily Causing Hurt (BNS 115), not spousal cruelty or attempt to murder.",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 8,
+    "query": "Hackers breached corporate cloud server and altered customer database records",
+    "expected_category": "cyber_crimes",
+    "expected_sections": ["318", "336"],
+    "sections_that_should_be_rejected": ["303", "103"],
+    "reason": "Digital data tampering and system breach falls under cyber forgery and cheating.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 9,
+    "query": "An unidentified person stole my bicycle parked outside railway station",
+    "expected_category": "property_crimes",
+    "expected_sections": ["303"],
+    "sections_that_should_be_rejected": ["305", "309"],
+    "reason": "Theft of vehicle in public space is basic Theft (BNS 303), not dwelling theft or robbery.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 10,
+    "query": "Someone is making fake phone calls asking for money",
+    "expected_category": "financial_crimes",
+    "expected_sections": ["318", "319"],
+    "sections_that_should_be_rejected": ["303", "109"],
+    "reason": "Underspecified financial scam call query requiring verification of whether money was transferred.",
+    "is_ambiguous": true,
+    "is_missing_info": true
+  },
+  {
+    "id": 11,
+    "query": "A shopkeeper sold adulterated milk mixed with toxic chemical compounds",
+    "expected_category": "public_order",
+    "expected_sections": ["274", "275"],
+    "sections_that_should_be_rejected": ["303", "103"],
+    "reason": "Adulteration of food or drink dangerous to health falls under public health offences.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 12,
+    "query": "Commercial courier caught carrying 50 kg of illicit synthetic drugs across state border",
+    "expected_category": "narcotics_ndps",
+    "expected_sections": ["303"],
+    "sections_that_should_be_rejected": ["103", "106"],
+    "reason": "Narcotics transportation under NDPS statutory provisions.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 13,
+    "query": "A minor child was lured into a vehicle by an unknown person outside school premises",
+    "expected_category": "offences_against_children",
+    "expected_sections": ["137", "140"],
+    "sections_that_should_be_rejected": ["303", "103"],
+    "reason": "Kidnapping of minor from lawful guardianship under BNS 137/140.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 14,
+    "query": "Speeding truck ran over a red light at 100 km/h colliding with pedestrians on zebra crossing",
+    "expected_category": "traffic_accidents",
+    "expected_sections": ["281", "110"],
+    "sections_that_should_be_rejected": ["303", "103"],
+    "reason": "Rash and negligent driving endangering human life under BNS 281/110.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 15,
+    "query": "An armed mob of 20 people attacked a government office with stones and petrol bombs",
+    "expected_category": "public_order",
+    "expected_sections": ["189", "191"],
+    "sections_that_should_be_rejected": ["303", "85"],
+    "reason": "Unlawful assembly and rioting against public institutions.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 16,
+    "query": "Suspect forced victim into a room at knifepoint and robbed gold ornaments",
+    "expected_category": "property_crimes",
+    "expected_sections": ["309", "310"],
+    "sections_that_should_be_rejected": ["303", "318"],
+    "reason": "Extortion under threat of instant injury or death constitutes Robbery.",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 17,
+    "query": "A man promised marriage to a woman to induce sexual relationship and subsequently abandoned her",
+    "expected_category": "offences_against_women",
+    "expected_sections": ["69"],
+    "sections_that_should_be_rejected": ["303", "103"],
+    "reason": "Deceitful promise of marriage for sexual intercourse under BNS 69.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 18,
+    "query": "Someone picked my pocket on a crowded train platform taking wallet with 5000 cash",
+    "expected_category": "property_crimes",
+    "expected_sections": ["303"],
+    "sections_that_should_be_rejected": ["305", "309"],
+    "reason": "Simple pickpocketing theft without force or dwelling entry.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 19,
+    "query": "A cashier at a bank systematically forged manager signatures to withdraw funds",
+    "expected_category": "financial_crimes",
+    "expected_sections": ["336", "316"],
+    "sections_that_should_be_rejected": ["303", "109"],
+    "reason": "Forgery of valuable security and criminal breach of trust by bank employee.",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  },
+  {
+    "id": 20,
+    "query": "Suspect threw boiling oil on victim's face causing severe permanent disfigurement",
+    "expected_category": "violent_crimes",
+    "expected_sections": ["117", "118", "124"],
+    "sections_that_should_be_rejected": ["103", "303"],
+    "reason": "Voluntarily causing grievous hurt by dangerous substance/means.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 21,
+    "query": "Someone sent an anonymous threatening letter demanding 10 lakhs or my child will be harmed",
+    "expected_category": "organized_crime",
+    "expected_sections": ["308"],
+    "sections_that_should_be_rejected": ["303", "103"],
+    "reason": "Extortion by putting person in fear of injury/death under BNS 308.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 22,
+    "query": "Suspect broke window pane at midnight and climbed into bedroom stealing gold chain",
+    "expected_category": "property_crimes",
+    "expected_sections": ["305", "331"],
+    "sections_that_should_be_rejected": ["303", "109"],
+    "reason": "Lurking house-trespass by night and housebreaking theft under BNS 305/331.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 23,
+    "query": "Someone stole my handbag while I was eating at a restaurant",
+    "expected_category": "property_crimes",
+    "expected_sections": ["303"],
+    "sections_that_should_be_rejected": ["305", "309"],
+    "reason": "Theft of personal property in public building/restaurant.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 24,
+    "query": "Accused attacked victim with wooden bat during street quarrel causing swelling and bruises",
+    "expected_category": "violent_crimes",
+    "expected_sections": ["115", "118"],
+    "sections_that_should_be_rejected": ["103", "106"],
+    "reason": "Voluntarily causing hurt with weapon/instrument.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 25,
+    "query": "Cyber criminal hijacked WhatsApp account of victim and messaged contacts requesting urgent funds",
+    "expected_category": "cyber_crimes",
+    "expected_sections": ["318", "319"],
+    "sections_that_should_be_rejected": ["303", "109"],
+    "reason": "Cyber impersonation and cheating by personation.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 26,
+    "query": "Husband physically pushed pregnant wife down staircase resulting in injury",
+    "expected_category": "offences_against_women",
+    "expected_sections": ["85", "117"],
+    "sections_that_should_be_rejected": ["303", "106"],
+    "reason": "Domestic violence and physical cruelty causing grievous hurt by husband.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 27,
+    "query": "Someone tried to hack my email account but failed",
+    "expected_category": "cyber_crimes",
+    "expected_sections": ["318"],
+    "sections_that_should_be_rejected": ["303", "103"],
+    "reason": "Underspecified cyber incident query; engine should inquire about unauthorized access logs.",
+    "is_ambiguous": true,
+    "is_missing_info": true
+  },
+  {
+    "id": 28,
+    "query": "A person printed counterfeit 500 rupee notes and attempted to spend them at market",
+    "expected_category": "financial_crimes",
+    "expected_sections": ["178", "179"],
+    "sections_that_should_be_rejected": ["303", "109"],
+    "reason": "Counterfeiting currency notes and using forged currency under BNS 178/179.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 29,
+    "query": "Drunk driver rammed vehicle into roadside bus stop injuring three waiting passengers",
+    "expected_category": "traffic_accidents",
+    "expected_sections": ["281", "125"],
+    "sections_that_should_be_rejected": ["303", "106"],
+    "reason": "Drunken rash driving endangering life and causing hurt.",
+    "is_ambiguous": false,
+    "is_missing_info": false
+  },
+  {
+    "id": 30,
+    "query": "Suspect choked victim's neck until victim lost consciousness, suspect fled thinking victim was dead, but victim recovered",
+    "expected_category": "violent_crimes",
+    "expected_sections": ["109"],
+    "sections_that_should_be_rejected": ["103", "106"],
+    "reason": "Strangulation with intention to kill where victim survived consciousness loss is Attempt to Murder (BNS 109).",
+    "is_ambiguous": true,
+    "is_missing_info": false
+  }
+]

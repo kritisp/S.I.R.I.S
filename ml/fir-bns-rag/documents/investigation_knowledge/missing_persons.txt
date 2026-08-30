@@ -1,0 +1,13 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: missing_persons
+SOURCE: missing_persons.txt
+
+[STAGE: Immediate Alert & Lookup]
+ACTION: Upload missing person photograph, physical description, clothing notes, and biological details to TrackChild portal and ZIPNET database.
+PURPOSE: Broadcast nationwide alert across railway stations, bus terminals, and shelter homes.
+EVIDENCE_GENERATED: TrackChild registration portal receipt, ZIPNET broadcast alert log.
+
+[STAGE: CDR & Location Tracking]
+ACTION: Obtain Call Detail Records (CDR) and Tower Location dump of missing person's mobile number for last 72 hours.
+PURPOSE: Track last known physical location and final contacts before disappearance.
+EVIDENCE_GENERATED: CDR analysis report, cell tower location map.

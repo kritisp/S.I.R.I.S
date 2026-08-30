@@ -1,0 +1,23 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: violent_crimes
+SOURCE: violent_crimes.txt
+
+[STAGE: Crime Scene Cordon & Preservation]
+ACTION: Immediately cordon off the primary and secondary crime scenes using barrier tape and restrict entry.
+PURPOSE: Prevent biological contamination, destruction of bloodstains, foot impressions, or trace evidence.
+EVIDENCE_GENERATED: Crime scene log sheet, perimeter photographs, officer duty deployment list.
+
+[STAGE: Forensic & Biological Collection]
+ACTION: Deploy forensic science team to collect biological samples (bloodstains, hair, DNA swabs, weapon trace).
+PURPOSE: Establish victim and suspect DNA profiles for forensic match.
+EVIDENCE_GENERATED: DNA swab collection tubes, Forensic Science Laboratory (FSL) chain of custody dispatch memo.
+
+[STAGE: Weapon Seizure & Ballistics]
+ACTION: Locate, photograph, and seize assault weapons or instruments of crime under BNSS Section 105 audio-video recording.
+PURPOSE: Link physical weapon to biological injuries on victim.
+EVIDENCE_GENERATED: Seizure memo (Panchnama), ballistic examination request, audio-video recording media.
+
+[STAGE: Medical & Inquest Procedure]
+ACTION: Arrange immediate medical examination of victim or conduct formal inquest inquiry under BNSS Section 194/196.
+PURPOSE: Obtain medico-legal certificate (MLC) or post-mortem report specifying exact cause of injury or death.
+EVIDENCE_GENERATED: MLC copy, Post-Mortem examination report, doctor opinion certificate.

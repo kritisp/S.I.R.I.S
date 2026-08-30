@@ -1,0 +1,13 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: financial_crimes
+SOURCE: financial_crimes.txt
+
+[STAGE: Forensic Accounting & Audit]
+ACTION: Requisition audited financial statements, ledger entries, bank account transactions, and tax filings under Section 94 BNSS.
+PURPOSE: Identify systematic diversion of funds, shell company transfers, or forged invoices.
+EVIDENCE_GENERATED: Forensic audit report, certified bank ledger extracts, shell company corporate registry filings.
+
+[STAGE: Document Authentication]
+ACTION: Obtain questioned signatures, cheques, or financial contracts and send to State Examiner of Questioned Documents (SEQD).
+PURPOSE: Verify authenticity of handwriting and detect forgery.
+EVIDENCE_GENERATED: SEQD handwriting expert opinion report, specimen signature sheets.

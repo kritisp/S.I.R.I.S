@@ -1,0 +1,13 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: offences_against_women
+SOURCE: offences_against_women.txt
+
+[STAGE: Victim Statement Recording]
+ACTION: Arrange statement recording by female police officer at victim's residence or choice of place under BNSS Section 173/183.
+PURPOSE: Ensure victim safety, comfort, and legally admissible judicial statement before Magistrate.
+EVIDENCE_GENERATED: Section 183 BNSS judicial statement copy, audio-video recording media.
+
+[STAGE: Medical Examination & Rape Kit]
+ACTION: Escort victim for immediate medical examination by registered female medical practitioner within 24 hours under BNSS Section 51.
+PURPOSE: Collect SAEC (Sexual Assault Evidence Collection) kit samples, injury notes, and trace DNA.
+EVIDENCE_GENERATED: SAEC medical report, FSL sample collection seal list, MLC copy.

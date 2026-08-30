@@ -1,0 +1,13 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: evidence_management
+SOURCE: evidence_management.txt
+
+[STAGE: Chain of Custody & Malkhana Storage]
+ACTION: Seal seized articles with official police impression seal and log item into Malkhana Register (Form No. 108).
+PURPOSE: Maintain tamper-proof chain of custody from seizure to court trial presentation.
+EVIDENCE_GENERATED: Malkhana register entry receipt, sealed parcel tag memo.
+
+[STAGE: Forensic Dispatch]
+ACTION: Dispatch sealed biological/digital samples to Forensic Science Laboratory (FSL) via special messenger.
+PURPOSE: Prevent degradation or tampering during transit.
+EVIDENCE_GENERATED: FSL acknowledgement receipt, messenger transit log.

@@ -1,0 +1,18 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: narcotics_ndps
+SOURCE: narcotics_ndps.txt
+
+[STAGE: Substance Securing & Seizure]
+ACTION: Secure the seized suspected contraband substance and prevent any contamination, leakage, or loss.
+PURPOSE: Establish corpus delicti of the drug offense and ensure physical quantity is verified.
+EVIDENCE_GENERATED: Seizure memo (Panchnama) signed by independent witnesses, physical package seal, weighing records.
+
+[STAGE: Sample Collection & Forensic Dispatch]
+ACTION: Draw representative duplicate samples of the seized contraband in the presence of a magistrate and dispatch to Forensic Science Laboratory (FSL).
+PURPOSE: Confirm the chemical composition, purity, and exact classification of the narcotics substance under NDPS guidelines.
+EVIDENCE_GENERATED: FSL sample dispatch form, magistrate inventory certificate under Section 105 BNSS, FSL receipt acknowledgement.
+
+[STAGE: Source & Supply Chain Investigation]
+ACTION: Interrogate the accused to identify the drug source network, suppliers, carriers, and prospective buyers.
+PURPOSE: Map the distribution channels, identify contraband storehouses, and intercept active smuggling modules.
+EVIDENCE_GENERATED: Accused disclosure statements, call details records (CDR) map, suspect link analysis charts.

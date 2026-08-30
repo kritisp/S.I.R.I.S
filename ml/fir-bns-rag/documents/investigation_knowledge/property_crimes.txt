@@ -1,0 +1,28 @@
+DOCUMENT_TYPE: investigation_guideline
+CRIME_CATEGORY: property_crimes
+SOURCE: property_crimes.txt
+
+[STAGE: Crime Scene Examination]
+ACTION: Inspect entry and exit points of the premises (doors, windows, roof, locks).
+PURPOSE: Identify method of entry, forced entry marks, or tool marks used by housebreakers.
+EVIDENCE_GENERATED: Scene photographs, tool mark impressions, lock defect notes.
+
+[STAGE: Evidence Recovery & Forensics]
+ACTION: Collect latent fingerprints from touchpoints (doorknobs, lock handles, safe handles, glass surfaces).
+PURPOSE: Lift latent friction ridge impressions of perpetrators for AFIS database comparison.
+EVIDENCE_GENERATED: Fingerprint cards, dusting powder lifts, forensic technician report.
+
+[STAGE: Property Recovery & Search]
+ACTION: Obtain detailed description, serial numbers, invoice receipts, and photograph records of stolen jewellery/assets.
+PURPOSE: Issue alert notices to local goldsmiths, pawn shops, and secondhand market monitoring channels under BNSS Section 107.
+EVIDENCE_GENERATED: Stolen property register entry, goldsmith alert notice copies, purchase receipts.
+
+[STAGE: CCTV & Digital Intelligence]
+ACTION: Retrieve and secure CCTV footage from nearby cameras covering approach and escape routes during the crime window.
+PURPOSE: Establish physical identification and timeline of suspects.
+EVIDENCE_GENERATED: Digital DVR footage export, Section 63 BSHA electronic evidence certificate.
+
+[STAGE: Informant & Neighborhood Canvassing]
+ACTION: Conduct door-to-door neighborhood inquiry and examine local informants regarding suspicious persons or vehicles observed near scene.
+PURPOSE: Identify potential eyewitnesses and suspect escape vehicles.
+EVIDENCE_GENERATED: Witness statements recorded under BNSS Section 180.
