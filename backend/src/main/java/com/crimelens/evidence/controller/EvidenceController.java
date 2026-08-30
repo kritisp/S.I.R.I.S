@@ -26,10 +26,10 @@ public class EvidenceController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<EvidenceDTO>>> getEvidenceByCaseId(
-            @RequestParam("caseId") String caseId,
+    public ResponseEntity<ApiResponse<List<EvidenceDTO>>> getEvidence(
+            @RequestParam(name = "caseId", required = false) String caseId,
             @AuthenticationPrincipal UserPrincipal principal) {
-        List<EvidenceDTO> evidence = evidenceService.getEvidenceByCaseId(caseId, principal);
+        List<EvidenceDTO> evidence = evidenceService.getEvidence(caseId, principal);
         return ResponseEntity.ok(ApiResponse.success(evidence));
     }
 

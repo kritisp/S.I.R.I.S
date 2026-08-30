@@ -12,6 +12,7 @@ public class IntelligenceAlertDTO {
     private String relatedCaseId;
     private String targetCaseId;
     private String targetStationId;
+    @com.fasterxml.jackson.annotation.JsonProperty("isRead")
     private boolean isRead;
     private Instant createdAt;
 

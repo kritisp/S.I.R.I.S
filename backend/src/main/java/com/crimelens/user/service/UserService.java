@@ -216,7 +216,11 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", officerId));
 
         if (!securityEvaluator.canManageUser(actor, officer) && !actor.getUsername().equalsIgnoreCase(officerId)) {
-            throw new UnauthorizedAccessException("Unauthorized to view caseload for this officer");
+            String actorStation = actor.getStationId();
+            String officerStation = officer.getStation() != null ? officer.getStation().getId() : null;
+            if (actorStation == null || !actorStation.equalsIgnoreCase(officerStation)) {
+                throw new UnauthorizedAccessException("Unauthorized to view caseload for this officer");
+            }
         }
 
         long activeCases = caseRepository.countByInvestigatorIdAndStatus(officerId, CaseStatus.INVESTIGATING);

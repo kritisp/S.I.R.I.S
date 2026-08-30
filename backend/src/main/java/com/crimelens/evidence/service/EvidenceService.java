@@ -48,6 +48,28 @@ public class EvidenceService {
     }
 
     @Transactional(readOnly = true)
+    public List<EvidenceDTO> getEvidence(String caseId, UserPrincipal actor) {
+        if (caseId != null && !caseId.isBlank()) {
+            return getEvidenceByCaseId(caseId, actor);
+        }
+
+        if (actor.getRole() == com.crimelens.user.entity.enums.UserRole.SUPER_ADMIN) {
+            return evidenceRepository.findAll().stream()
+                    .map(EvidenceDTO::fromEntity)
+                    .collect(Collectors.toList());
+        }
+
+        String userStation = actor.getStationId();
+        if (userStation == null) {
+            return List.of();
+        }
+
+        return evidenceRepository.findByCaseRecordStationId(userStation).stream()
+                .map(EvidenceDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<EvidenceDTO> getEvidenceByCaseId(String caseId, UserPrincipal actor) {
         CaseRecord caseRecord = caseRepository.findById(caseId)
                 .orElseThrow(() -> new ResourceNotFoundException("CaseRecord", "id", caseId));
