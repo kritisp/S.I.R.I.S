@@ -176,13 +176,17 @@ class LegalIntelligenceAssistant:
 
         prompt = build_dual_law_investigation_prompt(analysis, bns_context, bnss_context, inv_context, element_notes)
 
-        # Call LLMService Abstraction Layer (routes to RemoteQwenLLM)
-        response_json = LLMService.generate_structured(
-            prompt=prompt,
-            system_prompt=POLICE_ASSISTANT_SYSTEM_PROMPT
-        )
+        # Call LLMService Abstraction Layer (with graceful fallback on API error)
+        try:
+            response_json = LLMService.generate_structured(
+                prompt=prompt,
+                system_prompt=POLICE_ASSISTANT_SYSTEM_PROMPT
+            )
+        except Exception as err:
+            print(f"[LegalAssistant Warning] LLM provider call failed ({err}). Utilizing deterministic fallback engine.")
+            response_json = {}
 
-        # Fallback formatting if raw dict returned
+        # Fallback formatting if raw dict returned or LLM failed
         is_fallback_placeholder = (
             "possible_offences" not in response_json 
             or not response_json.get("possible_offences")
@@ -466,7 +470,7 @@ class LegalIntelligenceAssistant:
                         return False
 
             # 3. Does evidence strategy match crime category?
-            evidence_text = " ".join([e.get("items_to_collect", "").lower() for e in response_json.get("evidence_required", [])])
+            evidence_text = " ".join([e.get("items_to_collect", "").lower() if isinstance(e, dict) else str(e).lower() for e in response_json.get("evidence_required", [])])
             if "narcotics" in crime_category or "ndps" in crime_category:
                 if not any(w in evidence_text for w in ["substance", "narcotics", "drug", "contraband", "powder", "chemical", "sample", "memo"]):
                     print("[Quality Check Failed] Narcotics case evidence strategy is missing drug recovery items!")

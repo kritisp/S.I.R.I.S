@@ -76,7 +76,7 @@ class FIREntityExtractor:
     def _extract_fir_metadata(self, text: str) -> Dict[str, Any]:
         """Extract FIR No, Police Station, Date, and Sections Mentioned."""
         fir_no = None
-        m_fir = re.search(r"(?:FIR\s*(?:No\.?|Number|#)\s*[:\-]?\s*)([A-Z0-9\/\-\_]+)", text, re.IGNORECASE)
+        m_fir = re.search(r"(?:FIR\s*(?:No\.?|Number|#)\s*[:\-]?\s*)([A-Za-z0-9][A-Za-z0-9\/\-\_]*\d[A-Za-z0-9\/\-\_]*)", text, re.IGNORECASE)
         if m_fir:
             fir_no = m_fir.group(1).strip().rstrip(".,")
 
@@ -227,7 +227,7 @@ class FIREntityExtractor:
 
         # Narrative fallback: unknown suspects mentioned in body text
         if not people["accused"]:
-            if re.search(r"\b(?:unknown\s*(?:persons?|men|thief|attackers?|assailants?)|unidentified\s*suspects?|untraced\s*accused)\b", text, re.IGNORECASE):
+            if re.search(r"\b(?:unknown\s*(?:persons?|men|thief|attackers?|assailants?|riders?|motorcycle\s*riders?|individuals?|accused)|unidentified\s*(?:persons?|suspects?|men|riders?)|untraced\s*accused)\b", text, re.IGNORECASE):
                 people["accused"].append({
                     "name": "Unknown / Unidentified person(s)",
                     "description": "Suspects mentioned as unknown in narrative",
@@ -367,12 +367,12 @@ class FIREntityExtractor:
         text_lower = text.lower()
 
         # Crime Domain / Category
-        if any(w in text_lower for w in ["kill", "murder", "dead", "stab", "shoot", "homicide", "attempt to murder", "strangle", "beat"]):
+        if any(w in text_lower for w in ["dowry", "cruelty by husband", "domestic violence", "rape", "molest", "modesty"]):
+            crime_domain = "offences_against_women"
+            crime_type = "Offences Against Women / Domestic Cruelty"
+        elif any(w in text_lower for w in ["kill", "murder", "dead", "stab", "shoot", "homicide", "attempt to murder", "strangle"]):
             crime_domain = "violent_crimes"
             crime_type = "Violent Offence / Homicide / Assault"
-        elif any(w in text_lower for w in ["stole", "stolen", "theft", "burgle", "jewellery", "cash", "housebreak", "trespass", "robbed", "snatched"]):
-            crime_domain = "property_crimes"
-            crime_type = "Property Offence / Theft / Housebreaking / Robbery"
         elif any(w in text_lower for w in ["cyber", "phishing", "online", "bank scam", "hacked", "otp", "fraud link"]):
             crime_domain = "cyber_crimes"
             crime_type = "Cyber / Digital Fraud"
@@ -382,9 +382,9 @@ class FIREntityExtractor:
         elif any(w in text_lower for w in ["cheated", "fraud", "forged", "counterfeit", "misappropriation"]):
             crime_domain = "financial_crimes"
             crime_type = "Financial Fraud / Forgery / Cheating"
-        elif any(w in text_lower for w in ["rape", "molest", "dowry", "modesty", "cruelty by husband", "domestic violence"]):
-            crime_domain = "offences_against_women"
-            crime_type = "Offences Against Women / Domestic Cruelty"
+        elif any(w in text_lower for w in ["stole", "stolen", "theft", "burgle", "jewellery", "cash", "housebreak", "trespass", "robbed", "snatched"]):
+            crime_domain = "property_crimes"
+            crime_type = "Property Offence / Theft / Housebreaking / Robbery"
         else:
             crime_domain = "general_penal"
             crime_type = "General Penal Offence"
@@ -591,10 +591,10 @@ class FIREntityExtractor:
                 "item": "CCTV camera footage / DVR recording",
                 "significance": "Visual timeline and suspect identification"
             })
-        if re.search(r"\b(?:bank\s*statement|transaction\s*id|receipt|invoice|forged\s*cheque|agreement)\b", text, re.IGNORECASE):
+        if re.search(r"\b(?:bank\s*statement|transaction\s*id|receipt|invoice|bill|bills|forged|cheated|forged\s*cheque|agreement)\b", text, re.IGNORECASE):
             evidence.append({
                 "type": "Documentary / Financial",
-                "item": "Bank statements / Transaction records / Forged documents",
+                "item": "Bank statements / Transaction records / Forged documents / Financial receipts",
                 "significance": "Financial trail and deceptive inducement proof"
             })
 
