@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Upload, FileText, Bot, AlertTriangle } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
 import { intelligenceService } from '../mockServices/intelligenceService';
+import { evidenceApi } from '../services/api';
 
 export function EvidenceVault() {
   const { state, dispatch } = useMockState();
@@ -22,8 +23,20 @@ export function EvidenceVault() {
       // 1. Process evidence via mock AI
       const result = await intelligenceService.processEvidence(evidenceText);
       
-      // 2. Save Evidence to state
-      const newEvidence = {
+      // 2. Save Evidence via backend API
+      let createdEv: any = null;
+      try {
+        createdEv = await evidenceApi.addEvidence({
+          caseId: selectedCase,
+          description: evidenceText,
+          type: 'DOCUMENT',
+          entitiesExtracted: result.entitiesExtracted,
+        });
+      } catch (err) {
+        console.warn('Evidence API notice:', err);
+      }
+
+      const newEvidence = createdEv || {
         id: `EV-${Date.now()}`,
         caseId: selectedCase,
         description: evidenceText,

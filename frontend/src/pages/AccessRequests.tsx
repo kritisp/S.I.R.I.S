@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CheckCircle, XCircle, Clock, ShieldAlert, FileText, Lock, CheckCircle2, AlertCircle, HelpCircle, ArrowRight, User } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
 import { AccessRequest } from '../mockServices/types';
+import { requestsApi } from '../services/api';
 
 export function AccessRequests() {
   const { state, dispatch } = useMockState();
@@ -20,7 +21,17 @@ export function AccessRequests() {
   const [selectedIncomingRequest, setSelectedIncomingRequest] = useState<AccessRequest | null>(null);
   const [showApprovalConfirmModal, setShowApprovalConfirmModal] = useState(false);
 
-  const handleAction = (id: string, status: 'APPROVED' | 'REJECTED') => {
+  const handleAction = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+    try {
+      if (status === 'APPROVED') {
+        await requestsApi.approveRequest(id);
+      } else {
+        await requestsApi.rejectRequest(id);
+      }
+    } catch (err) {
+      console.warn('Access request action API notice:', err);
+    }
+
     dispatch({ type: 'UPDATE_ACCESS_REQUEST_STATUS', payload: { id, status } });
     
     // Add audit logs/alerts

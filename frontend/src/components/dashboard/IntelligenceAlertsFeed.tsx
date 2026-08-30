@@ -5,6 +5,8 @@ import {
   Network, CheckCircle2
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useMockState } from '../../mockServices/MockStateContext';
+import { alertsApi } from '../../services/api';
 
 interface AlertItem {
   id: string;
@@ -63,8 +65,30 @@ const DEFAULT_ALERTS: AlertItem[] = [
 export function IntelligenceAlertsFeed() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { state, dispatch } = useMockState();
 
-  const alerts = DEFAULT_ALERTS;
+  const handleAlertClick = async (alertId: string) => {
+    try {
+      await alertsApi.markAsRead(alertId);
+      dispatch({ type: 'MARK_ALERT_READ', payload: alertId });
+    } catch (err) {
+      console.warn('Alert mark read notice:', err);
+    }
+    navigate('/intelligence/alerts');
+  };
+
+  const realAlerts: AlertItem[] = state.alerts.slice(0, 4).map((a, i) => ({
+    id: a.id,
+    title: a.type.replace(/_/g, ' '),
+    desc: a.message,
+    time: 'Just now',
+    severity: a.type === 'CROSS_STATION_MATCH' ? 'High' : 'Medium',
+    icon: a.type === 'CROSS_STATION_MATCH' ? ShieldAlert : Network,
+    iconBg: a.type === 'CROSS_STATION_MATCH' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-amber-500/10 border-amber-500/20',
+    iconColor: a.type === 'CROSS_STATION_MATCH' ? 'text-rose-500' : 'text-amber-500',
+  }));
+
+  const alerts = realAlerts.length > 0 ? realAlerts : DEFAULT_ALERTS;
 
   return (
     <div className="bg-surface dark:bg-[#0F1726] border border-border dark:border-[#1E293B] rounded-2xl p-4 flex flex-col justify-between shadow-xs h-full">
@@ -92,7 +116,7 @@ export function IntelligenceAlertsFeed() {
           return (
             <div
               key={item.id}
-              onClick={() => navigate('/intelligence/alerts')}
+              onClick={() => handleAlertClick(item.id)}
               className="flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-2/60 dark:bg-[#151E31]/60 hover:bg-surface-hover dark:hover:bg-[#151E31] border border-border-soft dark:border-[#1E293B]/70 transition-colors cursor-pointer group"
             >
               {/* Left: Icon + Title + Desc */}

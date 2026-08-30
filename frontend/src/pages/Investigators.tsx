@@ -3,6 +3,7 @@ import { Users, Plus, Search, Shield, Briefcase, Trash2, Eye, Award, CheckCircle
 import { useMockState } from '../mockServices/MockStateContext';
 import { User, CaseRecord } from '../mockServices/types';
 import { useNavigate } from 'react-router-dom';
+import { usersApi } from '../services/api';
 
 export function Investigators() {
   const { state, dispatch } = useMockState();
@@ -34,11 +35,25 @@ export function Investigators() {
     return <div className="p-8 text-danger-bright font-bold">UNAUTHORIZED ACCESS</div>;
   }
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOfficerName.trim() || !newOfficerId.trim()) return;
 
-    const newUserObj: User = {
+    let createdUserObj: User | null = null;
+    try {
+      createdUserObj = await usersApi.createUser({
+        id: newOfficerId,
+        name: newOfficerName,
+        role: newOfficerRole,
+        stationId: myStationId,
+        status: newOfficerStatus,
+        rank: newOfficerRank,
+      });
+    } catch (err) {
+      console.warn('User creation API notice:', err);
+    }
+
+    const newUserObj: User = createdUserObj || {
       id: newOfficerId,
       name: newOfficerName,
       role: newOfficerRole,
@@ -59,7 +74,13 @@ export function Investigators() {
     setShowModal(false);
   };
 
-  const handleToggleDeactivate = (officer: User) => {
+  const handleToggleDeactivate = async (officer: User) => {
+    try {
+      await usersApi.toggleUserStatus(officer.id);
+    } catch (err) {
+      console.warn('Toggle user status API notice:', err);
+    }
+
     const updatedUser: User = {
       ...officer,
       status: officer.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'

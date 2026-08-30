@@ -5,6 +5,7 @@ import { useMockState } from '../mockServices/MockStateContext';
 import { intelligenceService } from '../mockServices/intelligenceService';
 import { FIR_ANALYSIS_PROVISIONS } from '../mockServices/legalProvisionMockData';
 import { LegalProvisionList } from '../components/legal/LegalProvisionList';
+import { casesApi } from '../services/api';
 
 export function RegisterFIR() {
   const { state, dispatch } = useMockState();
@@ -30,19 +31,36 @@ export function RegisterFIR() {
   const handleCreateCase = async () => {
     if (!state.currentUser) return;
     
-    // Create the case in mock state
-    const newCase = {
-      id: 'CR-KHD-2026-004821',
-      firNumber: 'CR-KHD-2026-004821',
+    let createdCase: any = null;
+    try {
+      const firNum = `FIR-KHD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      createdCase = await casesApi.createCase({
+        firNumber: firNum,
+        stationId: state.currentUser.stationId || 'OP-BBSR-CAP',
+        investigatorId: state.currentUser.id,
+        title: analysisResult?.crimeClassification || 'FIR Incident Report',
+        description: narrative,
+        crimeType: analysisResult?.crimeClassification || 'General Offence',
+        status: 'INVESTIGATING',
+        priority: 'HIGH',
+        entities: analysisResult?.extractedEntities || [],
+      });
+    } catch (err) {
+      console.warn('Backend FIR persistence warning:', err);
+    }
+
+    const newCase = createdCase || {
+      id: `CR-KHD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      firNumber: `FIR-KHD-2026-004821`,
       stationId: state.currentUser.stationId || 'OP-BBSR-CAP',
       investigatorId: state.currentUser.id,
-      title: analysisResult.crimeClassification,
+      title: analysisResult?.crimeClassification || 'Incident Report',
       description: narrative,
-      crimeType: analysisResult.crimeClassification,
+      crimeType: analysisResult?.crimeClassification || 'General Offence',
       status: 'INVESTIGATING' as const,
       priority: 'HIGH' as const,
       createdAt: new Date().toISOString(),
-      entities: analysisResult.extractedEntities,
+      entities: analysisResult?.extractedEntities || [],
     };
 
     dispatch({ type: 'ADD_CASE', payload: newCase });
@@ -53,9 +71,9 @@ export function RegisterFIR() {
     // Simulate async background job
     setTimeout(async () => {
       const scanResult = await intelligenceService.scanCrossStationRelationships(
-        newCase.entities,
+        newCase.entities || [],
         newCase.stationId,
-        state.cases // the old cases before this one was added
+        state.cases
       );
       
       if (scanResult.matchFound) {
@@ -74,7 +92,7 @@ export function RegisterFIR() {
         });
       }
       dispatch({ type: 'SET_PROCESSING', payload: false });
-    }, 3000);
+    }, 2000);
 
     navigate(`/cases/${newCase.id}`);
   };

@@ -5,6 +5,7 @@ import { CaseKnowledgeGraph } from '../components/graph/CaseKnowledgeGraph';
 import { Shield, FileText, Share2, AlertTriangle, FileBarChart, Scale, Bot, Lock, CheckCircle, Clock, Network, AlertCircle, ChevronRight, HelpCircle, Eye } from 'lucide-react';
 import { HERO_CASE_PROVISIONS, ROBBERY_CASE_PROVISIONS, FIR_ANALYSIS_PROVISIONS } from '../mockServices/legalProvisionMockData';
 import { LegalProvisionList } from '../components/legal/LegalProvisionList';
+import { requestsApi, generateFirDraft } from '../services/api';
 
 export function CaseWorkspace() {
   const { id } = useParams<{ id: string }>();
@@ -58,16 +59,27 @@ export function CaseWorkspace() {
         : 'border-transparent text-text-dim hover:text-text'
     }`;
 
-  const handleGenerateDraft = () => {
+  const handleGenerateDraft = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
+    try {
+      await generateFirDraft(`Generate FIR draft report for ${currentCase.firNumber}: ${currentCase.description}`, 'en');
+    } catch (err) {
+      console.warn('Draft API notice:', err);
+    } finally {
       setIsGenerating(false);
       setDraftGenerated(true);
-    }, 2000);
+    }
   };
 
-  const handleSendAccessRequest = () => {
-    const newReq = {
+  const handleSendAccessRequest = async () => {
+    let newReq: any = null;
+    try {
+      newReq = await requestsApi.createRequest('OD-CTC-2026-00981', justificationText);
+    } catch (err) {
+      console.warn('Access request API notice:', err);
+    }
+
+    const requestPayload = newReq || {
       id: `REQ-${Date.now()}`,
       requestingStationId: state.currentUser?.stationId || 'OP-BBSR-CAP',
       requestingOfficerId: state.currentUser?.id || 'INV-BBSR-001',
@@ -78,7 +90,7 @@ export function CaseWorkspace() {
       createdAt: new Date().toISOString()
     };
     
-    dispatch({ type: 'ADD_ACCESS_REQUEST', payload: newReq });
+    dispatch({ type: 'ADD_ACCESS_REQUEST', payload: requestPayload });
     
     // Create notifications/logs
     dispatch({

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Building, User, Lock, Globe, KeyRound, Brain, Video, BarChart3, Car, Fingerprint, ScanFace, Network as NetworkIcon, Folder } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
 import { UserRole } from '../mockServices/types';
+import { authApi } from '../services/api';
 
 export function Login() {
   const { state, dispatch } = useMockState();
@@ -36,9 +37,26 @@ export function Login() {
     }
   }, [selectedRole]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    try {
+      const res = await authApi.login({
+        userId,
+        password,
+        stationCode: selectedRole === 'SUPER_ADMIN' ? undefined : stationCode,
+        role: selectedRole || undefined,
+      });
+
+      if (res && res.user) {
+        dispatch({ type: 'SET_USER', payload: res.user });
+        navigate('/dashboard');
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Backend login notice, checking credentials:', err);
+    }
 
     let user;
     if (selectedRole === 'SUPER_ADMIN') {

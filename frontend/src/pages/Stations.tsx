@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Building, Plus, Search, Shield, MapPin } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
 import { Station } from '../mockServices/types';
+import { stationsApi } from '../services/api';
 
 export function Stations() {
   const { state, dispatch } = useMockState();
@@ -21,13 +22,20 @@ export function Stations() {
     return <div className="p-8 text-danger-bright font-bold">UNAUTHORIZED ACCESS</div>;
   }
 
-  const handleAddStation = (e: React.FormEvent) => {
+  const handleAddStation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStation.name || !newStation.id) return;
 
+    let createdStation: Station | null = null;
+    try {
+      createdStation = await stationsApi.createStation(newStation);
+    } catch (err) {
+      console.warn('Station creation API notice:', err);
+    }
+
     dispatch({ 
       type: 'ADD_STATION', 
-      payload: newStation as Station 
+      payload: (createdStation || newStation) as Station 
     });
     
     setShowModal(false);

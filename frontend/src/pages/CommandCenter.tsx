@@ -12,13 +12,14 @@
  * - Investigation Team Performance & Caseload Distribution
  * - Centralized Multilingual Translation & Dual Light/Dark theming
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar, Filter, UserPlus, ChevronDown
 } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
 import { useLanguage } from '../context/LanguageContext';
+import { dashboardApi, casesApi } from '../services/api';
 import { IntelligenceSummaryKpis } from '../components/dashboard/IntelligenceSummaryKpis';
 import { ActionRequiredStrip } from '../components/dashboard/ActionRequiredStrip';
 import { FirRegistrationTrendChart } from '../components/dashboard/FirRegistrationTrendChart';
@@ -71,11 +72,19 @@ export function CommandCenter() {
     });
   }, [state.cases, state.stations, role, myStationId, filterDistrict, filterCategory, filterPriority]);
 
+  const [backendStats, setBackendStats] = useState<any | null>(null);
+
+  useEffect(() => {
+    dashboardApi.getStats()
+      .then((stats) => setBackendStats(stats))
+      .catch((err) => console.warn('Dashboard stats backend connection:', err));
+  }, []);
+
   // Statistics
-  const totalFirs = role === 'SUPER_ADMIN' ? 797 : filteredCases.length || 797;
-  const activeCases = filteredCases.filter((c) => c.status === 'INVESTIGATING').length || 120;
-  const casesClosed = filteredCases.filter((c) => c.status === 'SOLVED' || c.status === 'CLOSED').length || 552;
-  const pendingCases = filteredCases.filter((c) => c.status === 'PENDING').length || 100;
+  const totalFirs = backendStats?.totalCases ?? (role === 'SUPER_ADMIN' ? 797 : filteredCases.length);
+  const activeCases = backendStats?.activeInvestigations ?? filteredCases.filter((c) => c.status === 'INVESTIGATING').length;
+  const casesClosed = (backendStats?.solvedCases ?? 0) + (backendStats?.closedCases ?? 0) || filteredCases.filter((c) => c.status === 'SOLVED' || c.status === 'CLOSED').length;
+  const pendingCases = backendStats?.pendingCases ?? filteredCases.filter((c) => c.status === 'PENDING').length;
   const overdueWork = filteredCases.filter((c) => c.priority === 'CRITICAL').length || 15;
   const highPriority = filteredCases.filter((c) => c.priority === 'HIGH' || c.priority === 'CRITICAL').length || 12;
   const activeOfficers = state.users.filter((u) => u.role === 'OFFICER').length || 23;
