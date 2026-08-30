@@ -2702,4 +2702,5 @@ export const initialState: AppState = {
   ],
   alerts,
   isProcessingIntelligence: false,
+  isLoading: true,
 };

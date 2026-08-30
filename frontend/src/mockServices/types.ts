@@ -88,4 +88,5 @@ export interface AppState {
   accessRequests: AccessRequest[];
   alerts: IntelligenceAlert[];
   isProcessingIntelligence: boolean;
+  isLoading: boolean;
 }

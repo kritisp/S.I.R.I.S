@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Shield, FilePlus, Search, ShieldAlert,
   Network, Sparkles, Scale, FileText, FileBarChart,
@@ -46,8 +46,19 @@ export function SIHLayout() {
 
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
+  if (state.isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-bg text-text">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-brand/20 border-t-brand rounded-full animate-spin"></div>
+          <div className="text-sm font-mono tracking-widest text-text-dim uppercase animate-pulse">Initializing S.I.R.I.S...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!state.currentUser) {
-    return <div className="p-8 text-text">Redirecting to login...</div>;
+    return <Navigate to="/" replace />;
   }
 
   const role = state.currentUser.role;

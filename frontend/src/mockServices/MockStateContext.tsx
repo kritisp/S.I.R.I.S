@@ -30,7 +30,8 @@ type Action =
   | { type: 'SET_USERS'; payload: User[] }
   | { type: 'ADD_USER'; payload: User }
   | { type: 'UPDATE_USER'; payload: User }
-  | { type: 'SET_PROCESSING'; payload: boolean };
+  | { type: 'SET_PROCESSING'; payload: boolean }
+  | { type: 'SET_LOADING'; payload: boolean };
 
 const reducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
@@ -84,6 +85,8 @@ const reducer = (state: AppState, action: Action): AppState => {
       };
     case 'SET_PROCESSING':
       return { ...state, isProcessingIntelligence: action.payload };
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
     default:
       return state;
   }
@@ -100,7 +103,10 @@ export const MockStateProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshBackendData = useCallback(async () => {
     const token = getAuthToken();
-    if (!token) return;
+    if (!token) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return;
+    }
 
     try {
       // 1. Fetch user profile if not set
@@ -152,6 +158,8 @@ export const MockStateProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (err) {
       console.warn('Backend connection unavailable, using local initial state:', err);
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.currentUser]);
 
