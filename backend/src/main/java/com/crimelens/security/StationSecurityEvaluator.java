@@ -1,8 +1,8 @@
 package com.crimelens.security;
 
-import com.crimelens.entities.CaseRecord;
-import com.crimelens.entities.User;
-import com.crimelens.entities.enums.UserRole;
+import com.crimelens.casefile.entity.CaseRecord;
+import com.crimelens.user.entity.User;
+import com.crimelens.user.entity.enums.UserRole;
 import org.springframework.stereotype.Component;
 
 @Component("stationSecurity")

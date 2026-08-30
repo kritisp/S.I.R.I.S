@@ -1,6 +1,6 @@
 package com.crimelens.security;
 
-import com.crimelens.exceptions.ErrorResponse;
+import com.crimelens.common.exceptions.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

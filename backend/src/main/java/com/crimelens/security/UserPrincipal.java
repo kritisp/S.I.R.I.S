@@ -1,8 +1,8 @@
 package com.crimelens.security;
 
-import com.crimelens.entities.User;
-import com.crimelens.entities.enums.UserRole;
-import com.crimelens.entities.enums.UserStatus;
+import com.crimelens.user.entity.User;
+import com.crimelens.user.entity.enums.UserRole;
+import com.crimelens.user.entity.enums.UserStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

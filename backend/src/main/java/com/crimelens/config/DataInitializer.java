@@ -1,8 +1,27 @@
 package com.crimelens.config;
 
-import com.crimelens.entities.*;
-import com.crimelens.entities.enums.*;
-import com.crimelens.repositories.*;
+import com.crimelens.access.entity.AccessRequest;
+import com.crimelens.access.entity.enums.RequestStatus;
+import com.crimelens.access.repository.AccessRequestRepository;
+import com.crimelens.casefile.entity.CaseRecord;
+import com.crimelens.casefile.entity.enums.CasePriority;
+import com.crimelens.casefile.entity.enums.CaseStatus;
+import com.crimelens.casefile.repository.CaseRecordRepository;
+import com.crimelens.evidence.entity.Evidence;
+import com.crimelens.evidence.repository.EvidenceRepository;
+import com.crimelens.intelligence.entity.ExtractedEntity;
+import com.crimelens.intelligence.entity.IntelligenceAlert;
+import com.crimelens.intelligence.entity.enums.AlertType;
+import com.crimelens.intelligence.entity.enums.EntityType;
+import com.crimelens.intelligence.repository.IntelligenceAlertRepository;
+import com.crimelens.station.entity.PoliceStation;
+import com.crimelens.station.entity.enums.StationStatus;
+import com.crimelens.station.repository.PoliceStationRepository;
+import com.crimelens.user.entity.User;
+import com.crimelens.user.entity.enums.UserRole;
+import com.crimelens.user.entity.enums.UserStatus;
+import com.crimelens.user.repository.UserRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;

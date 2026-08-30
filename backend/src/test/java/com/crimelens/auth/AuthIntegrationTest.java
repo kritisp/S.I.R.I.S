@@ -1,7 +1,9 @@
 package com.crimelens.auth;
 
-import com.crimelens.dto.request.LoginRequest;
-import com.crimelens.dto.request.RefreshTokenRequest;
+import com.crimelens.user.entity.User;
+
+import com.crimelens.auth.dto.request.LoginRequest;
+import com.crimelens.auth.dto.request.RefreshTokenRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

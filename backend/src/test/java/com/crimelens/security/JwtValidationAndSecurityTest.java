@@ -1,10 +1,10 @@
 package com.crimelens.security;
 
-import com.crimelens.entities.PoliceStation;
-import com.crimelens.entities.User;
-import com.crimelens.entities.enums.StationStatus;
-import com.crimelens.entities.enums.UserRole;
-import com.crimelens.entities.enums.UserStatus;
+import com.crimelens.station.entity.PoliceStation;
+import com.crimelens.user.entity.User;
+import com.crimelens.station.entity.enums.StationStatus;
+import com.crimelens.user.entity.enums.UserRole;
+import com.crimelens.user.entity.enums.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

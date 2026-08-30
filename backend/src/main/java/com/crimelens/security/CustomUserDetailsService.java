@@ -1,7 +1,7 @@
 package com.crimelens.security;
 
-import com.crimelens.entities.User;
-import com.crimelens.repositories.UserRepository;
+import com.crimelens.user.entity.User;
+import com.crimelens.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

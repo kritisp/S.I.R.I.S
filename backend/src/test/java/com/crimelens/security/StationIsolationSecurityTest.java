@@ -1,6 +1,6 @@
 package com.crimelens.security;
 
-import com.crimelens.dto.request.LoginRequest;
+import com.crimelens.auth.dto.request.LoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
