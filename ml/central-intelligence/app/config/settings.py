@@ -71,7 +71,7 @@ class Settings(BaseSettings):
 
     # Step 8 LLM Reasoning Layer Configuration
     LLM_PRIMARY_PROVIDER: str = "groq"
-    LLM_FALLBACK_PROVIDER: str = "cerebras"
+    LLM_FALLBACK_PROVIDER: str = "ollama"
     LLM_LOCAL_PROVIDER: str = "ollama"
     GROQ_API_KEY: Optional[str] = None
     GROQ_API_KEYS: Optional[str] = None
