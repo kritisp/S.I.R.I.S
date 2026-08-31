@@ -53,6 +53,7 @@ public class AuditLog {
     private Instant timestamp;
 
     public AuditLog() {
+        this.timestamp = Instant.now();
     }
 
     public AuditLog(String userId, String userName, String userRole, String stationId, String action,
@@ -66,6 +67,7 @@ public class AuditLog {
         this.resourceId = resourceId;
         this.ipAddress = ipAddress;
         this.details = details;
+        this.timestamp = Instant.now();
     }
 
     public AuditLog(User user, String userId, String userName, String userRole, String stationId, String action,
@@ -80,11 +82,14 @@ public class AuditLog {
         this.resourceId = resourceId;
         this.ipAddress = ipAddress;
         this.details = details;
+        this.timestamp = Instant.now();
     }
 
     @PrePersist
     protected void onCreate() {
-        this.timestamp = Instant.now();
+        if (this.timestamp == null) {
+            this.timestamp = Instant.now();
+        }
     }
 
     // Getters and Setters

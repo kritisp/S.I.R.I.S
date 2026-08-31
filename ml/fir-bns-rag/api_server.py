@@ -30,6 +30,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi import Header
+
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "crimelens-internal-secret-key-2026")
+
+
+def verify_internal_api_key(x_internal_api_key: Optional[str] = Header(None)):
+    """Enforces service-to-service authentication between Spring Boot Core and FastAPI."""
+    expected_key = os.getenv("INTERNAL_API_KEY", "crimelens-internal-secret-key-2026")
+    if expected_key and x_internal_api_key != expected_key:
+        print(f"[API Security Warning] Unauthorized internal API key attempt: '{x_internal_api_key}'")
+        raise HTTPException(status_code=401, detail="Invalid or missing X-Internal-API-Key header.")
+
+
 # Singletons (Lazy Loaded)
 assistant_instance: Optional[LegalIntelligenceAssistant] = None
 fir_pipeline_instance: Optional[FIRIntelligencePipeline] = None
@@ -139,8 +152,10 @@ def analyze_case(request: CaseRequest):
 @app.post("/process-fir", tags=["FIR Intelligence"])
 async def process_fir_endpoint(
     fir_text: Optional[str] = Form(None, description="Raw or formal FIR incident text narrative. Provide this OR upload a file."),
-    file: Optional[UploadFile] = File(None, description="FIR document as PDF or plain-text file (.pdf / .txt).")
+    file: Optional[UploadFile] = File(None, description="FIR document as PDF or plain-text file (.pdf / .txt)."),
+    x_internal_api_key: Optional[str] = Header(None)
 ):
+    verify_internal_api_key(x_internal_api_key)
     """
     Primary CrimeLens FIR Intelligence Pipeline Endpoint.
 

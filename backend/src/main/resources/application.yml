@@ -27,3 +27,7 @@ app:
     allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
     allowed-headers: "*"
     allow-credentials: true
+  ml:
+    fir-bns-url: ${ML_GATEWAY_URL:http://localhost:8000}
+    internal-api-key: ${INTERNAL_API_KEY:crimelens-internal-secret-key-2026}
+    read-timeout-ms: 40000

@@ -44,19 +44,22 @@ public class CaseService {
     private final StationSecurityEvaluator securityEvaluator;
     private final AuditService auditService;
     private final AccessRequestRepository accessRequestRepository;
+    private final com.crimelens.intelligence.ml.client.FirIntelligenceClient firBnsClient;
 
     public CaseService(CaseRecordRepository caseRepository,
                        PoliceStationRepository stationRepository,
                        UserRepository userRepository,
                        StationSecurityEvaluator securityEvaluator,
                        AuditService auditService,
-                       AccessRequestRepository accessRequestRepository) {
+                       AccessRequestRepository accessRequestRepository,
+                       com.crimelens.intelligence.ml.client.FirIntelligenceClient firBnsClient) {
         this.caseRepository = caseRepository;
         this.stationRepository = stationRepository;
         this.userRepository = userRepository;
         this.securityEvaluator = securityEvaluator;
         this.auditService = auditService;
         this.accessRequestRepository = accessRequestRepository;
+        this.firBnsClient = firBnsClient;
     }
 
     @Transactional
@@ -296,6 +299,64 @@ public class CaseService {
                 "Assigned case " + caseId + " to officer " + newInvestigator.getName() + " [" + newInvestigator.getId() + "]");
 
         return CaseDTO.fromEntity(updated);
+    }
+
+    @Transactional
+    public com.crimelens.intelligence.dto.FirIntelligenceResponseDTO analyzeCaseFir(String caseId, String rawText, UserPrincipal actor) {
+        CaseRecord caseRecord = caseRepository.findById(caseId)
+                .orElseThrow(() -> new ResourceNotFoundException("CaseRecord", "id", caseId));
+
+        if (!securityEvaluator.canAccessCase(actor, caseRecord)) {
+            throw new UnauthorizedAccessException("Access denied: Cannot access case " + caseId + " from station " + caseRecord.getStation().getId());
+        }
+
+        String narrative = (rawText != null && !rawText.isBlank()) ? rawText.trim() : caseRecord.getDescription();
+        if (narrative == null || narrative.isBlank()) {
+            throw new BadRequestException("Case description narrative is empty. Cannot analyze FIR.");
+        }
+
+        com.crimelens.intelligence.dto.FirIntelligenceRequestDTO req = 
+                new com.crimelens.intelligence.dto.FirIntelligenceRequestDTO(narrative, "case_record", caseId);
+
+        com.crimelens.intelligence.dto.FirIntelligenceResponseDTO response = firBnsClient.processFir(req);
+
+        // Update CaseRecord BNS sections in PostgreSQL if returned
+        if (response != null && response.getBnsSections() != null && !response.getBnsSections().isEmpty()) {
+            List<String> extractedSections = response.getBnsSections().stream()
+                    .map(b -> (String) b.get("section"))
+                    .filter(s -> s != null && !s.isBlank())
+                    .distinct()
+                    .toList();
+            if (!extractedSections.isEmpty()) {
+                caseRecord.getBnsSections().clear();
+                caseRecord.getBnsSections().addAll(extractedSections);
+                caseRepository.save(caseRecord);
+            }
+        }
+
+        auditService.logUserAction(actor, "FIR_INTELLIGENCE_ANALYZED", "CASE", caseId,
+                "Executed FIR BNS Intelligence analysis for case " + caseId);
+
+        return response;
+    }
+
+    public com.crimelens.intelligence.dto.FirIntelligenceResponseDTO processRawFir(String rawText, UserPrincipal actor) {
+        if (actor == null) {
+            throw new UnauthorizedAccessException("User authentication required");
+        }
+        if (rawText == null || rawText.isBlank()) {
+            throw new BadRequestException("Raw FIR text cannot be empty");
+        }
+
+        com.crimelens.intelligence.dto.FirIntelligenceRequestDTO req = 
+                new com.crimelens.intelligence.dto.FirIntelligenceRequestDTO(rawText.trim(), "raw_input", null);
+
+        com.crimelens.intelligence.dto.FirIntelligenceResponseDTO response = firBnsClient.processFir(req);
+
+        auditService.logUserAction(actor, "RAW_FIR_ANALYZED", "FIR", "RAW",
+                "Processed standalone raw FIR text analysis");
+
+        return response;
     }
 
     private String generateCaseId(String stationId) {

@@ -39,8 +39,8 @@ public class AuditService {
             if (userId != null && !userId.equalsIgnoreCase("ANONYMOUS")) {
                 user = userRepository.findById(userId).orElse(null);
             }
-            AuditLog log = new AuditLog(user, userId, userName, userRole, stationId, action, resourceType, resourceId, ipAddress, details);
-            auditLogRepository.save(log);
+            AuditLog log = new AuditLog(null, userId, userName, userRole, stationId, action, resourceType, resourceId, ipAddress, details);
+            auditLogRepository.saveAndFlush(log);
             logger.info("AUDIT: User [{}] Role [{}] Station [{}] Action [{}] Resource [{}:{}]",
                     userId, userRole, stationId, action, resourceType, resourceId);
         } catch (Exception e) {

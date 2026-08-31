@@ -88,4 +88,23 @@ public class CaseController {
         CaseDTO updated = caseService.assignInvestigator(id, request, principal);
         return ResponseEntity.ok(ApiResponse.success("Investigator assigned successfully", updated));
     }
+
+    @PostMapping("/{id}/fir/analyze")
+    public ResponseEntity<ApiResponse<com.crimelens.intelligence.dto.FirIntelligenceResponseDTO>> analyzeCaseFir(
+            @PathVariable("id") String id,
+            @RequestBody(required = false) java.util.Map<String, String> body,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        String rawText = body != null ? body.get("firText") : null;
+        com.crimelens.intelligence.dto.FirIntelligenceResponseDTO result = caseService.analyzeCaseFir(id, rawText, principal);
+        return ResponseEntity.ok(ApiResponse.success("FIR intelligence analysis completed", result));
+    }
+
+    @PostMapping("/fir/process-raw")
+    public ResponseEntity<ApiResponse<com.crimelens.intelligence.dto.FirIntelligenceResponseDTO>> processRawFir(
+            @RequestBody java.util.Map<String, String> body,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        String rawText = body != null ? body.get("firText") : null;
+        com.crimelens.intelligence.dto.FirIntelligenceResponseDTO result = caseService.processRawFir(rawText, principal);
+        return ResponseEntity.ok(ApiResponse.success("Standalone FIR intelligence analysis completed", result));
+    }
 }
