@@ -297,6 +297,16 @@ class FIRIntakeParser:
                 return self.process_raw_text(input_data, source_name=source_name or "raw_text_input")
 
         elif isinstance(input_data, (bytes, io.BytesIO)):
+            raw_bytes = input_data if isinstance(input_data, bytes) else input_data.getvalue()
+            name_lower = (source_name or "").lower()
+            is_image = (
+                name_lower.endswith((".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff")) or
+                raw_bytes.startswith(b"\x89PNG") or
+                raw_bytes.startswith(b"\xff\xd8") or
+                raw_bytes.startswith(b"BM")
+            )
+            if is_image:
+                return self.process_image(input_data, source_name=source_name or "uploaded_image.png")
             return self.process_pdf(input_data, source_name=source_name or "uploaded_stream.pdf")
 
         else:

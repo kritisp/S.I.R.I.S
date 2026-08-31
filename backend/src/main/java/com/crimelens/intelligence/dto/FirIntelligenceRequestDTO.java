@@ -5,6 +5,9 @@ public class FirIntelligenceRequestDTO {
     private String firText;
     private String sourceName;
     private String caseId;
+    private byte[] fileBytes;
+    private String fileName;
+    private String contentType;
 
     public FirIntelligenceRequestDTO() {
     }
@@ -13,6 +16,14 @@ public class FirIntelligenceRequestDTO {
         this.firText = firText;
         this.sourceName = sourceName;
         this.caseId = caseId;
+    }
+
+    public FirIntelligenceRequestDTO(byte[] fileBytes, String fileName, String contentType, String caseId) {
+        this.fileBytes = fileBytes;
+        this.fileName = fileName;
+        this.contentType = contentType;
+        this.caseId = caseId;
+        this.sourceName = fileName;
     }
 
     public String getFirText() {
@@ -37,5 +48,33 @@ public class FirIntelligenceRequestDTO {
 
     public void setCaseId(String caseId) {
         this.caseId = caseId;
+    }
+
+    public byte[] getFileBytes() {
+        return fileBytes;
+    }
+
+    public void setFileBytes(byte[] fileBytes) {
+        this.fileBytes = fileBytes;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public boolean hasFile() {
+        return fileBytes != null && fileBytes.length > 0;
     }
 }

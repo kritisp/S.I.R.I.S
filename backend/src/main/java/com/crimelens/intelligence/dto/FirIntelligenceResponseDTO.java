@@ -1,27 +1,52 @@
 package com.crimelens.intelligence.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FirIntelligenceResponseDTO {
 
+    @JsonProperty("fir_metadata")
     private Map<String, Object> firMetadata;
+
     private String summary;
+
+    @JsonProperty("crime_type")
     private String crimeType;
+
+    @JsonProperty("crime_category")
     private String crimeCategory;
+
     private Map<String, Object> incident;
     private Map<String, Object> entities;
     private List<Map<String, Object>> timeline;
+
+    @JsonProperty("modus_operandi")
     private List<String> modusOperandi;
+
+    @JsonProperty("bns_sections")
     private List<Map<String, Object>> bnsSections;
+
+    @JsonProperty("bnss_procedural_actions")
     private List<Map<String, Object>> bnssProceduralActions;
+
+    @JsonProperty("investigation_actions")
     private List<Map<String, Object>> investigationActions;
+
+    @JsonProperty("investigation_intelligence")
     private Map<String, Object> investigationIntelligence;
+
     private List<String> insights;
+
+    @JsonProperty("missing_information")
     private List<String> missingInformation;
+
+    @JsonProperty("masking_used")
     private Boolean maskingUsed;
+
+    @JsonProperty("execution_metadata")
     private Map<String, Object> executionMetadata;
 
     public FirIntelligenceResponseDTO() {

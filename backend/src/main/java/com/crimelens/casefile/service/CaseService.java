@@ -1,7 +1,6 @@
 package com.crimelens.casefile.service;
 
 import com.crimelens.audit.service.AuditService;
-
 import com.crimelens.casefile.dto.request.AssignInvestigatorRequest;
 import com.crimelens.casefile.dto.request.CreateCaseRequest;
 import com.crimelens.casefile.dto.request.UpdateCaseRequest;
@@ -24,16 +23,19 @@ import com.crimelens.user.repository.UserRepository;
 import com.crimelens.security.StationSecurityEvaluator;
 import com.crimelens.security.UserPrincipal;
 import com.crimelens.access.entity.enums.RequestStatus;
+import com.crimelens.intelligence.dto.FirIntelligenceRequestDTO;
+import com.crimelens.intelligence.dto.FirIntelligenceResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.Year;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class CaseService {
@@ -64,7 +66,6 @@ public class CaseService {
 
     @Transactional
     public CaseDTO createCase(CreateCaseRequest request, UserPrincipal actor) {
-        // Determine Station ID
         String resolvedStationId = request.getStationId();
         if (resolvedStationId == null || resolvedStationId.isBlank()) {
             resolvedStationId = actor.getStationId();
@@ -76,7 +77,6 @@ public class CaseService {
 
         final String targetStationId = resolvedStationId;
 
-        // Verify actor authorization for this station
         if (!securityEvaluator.canAccessStation(actor, targetStationId)) {
             throw new UnauthorizedAccessException("Unauthorized to lodge FIR for station: " + targetStationId);
         }
@@ -84,7 +84,6 @@ public class CaseService {
         PoliceStation station = stationRepository.findById(targetStationId)
                 .orElseThrow(() -> new ResourceNotFoundException("PoliceStation", "id", targetStationId));
 
-        // Determine Investigator
         User investigator = null;
         String targetInvestigatorId = request.getInvestigatorId();
         if (targetInvestigatorId == null || targetInvestigatorId.isBlank()) {
@@ -100,12 +99,10 @@ public class CaseService {
             }
         }
 
-        // Validate FIR Number
         if (caseRepository.existsByFirNumber(request.getFirNumber())) {
             throw new DuplicateResourceException("Case with FIR Number '" + request.getFirNumber() + "' already exists");
         }
 
-        // Generate ID if not provided
         String caseId = request.getId();
         if (caseId == null || caseId.isBlank()) {
             caseId = generateCaseId(targetStationId);
@@ -173,7 +170,6 @@ public class CaseService {
             Pageable pageable,
             UserPrincipal actor) {
 
-        // Enforce station isolation based on user role
         String effectiveStationId = null;
         String effectiveInvestigatorId = null;
 
@@ -185,7 +181,6 @@ public class CaseService {
             effectiveInvestigatorId = (investigatorFilter != null && !investigatorFilter.isBlank() && !"ALL".equalsIgnoreCase(investigatorFilter)) ? investigatorFilter : null;
         } else if (actor.getRole() == UserRole.OFFICER) {
             effectiveStationId = actor.getStationId();
-            // Optional: if officer wants to view only their assigned cases
             if ("ME".equalsIgnoreCase(investigatorFilter) || (investigatorFilter != null && investigatorFilter.equalsIgnoreCase(actor.getUsername()))) {
                 effectiveInvestigatorId = actor.getUsername();
             }
@@ -273,7 +268,6 @@ public class CaseService {
             throw new UnauthorizedAccessException("Access denied: Cannot reassign case from station " + caseRecord.getStation().getId());
         }
 
-        // Only Station Admin or Super Admin can reassign cases
         if (actor.getRole() == UserRole.OFFICER) {
             throw new UnauthorizedAccessException("Investigating officers cannot reassign case ownership");
         }
@@ -281,7 +275,6 @@ public class CaseService {
         User newInvestigator = userRepository.findById(request.getInvestigatorId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getInvestigatorId()));
 
-        // Ensure investigator belongs to the same station
         if (newInvestigator.getStation() != null &&
             !newInvestigator.getStation().getId().equalsIgnoreCase(caseRecord.getStation().getId())) {
             throw new BadRequestException("Investigator [" + newInvestigator.getId() + "] belongs to station ["
@@ -301,8 +294,12 @@ public class CaseService {
         return CaseDTO.fromEntity(updated);
     }
 
+    public FirIntelligenceResponseDTO analyzeCaseFir(String caseId, String rawText, UserPrincipal actor) {
+        return analyzeCaseFir(caseId, rawText, null, actor);
+    }
+
     @Transactional
-    public com.crimelens.intelligence.dto.FirIntelligenceResponseDTO analyzeCaseFir(String caseId, String rawText, UserPrincipal actor) {
+    public FirIntelligenceResponseDTO analyzeCaseFir(String caseId, String rawText, MultipartFile file, UserPrincipal actor) {
         CaseRecord caseRecord = caseRepository.findById(caseId)
                 .orElseThrow(() -> new ResourceNotFoundException("CaseRecord", "id", caseId));
 
@@ -310,17 +307,27 @@ public class CaseService {
             throw new UnauthorizedAccessException("Access denied: Cannot access case " + caseId + " from station " + caseRecord.getStation().getId());
         }
 
-        String narrative = (rawText != null && !rawText.isBlank()) ? rawText.trim() : caseRecord.getDescription();
-        if (narrative == null || narrative.isBlank()) {
-            throw new BadRequestException("Case description narrative is empty. Cannot analyze FIR.");
+        FirIntelligenceRequestDTO req;
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                req = new FirIntelligenceRequestDTO(file.getBytes(), file.getOriginalFilename(), file.getContentType(), caseId);
+                if (rawText != null && !rawText.isBlank()) {
+                    req.setFirText(rawText.trim());
+                }
+            } catch (IOException e) {
+                throw new BadRequestException("Failed to read uploaded FIR document: " + e.getMessage());
+            }
+        } else {
+            String narrative = (rawText != null && !rawText.isBlank()) ? rawText.trim() : caseRecord.getDescription();
+            if (narrative == null || narrative.isBlank()) {
+                throw new BadRequestException("Case description narrative is empty. Cannot analyze FIR.");
+            }
+            req = new FirIntelligenceRequestDTO(narrative, "case_record", caseId);
         }
 
-        com.crimelens.intelligence.dto.FirIntelligenceRequestDTO req = 
-                new com.crimelens.intelligence.dto.FirIntelligenceRequestDTO(narrative, "case_record", caseId);
+        FirIntelligenceResponseDTO response = firBnsClient.processFir(req);
 
-        com.crimelens.intelligence.dto.FirIntelligenceResponseDTO response = firBnsClient.processFir(req);
-
-        // Update CaseRecord BNS sections in PostgreSQL if returned
         if (response != null && response.getBnsSections() != null && !response.getBnsSections().isEmpty()) {
             List<String> extractedSections = response.getBnsSections().stream()
                     .map(b -> (String) b.get("section"))
@@ -340,21 +347,37 @@ public class CaseService {
         return response;
     }
 
-    public com.crimelens.intelligence.dto.FirIntelligenceResponseDTO processRawFir(String rawText, UserPrincipal actor) {
+    public FirIntelligenceResponseDTO processRawFir(String rawText, UserPrincipal actor) {
+        return processRawFir(rawText, null, actor);
+    }
+
+    public FirIntelligenceResponseDTO processRawFir(String rawText, MultipartFile file, UserPrincipal actor) {
         if (actor == null) {
             throw new UnauthorizedAccessException("User authentication required");
         }
-        if (rawText == null || rawText.isBlank()) {
-            throw new BadRequestException("Raw FIR text cannot be empty");
+
+        FirIntelligenceRequestDTO req;
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                req = new FirIntelligenceRequestDTO(file.getBytes(), file.getOriginalFilename(), file.getContentType(), null);
+                if (rawText != null && !rawText.isBlank()) {
+                    req.setFirText(rawText.trim());
+                }
+            } catch (IOException e) {
+                throw new BadRequestException("Failed to read uploaded raw FIR document: " + e.getMessage());
+            }
+        } else {
+            if (rawText == null || rawText.isBlank()) {
+                throw new BadRequestException("Raw FIR text cannot be empty");
+            }
+            req = new FirIntelligenceRequestDTO(rawText.trim(), "raw_input", null);
         }
 
-        com.crimelens.intelligence.dto.FirIntelligenceRequestDTO req = 
-                new com.crimelens.intelligence.dto.FirIntelligenceRequestDTO(rawText.trim(), "raw_input", null);
-
-        com.crimelens.intelligence.dto.FirIntelligenceResponseDTO response = firBnsClient.processFir(req);
+        FirIntelligenceResponseDTO response = firBnsClient.processFir(req);
 
         auditService.logUserAction(actor, "RAW_FIR_ANALYZED", "FIR", "RAW",
-                "Processed standalone raw FIR text analysis");
+                "Processed standalone raw FIR document/text analysis");
 
         return response;
     }

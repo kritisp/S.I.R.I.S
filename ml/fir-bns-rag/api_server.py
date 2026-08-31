@@ -39,8 +39,9 @@ def verify_internal_api_key(x_internal_api_key: Optional[str] = Header(None)):
     """Enforces service-to-service authentication between Spring Boot Core and FastAPI."""
     expected_key = os.getenv("INTERNAL_API_KEY", "crimelens-internal-secret-key-2026")
     if expected_key and x_internal_api_key != expected_key:
-        print(f"[API Security Warning] Unauthorized internal API key attempt: '{x_internal_api_key}'")
+        print("[API Security Warning] Unauthorized internal API key attempt")
         raise HTTPException(status_code=401, detail="Invalid or missing X-Internal-API-Key header.")
+
 
 
 # Singletons (Lazy Loaded)
@@ -195,6 +196,9 @@ async def process_fir_endpoint(
         if filename.lower().endswith(".pdf") or "pdf" in content_type.lower():
             target_input = file_bytes
             source_name = filename
+        elif filename.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff")) or "image" in content_type.lower():
+            target_input = file_bytes
+            source_name = filename
         elif filename.lower().endswith((".txt", ".json", ".log")) or "text" in content_type.lower():
             try:
                 target_input = file_bytes.decode("utf-8", errors="replace")
@@ -204,7 +208,7 @@ async def process_fir_endpoint(
         else:
             raise HTTPException(
                 status_code=415,
-                detail=f"Unsupported file type '{filename}'. Please upload a PDF (.pdf) or text (.txt) document."
+                detail=f"Unsupported file type '{filename}'. Please upload a PDF (.pdf), image (.png/.jpg), or text (.txt) document."
             )
 
     # Case B: Form text field
