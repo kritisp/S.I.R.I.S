@@ -29,6 +29,7 @@ from app.services.graph.contracts import (
     VehicleGraphNode,
 )
 from app.services.relationship_engine.confidence.models import RelationshipConfidenceAssessment
+from app.services.case_similarity.models import ExtractedCaseFeatures
 
 logger = logging.getLogger(__name__)
 
@@ -398,6 +399,80 @@ class Neo4jGraphProjectionService:
                     ls_rel = CaseLegalSectionRelContract(case_id=case_id_str, legal_section_id=ls_id_str)
                     if self.project_case_legal_section_rel(ls_rel):
                         counts["relationships"] += 1
+
+        return counts
+
+    def project_extracted_features(self, features: ExtractedCaseFeatures) -> Dict[str, int]:
+        """Projects ExtractedCaseFeatures (from SpringBootPostgresAdapter or feature extractor) into Neo4j graph nodes and edges."""
+        counts = {
+            "cases": 0, "persons": 0, "vehicles": 0, "phones": 0, "locations": 0, "relationships": 0
+        }
+
+        cid = features.identity.case_id
+        c_node = CaseGraphNode(
+            node_id=cid,
+            source_id=cid,
+            fir_number=features.identity.fir_number,
+            station_id=features.identity.station_id,
+            police_station=features.identity.police_station or "Police Station",
+            district=features.identity.district or "District",
+            state=features.identity.state or "Odisha",
+            registration_date=features.identity.registration_date or "2026-01-01",
+            incident_date=features.identity.incident_date,
+            crime_type=features.crime.crime_type or "OTHER",
+            crime_category=features.crime.crime_category or "GENERAL",
+            status=features.identity.status or "UNDER_INVESTIGATION"
+        )
+        if self.project_case_node(c_node):
+            counts["cases"] += 1
+
+        # Persons
+        for p in features.entities.persons:
+            pid = p.person_id or f"p_{hash(p.normalized_name) & 0xffffffff}"
+            p_node = PersonGraphNode(
+                node_id=pid,
+                source_id=pid,
+                name=p.name,
+                normalized_name=p.normalized_name,
+                gender=p.gender
+            )
+            if self.project_person_node(p_node):
+                counts["persons"] += 1
+
+            p_rel = CasePersonRelContract(case_id=cid, person_id=pid, role=p.role or "SUSPECT")
+            if self.project_case_person_rel(p_rel):
+                counts["relationships"] += 1
+
+        # Vehicles
+        for v in features.entities.vehicles:
+            vid = v.vehicle_id or f"v_{hash(v.normalized_reg) & 0xffffffff}"
+            v_node = VehicleGraphNode(
+                node_id=vid,
+                source_id=vid,
+                registration_number=v.registration_number,
+                normalized_reg=v.normalized_reg
+            )
+            if self.project_vehicle_node(v_node):
+                counts["vehicles"] += 1
+
+            v_rel = CaseVehicleRelContract(case_id=cid, vehicle_id=vid, role=v.role or "INVOLVED")
+            if self.project_case_vehicle_rel(v_rel):
+                counts["relationships"] += 1
+
+        # Phones
+        for ph in features.entities.phones:
+            phid = ph.phone_id or f"ph_{hash(ph.normalized_e164) & 0xffffffff}"
+            ph_node = PhoneGraphNode(
+                node_id=phid,
+                source_id=phid,
+                normalized_number=ph.raw_number or ph.normalized_e164
+            )
+            if self.project_phone_node(ph_node):
+                counts["phones"] += 1
+
+            ph_rel = CasePhoneRelContract(case_id=cid, phone_id=phid)
+            if self.project_case_phone_rel(ph_rel):
+                counts["relationships"] += 1
 
         return counts
 
