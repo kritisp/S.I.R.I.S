@@ -28,98 +28,144 @@ class SpringBootPostgresAdapter:
     def fetch_case_dict_by_id(self, case_id: Any) -> Optional[Dict[str, Any]]:
         """Fetch a single CaseRecord by string or UUID ID or FIR number from PostgreSQL."""
         case_id_str = str(case_id).strip()
-        query = text("""
-            SELECT 
-                c.id, 
-                c.fir_number, 
-                c.station_id, 
-                c.police_station, 
-                c.district, 
-                c.state, 
-                c.description, 
-                c.crime_type, 
-                c.crime_category,
-                c.status, 
-                c.incident_date,
-                c.registration_date,
-                c.created_at,
-                c.location_id
-            FROM cases c
-            WHERE CAST(c.id AS VARCHAR) = :case_id OR c.fir_number = :case_id
-        """)
-
         conn = self._get_connection()
         try:
-            result = conn.execute(query, {"case_id": case_id_str}).mappings().first()
+            from sqlalchemy import inspect
+            has_case_records = False
+            try:
+                has_case_records = inspect(conn).has_table("case_records")
+            except Exception:
+                pass
+
+            result = None
+            if has_case_records:
+                query_sb = text("""
+                    SELECT 
+                        c.id, 
+                        c.fir_number, 
+                        c.station_id, 
+                        ps.name as police_station, 
+                        ps.district, 
+                        ps.state, 
+                        c.description, 
+                        c.crime_type, 
+                        c.status, 
+                        c.priority,
+                        c.incident_date,
+                        c.created_at as registration_date,
+                        c.created_at
+                    FROM case_records c
+                    LEFT JOIN police_stations ps ON c.station_id = ps.id
+                    WHERE CAST(c.id AS VARCHAR) = :case_id OR c.fir_number = :case_id
+                """)
+                try:
+                    result = conn.execute(query_sb, {"case_id": case_id_str}).mappings().first()
+                except Exception:
+                    result = None
+
+            # Fallback to legacy schema table 'cases' if 'case_records' does not exist or yields no result
+            if not result:
+                query_legacy = text("""
+                    SELECT 
+                        c.id, c.fir_number, c.station_id, c.police_station, 
+                        c.district, c.state, c.description, c.crime_type, 
+                        c.crime_category, c.status, c.incident_date, 
+                        c.registration_date, c.created_at, c.location_id
+                    FROM cases c
+                    WHERE CAST(c.id AS VARCHAR) = :case_id OR c.fir_number = :case_id
+                """)
+                try:
+                    result = conn.execute(query_legacy, {"case_id": case_id_str}).mappings().first()
+                except Exception:
+                    result = None
+
             if not result:
                 return None
 
             c_dict = dict(result)
             cid = c_dict["id"]
 
-            # Fetch location
-            if c_dict.get("location_id"):
-                loc_res = conn.execute(
-                    text("SELECT address, locality, city, district, state, latitude, longitude FROM locations WHERE id = :loc_id"),
-                    {"loc_id": c_dict["location_id"]}
-                ).mappings().first()
-                if loc_res:
-                    c_dict.update(dict(loc_res))
+            # Populate Spring Boot collection tables if querying case_records
+            # A. BNS Legal Sections
+            try:
+                sec_res = conn.execute(
+                    text("SELECT section FROM case_bns_sections WHERE case_id = :cid"),
+                    {"cid": cid}
+                ).scalars().all()
+                c_dict["legal_sections"] = [{"code": s, "law_name": "BNS"} for s in sec_res if s]
+            except Exception:
+                c_dict["legal_sections"] = c_dict.get("legal_sections", [])
 
-            # Fetch Legal Sections
-            sec_res = conn.execute(
-                text("""
-                    SELECT ls.code, ls.law_name 
-                    FROM case_legal_sections cls
-                    JOIN legal_sections ls ON cls.legal_section_id = ls.id
-                    WHERE cls.case_id = :cid
-                """),
-                {"cid": cid}
-            ).mappings().all()
-            c_dict["legal_sections"] = [{"code": s["code"], "law_name": s["law_name"]} for s in sec_res]
+            # B. Suspects
+            persons = []
+            try:
+                suspects = conn.execute(
+                    text("SELECT suspect FROM case_suspects WHERE case_id = :cid"),
+                    {"cid": cid}
+                ).scalars().all()
+                for s in suspects:
+                    if s:
+                        persons.append({"name": s, "role": "SUSPECT"})
+            except Exception:
+                pass
 
-            # Fetch Persons
-            p_res = conn.execute(
-                text("""
-                    SELECT p.id, p.name, p.gender, cp.role 
-                    FROM case_persons cp
-                    JOIN persons p ON cp.person_id = p.id
-                    WHERE cp.case_id = :cid
-                """),
-                {"cid": cid}
-            ).mappings().all()
-            c_dict["persons"] = [dict(p) for p in p_res]
+            # C. Vehicles
+            vehicles = []
+            try:
+                vehs = conn.execute(
+                    text("SELECT vehicle FROM case_vehicles WHERE case_id = :cid"),
+                    {"cid": cid}
+                ).scalars().all()
+                for v in vehs:
+                    if v:
+                        vehicles.append({"registration_number": v, "role": "SUSPECT_VEHICLE"})
+            except Exception:
+                pass
 
-            # Fetch Vehicles
-            v_res = conn.execute(
-                text("""
-                    SELECT v.id, v.registration_number, v.vehicle_type, v.make, v.model, cv.role 
-                    FROM case_vehicles cv
-                    JOIN vehicles v ON cv.vehicle_id = v.id
-                    WHERE cv.case_id = :cid
-                """),
-                {"cid": cid}
-            ).mappings().all()
-            c_dict["vehicles"] = [dict(v) for v in v_res]
+            # D. Extracted Entities (Persons, Vehicles, Phones)
+            phones = []
+            try:
+                ents = conn.execute(
+                    text("SELECT entity_type, entity_value, role FROM case_extracted_entities WHERE case_id = :cid"),
+                    {"cid": cid}
+                ).mappings().all()
+                for e in ents:
+                    etype = (e.get("entity_type") or "").upper()
+                    eval = (e.get("entity_value") or "").strip()
+                    erole = e.get("role") or "OTHER"
+                    if etype in ("PERSON", "SUSPECT", "COMPLAINANT", "WITNESS") and eval:
+                        persons.append({"name": eval, "role": erole})
+                    elif etype in ("VEHICLE", "CAR", "BIKE") and eval:
+                        vehicles.append({"registration_number": eval, "role": erole})
+                    elif etype in ("PHONE", "MOBILE", "CONTACT") and eval:
+                        phones.append({"normalized_number": eval, "role": erole})
+            except Exception:
+                pass
 
-            # Fetch Phones
-            ph_res = conn.execute(
-                text("""
-                    SELECT ph.id, ph.normalized_number
-                    FROM case_phones cph
-                    JOIN phones ph ON cph.phone_id = ph.id
-                    WHERE cph.case_id = :cid
-                """),
-                {"cid": cid}
-            ).mappings().all()
-            c_dict["phones"] = [dict(ph) for ph in ph_res]
+            c_dict["persons"] = persons
+            c_dict["vehicles"] = vehicles
+            c_dict["phones"] = phones
 
-            # Fetch Evidence
-            ev_res = conn.execute(
-                text("SELECT id, evidence_type, description FROM evidences WHERE case_id = :cid"),
-                {"cid": cid}
-            ).mappings().all()
-            c_dict["evidences"] = [dict(ev) for ev in ev_res]
+            # E. Locations
+            try:
+                locs = conn.execute(
+                    text("SELECT location FROM case_locations WHERE case_id = :cid"),
+                    {"cid": cid}
+                ).scalars().all()
+                if locs:
+                    c_dict["address"] = ", ".join([l for l in locs if l])
+            except Exception:
+                pass
+
+            # F. Evidences
+            try:
+                evs = conn.execute(
+                    text("SELECT evidence_ref FROM case_evidence_refs WHERE case_id = :cid"),
+                    {"cid": cid}
+                ).scalars().all()
+                c_dict["evidences"] = [{"id": str(i), "evidence_type": "DOCUMENT", "description": e} for i, e in enumerate(evs) if e]
+            except Exception:
+                c_dict["evidences"] = c_dict.get("evidences", [])
 
             return c_dict
 
@@ -129,10 +175,18 @@ class SpringBootPostgresAdapter:
 
     def fetch_all_case_dicts(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Fetch multiple CaseRecords from PostgreSQL."""
-        query = text("SELECT id FROM cases ORDER BY created_at DESC LIMIT :limit")
         conn = self._get_connection()
         try:
+            from sqlalchemy import inspect
+            has_case_records = False
+            try:
+                has_case_records = inspect(conn).has_table("case_records")
+            except Exception:
+                pass
+
+            query = text("SELECT id FROM case_records ORDER BY created_at DESC LIMIT :limit") if has_case_records else text("SELECT id FROM cases ORDER BY created_at DESC LIMIT :limit")
             case_ids = conn.execute(query, {"limit": limit}).scalars().all()
+            
             case_dicts = []
             for cid in case_ids:
                 cd = self.fetch_case_dict_by_id(str(cid))

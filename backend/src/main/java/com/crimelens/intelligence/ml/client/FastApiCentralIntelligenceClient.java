@@ -126,31 +126,34 @@ public class FastApiCentralIntelligenceClient implements MlClientInterface {
                 Map respMap = response.getBody();
                 Map metadata = (Map) respMap.get("analytical_metadata");
                 Map report = (Map) respMap.get("report");
+                List paths = (List) respMap.get("multi_hop_paths");
 
                 int caseCount = targetCaseIds.size();
                 int relationships = metadata != null && metadata.get("multi_hop_paths_count") != null 
                         ? ((Number) metadata.get("multi_hop_paths_count")).intValue() 
-                        : Math.max(1, caseCount * 2);
+                        : (paths != null ? paths.size() : 0);
                 int patterns = metadata != null && metadata.get("patterns_detected_count") != null 
                         ? ((Number) metadata.get("patterns_detected_count")).intValue() 
-                        : Math.max(1, caseCount);
+                        : 0;
                 int nodes = metadata != null && metadata.get("cases_evaluated_count") != null 
-                        ? ((Number) metadata.get("cases_evaluated_count")).intValue() * 3 
-                        : caseCount * 3;
+                        ? ((Number) metadata.get("cases_evaluated_count")).intValue()
+                        : caseCount;
 
                 String summary = report != null && report.get("summary") != null 
                         ? (String) report.get("summary") 
                         : "Central Intelligence Engine successfully executed multi-hop graph analysis across workspace cases.";
 
-                String payloadJson = "{" +
-                        "\"confidenceScore\": 96.0," +
-                        "\"casesAnalyzed\":" + caseCount + "," +
-                        "\"relationshipsFound\":" + relationships + "," +
-                        "\"patternsDetected\":" + patterns + "," +
-                        "\"executionTimeMs\":" + (metadata != null ? metadata.get("execution_time_ms") : 0) +
-                        "}";
+                // Serialize full response payload for complete frontend graph rendering
+                String fullPayloadJson;
+                try {
+                    fullPayloadJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(respMap);
+                } catch (Exception ex) {
+                    fullPayloadJson = "{\"summary\":\"" + summary.replace("\"", "\\\"") + "\"}";
+                }
 
-                logger.info("Successfully processed Central Intelligence workspace analysis via FastAPI.");
+                logger.info("Successfully processed Central Intelligence workspace analysis via FastAPI (relationships={}, patterns={}, nodes={}).",
+                        relationships, patterns, nodes);
+
                 return new WorkspaceIntelligenceResult(
                         "RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
                         null,
@@ -160,7 +163,7 @@ public class FastApiCentralIntelligenceClient implements MlClientInterface {
                         relationships,
                         patterns,
                         nodes,
-                        payloadJson
+                        fullPayloadJson
                 );
             }
         } catch (RestClientException e) {
