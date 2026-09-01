@@ -58,6 +58,10 @@ def test_unit_community_detection_request_validation():
 
 def test_unit_empty_graph_community_detection():
     """Test 8: Verifies that community detection on an empty or missing node returns empty result cleanly."""
+    health = neo4j_connection_service.check_health()
+    if health.status != "UP":
+        pytest.skip("Neo4j database offline. Skipping unit community detection test.")
+
     missing_uuid = str(uuid.uuid4())
     req = CommunityDetectionRequest(target_node_id=missing_uuid)
     result = neo4j_community_detection_service.detect_communities(req)

@@ -58,6 +58,10 @@ def test_unit_traversal_request_contract_allowlists_and_validation():
 
 def test_unit_empty_graph_and_nonexistent_start_node():
     """Test 18: Verifies that traversing a non-existent start node returns total_paths=0 cleanly."""
+    health = neo4j_connection_service.check_health()
+    if health.status != "UP":
+        pytest.skip("Neo4j database offline. Skipping unit graph traversal test.")
+
     missing_uuid = str(uuid.uuid4())
     req = GraphTraversalRequest(start_node_id=missing_uuid, start_node_type="Case")
     result = neo4j_graph_traversal_service.traverse(req)

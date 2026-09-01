@@ -41,6 +41,10 @@ def test_unit_network_analytics_request_validation():
 
 def test_unit_empty_graph_network_analytics():
     """Test 1: Verifies that network analytics on an empty or missing node returns empty metrics cleanly."""
+    health = neo4j_connection_service.check_health()
+    if health.status != "UP":
+        pytest.skip("Neo4j database offline. Skipping unit network analytics test.")
+
     missing_uuid = str(uuid.uuid4())
     req = NetworkAnalyticsRequest(target_node_id=missing_uuid)
     result = neo4j_network_analytics_service.analyze_network(req)
