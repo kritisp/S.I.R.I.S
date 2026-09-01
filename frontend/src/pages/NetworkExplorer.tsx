@@ -1,16 +1,17 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Network, Search, Filter, Radio, Clock, Shield,
   AlertTriangle, ChevronDown, RefreshCw, X, Info,
-  Lock, CheckCircle2
+  Lock, CheckCircle2, FolderGit2
 } from 'lucide-react';
 import {
-  NETWORK_NODES, NETWORK_EDGES, ACTIVITY_TIMELINE, GRAPH_SUMMARY,
-  NetworkNode, NodeType, searchNodes, getConnectedNodes
+  NetworkNode, NetworkEdge, NodeType
 } from '../mockServices/networkGraphData';
 import { IntelligenceGraph } from '../components/graph/IntelligenceGraph';
 import { NodeDetailPanel } from '../components/graph/NodeDetailPanel';
 import { useMockState } from '../mockServices/MockStateContext';
+import { workspaceApi, WorkspaceDTO } from '../services/api/workspaceApi';
+import { transformResultPayloadToGraph } from '../utils/graphTransform';
 
 // ─── Filter types ─────────────────────────────────────────────────────────────
 type StationFilter = 'ALL' | string;
@@ -70,7 +71,7 @@ function GraphLegend() {
 }
 
 // ─── Graph Summary ─────────────────────────────────────────────────────────────
-function SummaryPanel({ summary }: { summary: typeof GRAPH_SUMMARY }) {
+function SummaryPanel({ summary }: { summary: any }) {
   const items = [
     { label: 'Connected Cases', value: summary.totalCases },
     { label: 'Entities', value: summary.totalEntities },
@@ -113,15 +114,14 @@ function ActivityPanel() {
         <Clock size={10} /> Intelligence Activity
       </div>
       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-        {ACTIVITY_TIMELINE.map(ev => (
-          <div key={ev.id} className="flex gap-2 items-start">
-            <span className="text-[9px] font-mono text-text-faint shrink-0 mt-0.5 w-8">{ev.time}</span>
-            <div>
-              <span className={`text-[8px] font-bold uppercase px-1 rounded ${typeColor[ev.type]}`}>{ev.type}</span>
-              <p className="text-[10px] text-text-dim leading-snug mt-0.5">{ev.description}</p>
-            </div>
+        {/* Real activity timeline goes here based on analytical_metadata */}
+        <div className="flex gap-2 items-start">
+          <span className="text-[9px] font-mono text-text-faint shrink-0 mt-0.5 w-8">Now</span>
+          <div>
+            <span className="text-[8px] font-bold uppercase px-1 rounded text-accent-bright bg-accent/10">ANALYSIS</span>
+            <p className="text-[10px] text-text-dim leading-snug mt-0.5">Real intelligence report loaded.</p>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
@@ -153,6 +153,12 @@ function FilterSelect({ label, value, options, onChange }: {
 export function NetworkExplorer() {
   const { state } = useMockState();
 
+  // Real backend workspace state
+  const [workspaces, setWorkspaces] = useState<WorkspaceDTO[]>([]);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('ALL');
+  const [realGraph, setRealGraph] = useState<{ nodes: NetworkNode[]; edges: NetworkEdge[] } | null>(null);
+  const [isLoadingRealGraph, setIsLoadingRealGraph] = useState<boolean>(false);
+
   // Filters
   const [stationFilter, setStationFilter] = useState<StationFilter>('ALL');
   const [entityFilter, setEntityFilter] = useState<EntityFilter>('ALL');
@@ -170,16 +176,54 @@ export function NetworkExplorer() {
   // Highlighted set (from search/filter)
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
 
-  // ── Override access status from mock state ──
+  // Load real workspaces on mount
+  useEffect(() => {
+    workspaceApi.getWorkspaces()
+      .then(wsList => {
+        if (wsList && wsList.length > 0) {
+          setWorkspaces(wsList);
+        }
+      })
+      .catch(err => console.error('Could not fetch real workspaces:', err));
+  }, []);
+
+  // Fetch real graph data when a workspace is selected
+  useEffect(() => {
+    if (selectedWorkspaceId && selectedWorkspaceId !== 'ALL') {
+      setIsLoadingRealGraph(true);
+      workspaceApi.getResult(selectedWorkspaceId)
+        .then(result => {
+          if (result && result.resultPayload) {
+            const transformed = transformResultPayloadToGraph(result.resultPayload);
+            setRealGraph({ nodes: transformed.nodes, edges: transformed.edges });
+          } else {
+            setRealGraph(null);
+          }
+        })
+        .catch(err => {
+          console.warn('Workspace intelligence result not ready or unavailable:', err);
+          setRealGraph(null);
+        })
+        .finally(() => setIsLoadingRealGraph(false));
+    } else {
+      setRealGraph(null);
+    }
+  }, [selectedWorkspaceId]);
+
+  // Active base nodes & edges (real graph if available, fallback to default graph)
+  const baseNodes = realGraph && realGraph.nodes.length > 0 ? realGraph.nodes : [];
+  const baseEdges = realGraph && realGraph.nodes.length > 0 ? realGraph.edges : [];
+
+  // ── Override access status ──
   const resolvedNodes = useMemo((): NetworkNode[] => {
-    return NETWORK_NODES.map(n => {
+    return baseNodes.map(n => {
       if (!n.caseId) return n;
       const req = state.accessRequests.find(r => r.targetCaseId === n.caseId);
       if (req?.status === 'APPROVED') return { ...n, accessStatus: 'AUTHORIZED' as const };
       if (req?.status === 'PENDING')  return { ...n, accessStatus: 'PENDING' as const };
       return n;
     });
-  }, [state.accessRequests]);
+  }, [baseNodes, state.accessRequests]);
 
   // ── Filtered nodes & edges ──────────────────────────────────────────────────
   const filteredNodes = useMemo(() => {
@@ -194,7 +238,7 @@ export function NetworkExplorer() {
 
   const filteredEdges = useMemo(() => {
     const nodeIds = new Set(filteredNodes.map(n => n.id));
-    return NETWORK_EDGES.filter(e => {
+    return baseEdges.filter(e => {
       if (!nodeIds.has(e.source) || !nodeIds.has(e.target)) return false;
       if (relFilter === 'CROSS_STATION' && !e.isCrossStation) return false;
       if (relFilter === 'AI_DISCOVERED' && !e.isAiDiscovered) return false;
@@ -203,7 +247,7 @@ export function NetworkExplorer() {
       if (relFilter === 'LINKED_CASE' && e.relationship !== 'LINKED_CASE') return false;
       return true;
     });
-  }, [filteredNodes, relFilter]);
+  }, [filteredNodes, baseEdges, relFilter]);
 
   // Dynamic graph summary
   const dynamicSummary = useMemo(() => ({
@@ -217,6 +261,24 @@ export function NetworkExplorer() {
   }), [filteredNodes, filteredEdges]);
 
   // ── Search ──────────────────────────────────────────────────────────────────
+  const searchNodes = useCallback((query: string) => {
+    const q = query.toLowerCase();
+    return baseNodes.filter(n =>
+      n.label.toLowerCase().includes(q) ||
+      (n.sublabel?.toLowerCase().includes(q)) ||
+      n.id.toLowerCase().includes(q)
+    );
+  }, [baseNodes]);
+
+  const getConnectedNodes = useCallback((nodeId: string) => {
+    const connected: string[] = [];
+    baseEdges.forEach(e => {
+      if (e.source === nodeId) connected.push(e.target);
+      if (e.target === nodeId) connected.push(e.source);
+    });
+    return [...new Set(connected)];
+  }, [baseEdges]);
+
   const handleSearch = useCallback((q: string) => {
     setSearchQuery(q);
     if (!q.trim()) {
@@ -228,7 +290,7 @@ export function NetworkExplorer() {
     const results = searchNodes(q);
     setSearchResults(results);
     setShowSearchDropdown(results.length > 0);
-  }, []);
+  }, [searchNodes]);
 
   const handleSelectSearchResult = (node: NetworkNode) => {
     setSelectedNode(node);
@@ -282,7 +344,7 @@ export function NetworkExplorer() {
     { value: 'RESTRICTED', label: 'Restricted' },
   ];
 
-  const crossStationAlert = NETWORK_EDGES.filter(e => e.isCrossStation).length > 0;
+  const crossStationAlert = baseEdges.filter(e => e.isCrossStation).length > 0;
 
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col animate-fade-in gap-0 max-w-[1600px] mx-auto">
@@ -357,6 +419,22 @@ export function NetworkExplorer() {
           {/* Filter row */}
           <div className="flex items-center gap-2 flex-wrap">
             <Filter size={14} className="text-text-dim shrink-0" />
+            {workspaces.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-brand/10 border border-brand/30 rounded-lg px-2.5 py-1.5 text-xs text-brand font-semibold">
+                <FolderGit2 size={13} />
+                <select
+                  aria-label="Workspace"
+                  value={selectedWorkspaceId}
+                  onChange={e => setSelectedWorkspaceId(e.target.value)}
+                  className="bg-transparent text-text font-medium border-none outline-none cursor-pointer text-xs"
+                >
+                  <option value="ALL">Global Demo Graph</option>
+                  {workspaces.map(w => (
+                    <option key={w.id} value={w.id}>Workspace: {w.title}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <FilterSelect label="Station" value={stationFilter} options={stationOptions} onChange={setStationFilter} />
             <FilterSelect label="Entity" value={entityFilter} options={entityOptions} onChange={setEntityFilter} />
             <FilterSelect label="Relationship" value={relFilter} options={relOptions} onChange={setRelFilter} />

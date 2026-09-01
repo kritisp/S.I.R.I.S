@@ -85,12 +85,14 @@ class SpringBootPostgresAdapter:
             c_dict = dict(result)
             cid = c_dict["id"]
 
+            cid_str = str(cid)
+
             # Populate Spring Boot collection tables if querying case_records
             # A. BNS Legal Sections
             try:
                 sec_res = conn.execute(
-                    text("SELECT section FROM case_bns_sections WHERE case_id = :cid"),
-                    {"cid": cid}
+                    text("SELECT section FROM case_bns_sections WHERE CAST(case_id AS VARCHAR) = :cid"),
+                    {"cid": cid_str}
                 ).scalars().all()
                 c_dict["legal_sections"] = [{"code": s, "law_name": "BNS"} for s in sec_res if s]
             except Exception:
@@ -100,8 +102,8 @@ class SpringBootPostgresAdapter:
             persons = []
             try:
                 suspects = conn.execute(
-                    text("SELECT suspect FROM case_suspects WHERE case_id = :cid"),
-                    {"cid": cid}
+                    text("SELECT suspect FROM case_suspects WHERE CAST(case_id AS VARCHAR) = :cid"),
+                    {"cid": cid_str}
                 ).scalars().all()
                 for s in suspects:
                     if s:
@@ -113,8 +115,8 @@ class SpringBootPostgresAdapter:
             vehicles = []
             try:
                 vehs = conn.execute(
-                    text("SELECT vehicle FROM case_vehicles WHERE case_id = :cid"),
-                    {"cid": cid}
+                    text("SELECT vehicle FROM case_vehicles WHERE CAST(case_id AS VARCHAR) = :cid"),
+                    {"cid": cid_str}
                 ).scalars().all()
                 for v in vehs:
                     if v:
@@ -126,8 +128,8 @@ class SpringBootPostgresAdapter:
             phones = []
             try:
                 ents = conn.execute(
-                    text("SELECT entity_type, entity_value, role FROM case_extracted_entities WHERE case_id = :cid"),
-                    {"cid": cid}
+                    text("SELECT entity_type, entity_value, role FROM case_extracted_entities WHERE CAST(case_id AS VARCHAR) = :cid"),
+                    {"cid": cid_str}
                 ).mappings().all()
                 for e in ents:
                     etype = (e.get("entity_type") or "").upper()
@@ -149,8 +151,8 @@ class SpringBootPostgresAdapter:
             # E. Locations
             try:
                 locs = conn.execute(
-                    text("SELECT location FROM case_locations WHERE case_id = :cid"),
-                    {"cid": cid}
+                    text("SELECT location FROM case_locations WHERE CAST(case_id AS VARCHAR) = :cid"),
+                    {"cid": cid_str}
                 ).scalars().all()
                 if locs:
                     c_dict["address"] = ", ".join([l for l in locs if l])
@@ -160,8 +162,8 @@ class SpringBootPostgresAdapter:
             # F. Evidences
             try:
                 evs = conn.execute(
-                    text("SELECT evidence_ref FROM case_evidence_refs WHERE case_id = :cid"),
-                    {"cid": cid}
+                    text("SELECT evidence_ref FROM case_evidence_refs WHERE CAST(case_id AS VARCHAR) = :cid"),
+                    {"cid": cid_str}
                 ).scalars().all()
                 c_dict["evidences"] = [{"id": str(i), "evidence_type": "DOCUMENT", "description": e} for i, e in enumerate(evs) if e]
             except Exception:

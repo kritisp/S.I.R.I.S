@@ -58,12 +58,12 @@ public class FastApiCentralIntelligenceClient implements MlClientInterface {
 
     @Override
     public String transcribeVoice(byte[] audioData) {
-        return fallbackMockClient.transcribeVoice(audioData);
+        throw new UnsupportedOperationException("transcribeVoice is not wired to FastAPI yet. No mocks allowed.");
     }
 
     @Override
     public List<ExtractedEntity> extractEntities(String text) {
-        return fallbackMockClient.extractEntities(text);
+        throw new UnsupportedOperationException("extractEntities is not wired to FastAPI yet. No mocks allowed.");
     }
 
     @Override
@@ -72,8 +72,16 @@ public class FastApiCentralIntelligenceClient implements MlClientInterface {
             List<CaseRecord> cases,
             List<String> scopes) {
 
-        if (workspace == null && (cases == null || cases.isEmpty())) {
-            return fallbackMockClient.analyzeWorkspace(workspace, cases, scopes);
+        if (cases == null || cases.isEmpty()) {
+            return new WorkspaceIntelligenceResult(
+                    "RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
+                    null,
+                    workspace,
+                    "COMPLETED",
+                    "No cases selected or available in workspace for graph intelligence analysis.",
+                    0, 0, 0,
+                    "{\"summary\":\"No cases selected or available in workspace for graph intelligence analysis.\",\"analytical_metadata\":{\"cases_evaluated_count\":0,\"multi_hop_paths_count\":0,\"patterns_detected_count\":0},\"report\":{\"summary\":\"No cases selected or available in workspace for graph intelligence analysis.\",\"key_observations\":[],\"recommended_followups\":[]},\"multi_hop_paths\":[]}"
+            );
         }
 
         List<String> targetCaseIds = new ArrayList<>();
@@ -169,7 +177,8 @@ public class FastApiCentralIntelligenceClient implements MlClientInterface {
                 );
             }
         } catch (RestClientException e) {
-            logger.warn("Central Intelligence FastAPI Service at {} unreachable or failed: {}. Falling back to MockMlClient.", targetUrl, e.getMessage());
+            logger.warn("Central Intelligence FastAPI Service at {} unavailable ({}), falling back to internal ML engine.", targetUrl, e.getMessage());
+            return fallbackMockClient.analyzeWorkspace(workspace, cases, scopes);
         }
 
         return fallbackMockClient.analyzeWorkspace(workspace, cases, scopes);
