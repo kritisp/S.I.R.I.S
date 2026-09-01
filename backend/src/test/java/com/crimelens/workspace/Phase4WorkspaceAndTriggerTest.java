@@ -325,8 +325,8 @@ public class Phase4WorkspaceAndTriggerTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
 
-        // Wait briefly for async trigger completion
-        Thread.sleep(800);
+        // Wait for async trigger completion (allows RestTemplate connect timeout to complete if port 8000 is offline)
+        Thread.sleep(2500);
 
         // Check workspace status READY
         mockMvc.perform(get("/api/v1/workspaces/" + wsId)
