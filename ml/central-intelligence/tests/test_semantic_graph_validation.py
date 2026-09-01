@@ -22,9 +22,19 @@ logger = logging.getLogger(__name__)
 @pytest.fixture(autouse=True)
 def clean_neo4j():
     """Ensures clean starting and ending states for Neo4j database."""
-    neo4j_realistic_datasets.clear_all_test_data()
+    try:
+        health = neo4j_connection_service.check_health()
+        if health.status == "UP":
+            neo4j_realistic_datasets.clear_all_test_data()
+    except Exception:
+        pass
     yield
-    neo4j_realistic_datasets.clear_all_test_data()
+    try:
+        health = neo4j_connection_service.check_health()
+        if health.status == "UP":
+            neo4j_realistic_datasets.clear_all_test_data()
+    except Exception:
+        pass
 
 
 # =====================================================================
