@@ -52,11 +52,14 @@ export function CrimeHotspotGisMap() {
 
     mapInstanceRef.current = map;
 
-    // Dark GIS Map Cartography Tiles (CartoDB Dark Matter)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
+    // Standard OpenStreetMap tiles with DRISHTI dark invert CSS filter (100% reliable, zero watermarks)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+      className: 'map-tiles-dark-invert',
     }).addTo(map);
+
+
 
     // Add Hotspot Heat Glow Layers & Interactive Markers
     BHUBANESWAR_HOTSPOTS.forEach((h) => {

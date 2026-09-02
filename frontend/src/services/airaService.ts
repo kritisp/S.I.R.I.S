@@ -18,9 +18,29 @@ export interface AiraAction {
   primary?: boolean;
 }
 
+export interface AiraStructuredData {
+  title: string;
+  stats: { label: string; value: string }[];
+  listTitle?: string;
+  items?: {
+    id: string;
+    location: string;
+    date: string;
+    accused?: string;
+    riskScore?: number;
+    description: string;
+  }[];
+  connectedDockets?: {
+    id: string;
+    type: string;
+    station: string;
+  }[];
+}
+
 export interface AiraResponse {
   intent: string;
   response: string;
+  structuredData?: AiraStructuredData;
   actions?: AiraAction[];
   route?: string;
   caseData?: CaseRecord;
@@ -34,6 +54,160 @@ export function processAiraQuery(query: string, context: AiraContext): AiraRespo
   const q = query.trim().toLowerCase();
   const cases = context.cases || [];
   const stations = context.stations || [];
+
+  // ===========================================================================
+  // 0. HERO SUGGESTION CARD QUERIES (In-Chat Insights, NO Redirect)
+  // ===========================================================================
+  
+  if (q.includes('vehicle thefts in bhubaneswar')) {
+    return {
+      intent: 'VEHICLE_THEFT_ANALYSIS',
+      response: "Here is the CCTNS Crime Report for Vehicle Thefts in Bhubaneswar Urban.",
+      structuredData: {
+        title: "CCTNS Crime Report: Vehicle Theft",
+        stats: [
+          { label: "Total Registered Dockets", value: "142 cases indexed across Bhubaneswar Urban." },
+          { label: "Primary Crime Distribution", value: "Two-Wheeler Theft (98), Car Jacking (22), Commercial (15)." },
+          { label: "Jurisdictional Police Stations", value: "Khandagiri PS, Nayapalli PS, Saheed Nagar PS, Capital PS." }
+        ],
+        listTitle: "Latest Indexed Vehicle Theft FIRs:",
+        items: [
+          {
+            id: "OD/BBS/2026/1001",
+            location: "Bhubaneswar Urban (Khandagiri PS)",
+            date: "2026-08-28",
+            accused: "Unknown",
+            description: "Silver Maruti Swift (OD-02-AB-1234) stolen from Khandagiri Square parking lot overnight."
+          },
+          {
+            id: "OD/BBS/2026/1042",
+            location: "Bhubaneswar Urban (Nayapalli PS)",
+            date: "2026-08-29",
+            accused: "Rajesh Behera",
+            riskScore: 68,
+            description: "Two-wheelers stolen from CRPF Square parking zone."
+          }
+        ],
+        connectedDockets: [
+          { id: "OD/BBS/2026/1001", type: "Vehicle Theft", station: "Khandagiri PS" },
+          { id: "OD/BBS/2026/1042", type: "Vehicle Theft", station: "Nayapalli PS" }
+        ]
+      },
+      actions: [
+        { label: 'OPEN GIS CRIME MAP', route: '/map', primary: true }
+      ]
+    };
+  }
+
+  if (q.includes('ଗତ ମାସର') || q.includes('ଡକାୟତି ମାମଲା')) {
+    return {
+      intent: 'ODIA_CASE_QUERY',
+      response: "Here is the CCTNS Crime Report for Robberies in Cuttack-Bhubaneswar.",
+      structuredData: {
+        title: "CCTNS Crime Report: Robbery (ଡକାୟତି)",
+        stats: [
+          { label: "Total Registered Dockets", value: "୪୫ଟି ଡକାୟତି ମାମଲା (45 Robbery Cases)." },
+          { label: "Top Affected Districts", value: "Bhubaneswar Urban, Cuttack Sadar, Khordha." },
+          { label: "Primary Crime Distribution", value: "Highway Robbery (20), Armed Robbery (12), Chain Snatching (8)." }
+        ],
+        listTitle: "Latest Indexed Robbery FIRs:",
+        items: [
+          {
+            id: "OD/CTC/2026/0401",
+            location: "Cuttack (Pahala PS)",
+            date: "2026-08-30",
+            accused: "Ramesh \"Bullet\" Nayak",
+            riskScore: 88,
+            description: "ଗତ ରାତିରେ ଜାତୀୟ ରାଜପଥ-୧୬ (NH-16) ପାହାଳ ନିକଟରେ ସଶସ୍ତ୍ର ଡକାୟତି। (Armed robbery near Pahala on NH-16 last night.)"
+          },
+          {
+            id: "OD/BBS/2026/0542",
+            location: "Bhubaneswar Urban (Khandagiri PS)",
+            date: "2026-08-31",
+            accused: "Unknown",
+            description: "ଖଣ୍ଡଗିରି ଛକ ନିକଟରେ ମହିଳାଙ୍କଠାରୁ ସୁନା ଚେନ୍ ଲୁଟ୍। (Gold chain snatched from a woman near Khandagiri Square.)"
+          }
+        ],
+        connectedDockets: [
+          { id: "OD/CTC/2026/0401", type: "Highway Robbery", station: "Pahala PS" },
+          { id: "OD/BBS/2026/0542", type: "Chain Snatching", station: "Khandagiri PS" }
+        ]
+      },
+      actions: [
+        { label: 'VIEW ANOMALY RADAR', route: '/anomalies', primary: true }
+      ]
+    };
+  }
+
+  if (q.includes('repeat offenders') || q.includes('risk score > 70') || q.includes('risk score >')) {
+    return {
+      intent: 'REPEAT_OFFENDER_INTEL',
+      response: "Here is the Intelligence Brief for High-Risk Repeat Offenders.",
+      structuredData: {
+        title: "Intelligence Brief: High-Risk Subjects",
+        stats: [
+          { label: "Total High-Risk Subjects", value: "8 active subjects with Risk Score > 70." },
+          { label: "Primary Modus Operandi (M.O.)", value: "Armed Robbery (3), Cyber Fraud (2), Vehicle Theft Syndicate (2)." },
+          { label: "Recent Sighting Hotspots", value: "Master Canteen Square, Khandagiri Checkpoint, Palasuni Toll Gate." }
+        ],
+        listTitle: "Top High-Risk Dockets:",
+        items: [
+          {
+            id: "CR-KHD-2026-00504",
+            location: "Bhubaneswar Urban (Khandagiri PS)",
+            date: "2026-09-01",
+            accused: "Ramesh \"Bullet\" Nayak",
+            riskScore: 88,
+            description: "M.O.: Armed Highway Robbery. Last detected by ANPR Camera CAM-BBSR-0012 near Master Canteen Square at 23:45 IST."
+          },
+          {
+            id: "CR-KHD-2026-00541",
+            location: "Bhubaneswar Urban (Cyber Cell)",
+            date: "2026-09-01",
+            accused: "Vikram \"Shadow\" Das",
+            riskScore: 82,
+            description: "M.O.: Financial Spear-Phishing. Linked to pass-through mule account OD-MULE-441."
+          }
+        ]
+      },
+      actions: [
+        { label: 'OPEN IDENTITY REVIEW', route: '/identity-review', primary: true },
+        { label: 'TRIGGER CCTV ALERT', route: '/cctv' }
+      ]
+    };
+  }
+
+  if (q.includes('fir-2026-bbsr-4921')) {
+    return {
+      intent: 'SPECIFIC_CASE_INSPECT',
+      response: "Here is the CCTNS Docket Viewer for FIR-2026-BBSR-4921.",
+      structuredData: {
+        title: "CCTNS Docket Viewer: FIR-2026-BBSR-4921",
+        stats: [
+          { label: "Case Title", value: "Commercial Burglary & Pass-Through Money Trail" },
+          { label: "Jurisdiction", value: "Khandagiri PS (Code: OP-KHD-01)" },
+          { label: "Investigating Officer", value: "Inspector S. Mohanty" },
+          { label: "Current Status", value: "UNDER INVESTIGATION (Priority: HIGH)" }
+        ],
+        listTitle: "Case Summary & Intelligence:",
+        items: [
+          {
+            id: "FIR-2026-BBSR-4921",
+            location: "Bhubaneswar Urban (Khandagiri PS)",
+            date: "2026-09-01",
+            description: "Extensive burglary reported at a commercial complex. Primary suspect vehicle (Silver Maruti Swift OD-02-AB-1234) intercepted via ANPR on NH-16. Financial Intelligence Unit (FIU) has traced structured deposits under ₹50k to mule account OD-MULE-441, suggesting a coordinated money laundering effort by the syndicate."
+          }
+        ],
+        connectedDockets: [
+          { id: "OD-MULE-441", type: "Suspicious Account", station: "Cyber Cell" },
+          { id: "OD-02-AB-1234", type: "Flagged Vehicle", station: "Traffic PS" }
+        ]
+      },
+      actions: [
+        { label: 'OPEN CASE WORKSPACE', route: '/cases/CR-KHD-2026-00504', primary: true }
+      ]
+    };
+  }
 
   // Helper to extract case references or numbers (e.g. 504, 541, 0001, 00981)
   const findMatchingCase = (searchQuery: string = q): CaseRecord | undefined => {
@@ -144,7 +318,7 @@ export function processAiraQuery(query: string, context: AiraContext): AiraRespo
     }
   }
 
-  // "Open FIR 504" / "Take me to FIR 504" / "Show me FIR 504"
+  // "Open FIR 504" / "Take me to FIR 504" / "Show me FIR 504" / "Open case 541"
   if (
     q.includes('open fir') ||
     q.includes('open case') ||
@@ -153,25 +327,102 @@ export function processAiraQuery(query: string, context: AiraContext): AiraRespo
     q.includes('show me fir') ||
     q.includes('show fir') ||
     q.includes('view fir') ||
-    q.includes('view case')
+    q.includes('view case') ||
+    q.includes('case ') ||
+    q.includes('fir ') ||
+    q.includes('504') ||
+    q.includes('541') ||
+    q.includes('0142') ||
+    q.includes('0081')
   ) {
-    const targetCase = findMatchingCase() || cases.find((c) => c.id === 'CR-KHD-2026-00504') || cases[0];
-    if (targetCase) {
-      return {
-        intent: 'OPEN_CASE',
-        response: `Opening case workspace for ${targetCase.firNumber} (${targetCase.title}).`,
-        actions: [
-          { label: 'OPEN CASE WORKSPACE', route: getCaseRoute(targetCase.id), primary: true }
-        ],
-        route: getCaseRoute(targetCase.id),
-        caseData: targetCase
-      };
-    }
+    const targetCase = findMatchingCase() || cases.find((c) => c.id === 'CR-KHD-2026-00541' || c.id === 'CR-KHD-2026-00504') || {
+      id: 'CR-KHD-2026-00541',
+      firNumber: 'FIR 541',
+      title: 'Commercial Heist & Pass-Through Money Trail',
+      crimeType: 'Armed Robbery',
+      status: 'INVESTIGATING',
+      priority: 'HIGH'
+    } as any;
+
+
+    const caseRoute = getCaseRoute(targetCase.id);
+    return {
+      intent: 'OPEN_CASE',
+      response: `Opening case workspace for ${targetCase.firNumber} (${targetCase.title}).`,
+      actions: [
+        { label: 'OPEN CASE WORKSPACE', route: caseRoute, primary: true }
+      ],
+      route: caseRoute,
+      caseData: targetCase
+    };
   }
 
   // ===========================================================================
-  // 2. CORE DEMO NAVIGATION COMMANDS
+  // 2. CORE DEMO NAVIGATION COMMANDS & ADVANCED MODULES
   // ===========================================================================
+
+  // Money Trail Module
+  if (q.includes('money trail') || q.includes('money') || q.includes('mule') || q.includes('aml') || q.includes('bank') || q.includes('transaction')) {
+    return {
+      intent: 'OPEN_MONEY_TRAIL',
+      response: 'Opening Money Trail Workspace. Analyzing multi-layered pass-through transactions and mule account candidates.',
+      actions: [
+        { label: 'GO TO MONEY TRAIL', route: '/money-trail', primary: true }
+      ],
+      route: '/money-trail'
+    };
+  }
+
+  // Vehicle Geo-Trail Module
+  if (q.includes('vehicle trail') || q.includes('geo trail') || q.includes('geo-trail') || q.includes('trail') || q.includes('camera hopping') || q.includes('anpr trail')) {
+    return {
+      intent: 'OPEN_GEO_TRAIL',
+      response: 'Opening Vehicle Geo-Trail Tracker. Reconstructing sequential camera sighting hops for OD-02-AB-1234.',
+      actions: [
+        { label: 'GO TO VEHICLE GEO-TRAIL', route: '/trail', primary: true }
+      ],
+      route: '/trail'
+    };
+  }
+
+  // GIS Crime Map Page
+  if (q.includes('gis crime map') || q.includes('crime map') || q.includes('gis map') || q.includes('hotspot map') || q.includes('map')) {
+    return {
+      intent: 'OPEN_GIS_CRIME_MAP',
+      response: 'Opening GIS Crime Density Map for Bhubaneswar-Cuttack corridor.',
+      actions: [
+        { label: 'GO TO GIS CRIME MAP', route: '/map', primary: true }
+      ],
+      route: '/map'
+    };
+  }
+
+  // Identity Review Module
+  if (q.includes('identity review') || q.includes('identity') || q.includes('entity resolution') || q.includes('canonical person')) {
+    return {
+      intent: 'OPEN_IDENTITY_REVIEW',
+      response: 'Opening Glass-Box Identity Review & Entity Resolution Desk.',
+      actions: [
+        { label: 'GO TO IDENTITY REVIEW', route: '/identity-review', primary: true }
+      ],
+      route: '/identity-review'
+    };
+  }
+
+  // Anomaly Radar Module
+  if (q.includes('anomaly radar') || q.includes('anomalies') || q.includes('anomaly') || q.includes('spikes') || q.includes('outliers')) {
+    return {
+      intent: 'OPEN_ANOMALY_RADAR',
+      response: 'Opening Glass-Box Anomaly Radar. Scanning jurisdictional crime surges and M.O. deviations.',
+      actions: [
+        { label: 'GO TO ANOMALY RADAR', route: '/anomalies', primary: true }
+      ],
+      route: '/anomalies'
+    };
+  }
+
+  // "Show my cases" / "Show assigned cases"
+
 
   // "Show my cases" / "Show assigned cases"
   if (q.includes('show my cases') || q.includes('my cases') || q.includes('assigned cases') || q.includes('show my investigations')) {

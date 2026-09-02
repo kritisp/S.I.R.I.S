@@ -164,4 +164,14 @@
     color: var(--brand);
     font-weight: 700;
   }
+
+  /* DRISHTI Tactical Dark Leaflet Map Tile Invert Filter */
+  .map-tiles-dark-invert {
+    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7) !important;
+  }
+
+  .leaflet-container {
+    background-color: #070b14 !important;
+  }
 }
+

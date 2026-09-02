@@ -2,10 +2,19 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useMockState } from '../mockServices/MockStateContext';
 import { CaseKnowledgeGraph } from '../components/graph/CaseKnowledgeGraph';
-import { Shield, FileText, Share2, AlertTriangle, FileBarChart, Scale, Bot, Lock, CheckCircle, Clock, Network, AlertCircle, ChevronRight, HelpCircle, Eye } from 'lucide-react';
+import { Shield, FileText, Share2, AlertTriangle, FileBarChart, Scale, Bot, Lock, CheckCircle, Clock, Network, AlertCircle, ChevronRight, HelpCircle, Eye, Car, Navigation, Sparkles } from 'lucide-react';
+
 import { HERO_CASE_PROVISIONS, ROBBERY_CASE_PROVISIONS, FIR_ANALYSIS_PROVISIONS } from '../mockServices/legalProvisionMockData';
 import { LegalProvisionList } from '../components/legal/LegalProvisionList';
 import { requestsApi, generateFirDraft } from '../services/api';
+import { VehicleIntelligenceModal } from '../components/intelligence/VehicleIntelligenceModal';
+import { VehicleGeoTrailModal } from '../components/intelligence/VehicleGeoTrailModal';
+import { InvestigationActionQueue } from '../components/intelligence/InvestigationActionQueue';
+import { RiskIntelligenceCard } from '../components/intelligence/RiskIntelligenceCard';
+import { ExplainableLeadCard } from '../components/intelligence/ExplainableLeadCard';
+import { explainableIntelStore } from '../services/explainableIntelService';
+
+
 
 export function CaseWorkspace() {
   const { id } = useParams<{ id: string }>();
@@ -25,10 +34,16 @@ export function CaseWorkspace() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [draftGenerated, setDraftGenerated] = useState(false);
 
+  // DRISHTI Phase 1 Modal States
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+  const [showTrailModal, setShowTrailModal] = useState(false);
+  const [selectedPlate, setSelectedPlate] = useState("OD-02-AB-1234");
+
   // Similar cases modals / states
   const [showSimilarityModal, setShowSimilarityModal] = useState(false);
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false);
   const [justificationText, setJustificationText] = useState("S.I.R.I.S detected a 94% relationship based on shared entity and crime signature. Access requested for investigation correlation.");
+
 
   const currentCase = state.cases.find(c => c.id === id);
 
@@ -255,12 +270,23 @@ export function CaseWorkspace() {
               </div>
             )}
 
+            {/* Glass-Box Explainable Intelligence & Officer Verification Section */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-brand font-mono flex items-center gap-1.5">
+                <Sparkles size={14} /> Glass-Box Explainable Intelligence Leads
+              </h3>
+              {explainableIntelStore.getLeads().slice(0, 2).map(lead => (
+                <ExplainableLeadCard key={lead.id} lead={lead} />
+              ))}
+            </div>
+
             <div className="grid md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
                 <div className="glass p-6 rounded-xl bg-surface border border-border-soft">
                   <h3 className="text-sm font-bold text-text uppercase tracking-wider mb-4 border-b border-border-soft pb-2">Incident Narrative</h3>
                   <p className="text-sm text-text-dim leading-relaxed">{currentCase.description}</p>
                 </div>
+
 
                 {/* ─── 5. SIMILAR & RELATED CASES DEDICATED SECTION ─── */}
                 {!state.isProcessingIntelligence && (
@@ -348,12 +374,46 @@ export function CaseWorkspace() {
               </div>
               
               <div className="space-y-6">
-                <div className="glass p-6 rounded-xl bg-surface border border-border-soft">
-                  <h3 className="text-sm font-bold text-text uppercase tracking-wider mb-4 border-b border-border-soft pb-2">Extracted Entities</h3>
+                {/* DRISHTI Risk Intelligence Card */}
+                <RiskIntelligenceCard
+                  accusedName={currentCase.suspects?.[0] || 'Rajesh Kumar'}
+                  firCount={3}
+                  crimeTypes={[currentCase.crimeType, 'Burglary', 'Vehicle Theft']}
+                  priorConvictions={2}
+                />
+
+                {/* DRISHTI Investigation Action Queue */}
+                <InvestigationActionQueue
+                  caseId={currentCase.id}
+                  onOpenVehicleIntel={(plate) => {
+                    setSelectedPlate(plate);
+                    setShowVehicleModal(true);
+                  }}
+                  onOpenGeoTrail={() => setShowTrailModal(true)}
+                />
+
+                {/* Extracted Entities */}
+                <div className="glass p-6 rounded-xl bg-surface border border-border-soft space-y-3">
+                  <h3 className="text-sm font-bold text-text uppercase tracking-wider border-b border-border-soft pb-2">Extracted Entities</h3>
                   <div className="flex flex-wrap gap-2">
                     {currentCase.entities.map(e => (
-                      <div key={e.id} className="bg-surface-2 border border-border-soft px-3 py-1.5 rounded-lg text-xs font-mono">
+                      <div
+                        key={e.id}
+                        onClick={() => {
+                          if (e.type === 'VEHICLE') {
+                            setSelectedPlate(e.value);
+                            setShowVehicleModal(true);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-mono border transition-all ${
+                          e.type === 'VEHICLE'
+                            ? 'bg-brand/10 border-brand/40 text-brand cursor-pointer hover:bg-brand/20 font-bold flex items-center gap-1.5'
+                            : 'bg-surface-2 border-border-soft text-text'
+                        }`}
+                      >
+                        {e.type === 'VEHICLE' && <Car size={12} />}
                         <span className="text-text-dim">{e.type}:</span> <span className="font-bold text-text">{e.value}</span>
+                        {e.type === 'VEHICLE' && <span className="text-[9px] bg-brand text-bg px-1.5 py-0.2 rounded ml-1 font-bold">ANPR INTEL</span>}
                       </div>
                     ))}
                   </div>
@@ -393,6 +453,7 @@ export function CaseWorkspace() {
             </div>
           </div>
         )}
+
 
         {activeTab === 'graph' && (
           <div className="animate-fade-in space-y-4">
@@ -585,6 +646,23 @@ export function CaseWorkspace() {
           </div>
         </div>
       )}
+
+      {/* DRISHTI Vehicle Intelligence & Geo-Trail Modals */}
+      <VehicleIntelligenceModal
+        isOpen={showVehicleModal}
+        onClose={() => setShowVehicleModal(false)}
+        plateNumber={selectedPlate}
+        onOpenTrail={() => setShowTrailModal(true)}
+        onOpenCctv={() => navigate('/cctv')}
+      />
+
+      <VehicleGeoTrailModal
+        isOpen={showTrailModal}
+        onClose={() => setShowTrailModal(false)}
+        plateNumber={selectedPlate}
+        onOpenCctv={() => navigate('/cctv')}
+      />
     </div>
   );
 }
+

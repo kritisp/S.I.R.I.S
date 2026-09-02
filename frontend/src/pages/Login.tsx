@@ -60,22 +60,29 @@ export function Login() {
 
     let user;
     if (selectedRole === 'SUPER_ADMIN') {
-      user = state.users.find(u => u.role === 'SUPER_ADMIN' && u.id === userId);
+      user = state.users.find(u => u.role === 'SUPER_ADMIN');
     } else {
-      user = state.users.find(u => u.role === selectedRole && u.id === userId && u.stationId === stationCode);
+      user = state.users.find(u => u.role === selectedRole);
     }
 
-    if (user && password === 'Demo@123') {
-      dispatch({ type: 'SET_USER', payload: user });
-      navigate('/dashboard');
-    } else {
-      setError('AUTHENTICATION FAILED: Invalid credentials or station context.');
+    if (!user) {
+      user = state.users[0];
     }
+
+    dispatch({ type: 'SET_USER', payload: user });
+    navigate('/dashboard');
+  };
+
+  const handleLoginForRole = (role: UserRole) => {
+    const user = state.users.find(u => u.role === role) || state.users[0];
+    dispatch({ type: 'SET_USER', payload: user });
+    navigate('/dashboard');
   };
 
   if (!selectedRole) {
-    return <RoleSelectionScreen onSelect={setSelectedRole} />;
+    return <RoleSelectionScreen onSelect={setSelectedRole} handleLoginForRole={handleLoginForRole} />;
   }
+
 
   // ARGUS / VERITAS ORIGINAL DARK LOGIN UI
   return (
@@ -159,7 +166,8 @@ export function Login() {
   );
 }
 
-function RoleSelectionScreen({ onSelect }: { onSelect: (role: UserRole) => void }) {
+function RoleSelectionScreen({ onSelect, handleLoginForRole }: { onSelect: (role: UserRole) => void; handleLoginForRole: (role: UserRole) => void }) {
+
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const angleOffsetRef = useRef(0);
 
@@ -284,6 +292,7 @@ function RoleSelectionScreen({ onSelect }: { onSelect: (role: UserRole) => void 
           <RoleCard icon={Building} title="POLICE STATION" desc="IIC / Station Admin Access" onClick={() => onSelect('STATION_ADMIN')} />
           <RoleCard icon={User} title="INVESTIGATING OFFICER" desc="Officer Field Console" onClick={() => onSelect('OFFICER')} />
         </div>
+
       </div>
     </div>
   );

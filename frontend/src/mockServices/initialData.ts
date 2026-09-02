@@ -585,6 +585,74 @@ const users: User[] = [
 ];
 const cases: CaseRecord[] = [
   {
+    "id": "CR-KHD-2026-00142",
+    "firNumber": "FIR-2026-0142",
+    "stationId": "OP-BBSR-CAP",
+    "investigatorId": "INV-BBSR-001",
+    "title": "Highway Robbery & Commercial Vehicle Hijack (Khandagiri)",
+    "description": "High-priority armed robbery and commercial van theft registered at Khandagiri Police Station. Suspect Rajesh Kumar and accomplices intercepted a delivery van. Vehicle OD-02-AB-1234 was identified on ANPR camera CAM-041.",
+    "crimeType": "Armed Robbery",
+    "status": "INVESTIGATING",
+    "priority": "CRITICAL",
+    "createdAt": "2026-08-21T21:10:00.000Z",
+    "entities": [
+      {
+        "id": "ENT-V-142",
+        "type": "VEHICLE",
+        "value": "OD-02-AB-1234"
+      },
+      {
+        "id": "ENT-P-142",
+        "type": "PERSON",
+        "value": "Rajesh Kumar"
+      },
+      {
+        "id": "ENT-L-142",
+        "type": "LOCATION",
+        "value": "Khandagiri Square, Bhubaneswar"
+      }
+    ],
+    "bnsSections": ["BNS Section 309 (Robbery)", "BNS Section 310 (Dacoity)"],
+    "suspects": ["Rajesh Kumar", "Ranga Mohanty"],
+    "vehicles": ["OD-02-AB-1234"],
+    "locations": ["Khandagiri Square", "Patrapada Bypass"],
+    "evidenceRefs": ["ANPR Camera Log CAM-041", "Witness Telemetry"],
+    "cctvRefs": ["CAM-041", "CAM-052", "CAM-078", "CAM-103"],
+    "linkedCaseIds": ["OD-CTC-2026-00081", "CR-KHD-2026-00541"]
+  },
+  {
+    "id": "OD-CTC-2026-00081",
+    "firNumber": "FIR-2026-0081",
+    "stationId": "OP-CTC-CITY",
+    "investigatorId": "INV-CTC-006",
+    "title": "Jewelry Store Armed Heist (Badambadi)",
+    "description": "Armed robbery at a jewelry store in Cuttack. Suspects fled towards Bhubaneswar in a white commercial van matching vehicle plate OD-02-AB-1234.",
+    "crimeType": "Armed Robbery",
+    "status": "INVESTIGATING",
+    "priority": "CRITICAL",
+    "createdAt": "2026-08-18T18:48:17.920Z",
+    "entities": [
+      {
+        "id": "ENT-V-81",
+        "type": "VEHICLE",
+        "value": "OD-02-AB-1234"
+      },
+      {
+        "id": "ENT-P-81",
+        "type": "PERSON",
+        "value": "Rajesh Kumar"
+      }
+    ],
+    "bnsSections": ["BNS Section 309 (Robbery)"],
+    "suspects": ["Rajesh Kumar", "Kalia Patra"],
+    "vehicles": ["OD-02-AB-1234"],
+    "locations": ["Badambadi Market", "Link Road"],
+    "evidenceRefs": ["CCTV Footage Cam 1", "Fingerprint Scan"],
+    "cctvRefs": ["CAM-103"],
+    "linkedCaseIds": ["CR-KHD-2026-00142", "CR-KHD-2026-00541"]
+  },
+
+  {
     "id": "CR-KHD-2026-00504",
     "firNumber": "FIR 504",
     "stationId": "OP-BBSR-CAP",

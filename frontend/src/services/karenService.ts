@@ -64,6 +64,87 @@ export function processKarenQuery(query: string, context: KarenContext): KarenRe
   // DIRECT COMMAND ROUTER (Precedence Rules)
   // ==========================================
 
+  // DRISHTI Intent 1: ANPR Vehicle Intelligence
+  if (q.includes('show me this vehicle') || q.includes('vehicle intelligence') || q.includes('anpr')) {
+    return {
+      intent: 'ANPR_LOOKUP',
+      response: 'Accessing ANPR Vehicle Intelligence for OD-02-AB-1234. Matched under active armed robbery case FIR-2026-0142.',
+      actions: [
+        { label: 'OPEN VEHICLE INTEL', route: '/cctv?plate=OD-02-AB-1234', primary: true },
+        { label: 'TRACE VEHICLE', route: '/cctv?trail=true' },
+        { label: 'VIEW LINKED CASES', route: '/cases/CR-KHD-2026-00142' }
+      ]
+    };
+  }
+
+  // DRISHTI Intent 2: Vehicle Geo-Trail
+  if (q.includes('trace this vehicle') || q.includes('geo-trail') || q.includes('vehicle trail') || q.includes('trace vehicle')) {
+    return {
+      intent: 'VEHICLE_TRAIL',
+      response: 'Reconstructing flight trajectory for vehicle OD-02-AB-1234 across 4 camera hops from Khandagiri Square (21:10) to Cuttack Sadar checkpoint (21:43). Total distance: 3.4 km.',
+      actions: [
+        { label: 'VIEW GEO-TRAIL MAP', route: '/cctv?trail=true', primary: true },
+        { label: 'REVIEW CCTV FEEDS', route: '/cctv' }
+      ]
+    };
+  }
+
+  // DRISHTI Intent 3: CCTV Nearby Intelligence
+  if (q.includes('show nearby cameras') || q.includes('nearby cameras') || q.includes('cameras nearby')) {
+    return {
+      intent: 'OPEN_CCTV',
+      response: 'Identified 3 active surveillance cameras within 500m of incident location. CAM-041 (Khandagiri Square) has 98% relevance score.',
+      actions: [
+        { label: 'OPEN CCTV CONSOLE', route: '/cctv', primary: true }
+      ]
+    };
+  }
+
+  // DRISHTI Intent 4 & 5: Action Queue & Automatic Triggers
+  if (q.includes('what should i investigate next') || q.includes('action queue') || q.includes('investigate next') || q.includes('task queue')) {
+    return {
+      intent: 'ACTION_QUEUE',
+      response: 'Inspector, your action queue has 2 High Priority items: 1) Review ANPR vehicle match for OD-02-AB-1234; 2) Verify reconstructed vehicle flight trail to Cuttack Sadar.',
+      actions: [
+        { label: 'OPEN ACTION QUEUE', route: '/dashboard', primary: true },
+        { label: 'OPEN CASE WORKSPACE', route: '/cases/CR-KHD-2026-00142' }
+      ]
+    };
+  }
+
+  if (q.includes('what intelligence was automatically detected') || q.includes('automatic intelligence') || q.includes('auto detected')) {
+    return {
+      intent: 'INTELLIGENCE_EVENTS',
+      response: 'Automatic Event Trigger detected: High correlation (94% MO similarity + shared vehicle OD-02-AB-1234) between Khandagiri FIR-2026-0142 and Cuttack Sadar FIR-2026-0081.',
+      actions: [
+        { label: 'VIEW NETWORK EXPLORER', route: '/network', primary: true }
+      ]
+    };
+  }
+
+  // DRISHTI Intent 6: Risk Explanation
+  if (q.includes('why is this lead high priority') || q.includes('risk score') || q.includes('risk priority') || q.includes('why high priority')) {
+    return {
+      intent: 'RISK_EXPLANATION',
+      response: 'Analytical Risk Score: 72/100 (HIGH). Contributing factors: 1) Associated with 3 active FIRs; 2) History of prior convictions; 3) Violent armed robbery characteristics; 4) Recent activity within 30 days. Note: Analytical indicator for prioritization, not a determination of guilt.',
+      actions: [
+        { label: 'VIEW RISK DETAILS', route: '/cases/CR-KHD-2026-00142', primary: true }
+      ]
+    };
+  }
+
+  if (q.includes('show me all cases connected to this vehicle') || q.includes('cases connected to vehicle')) {
+    return {
+      intent: 'CASE_NETWORK',
+      response: 'Vehicle OD-02-AB-1234 connects 3 active cases: FIR-2026-0142 (Khandagiri Armed Robbery), FIR-2026-0081 (Cuttack Jewelry Heist), and FIR 541 (Khandagiri Van Theft).',
+      actions: [
+        { label: 'EXPLORE NETWORK GRAPH', route: '/network', primary: true },
+        { label: 'VIEW PRIMARY CASE', route: '/cases/CR-KHD-2026-00142' }
+      ]
+    };
+  }
+
+
   if (q.includes('tell me about') && q.includes('541')) {
     return {
       intent: 'CASE_LOOKUP',

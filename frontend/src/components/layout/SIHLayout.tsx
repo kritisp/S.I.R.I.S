@@ -3,8 +3,14 @@ import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Shield, FilePlus, Search, ShieldAlert,
   Network, Sparkles, Scale, FileText, FileBarChart,
-  Bell, LogOut, Moon, Sun, Lock, Building, Users, Globe, ChevronDown, Briefcase
-} from 'lucide-react';
+  Bell, LogOut, Moon, Sun, Lock, Building, Users, Globe, ChevronDown, Briefcase, Video, Navigation,
+  CreditCard, UserCheck, TrendingUp, PhoneCall, ClipboardCheck, CheckSquare, History, AlertTriangle, Bot, GitBranch
+, Radio, Truck } from 'lucide-react';
+
+
+
+
+
 import { useMockState } from '../../mockServices/MockStateContext';
 import { useLanguage, LanguageCode } from '../../context/LanguageContext';
 import { AiraProvider } from '../Aira/AiraProvider';
@@ -98,23 +104,25 @@ export function SIHLayout() {
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {isSuperAdmin && (
             <>
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-3 mb-1.5 tracking-wider">{t('nav.section.stateCommand', 'STATE COMMAND')}</div>
-              <NavItem to="/dashboard" icon={LayoutDashboard} label={t('nav.commandCenter', 'Command Center')} />
-              
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.policeAdmin', 'POLICE ADMINISTRATION')}</div>
-              <NavItem to="/stations" icon={Building} label={t('nav.policeStations', 'Police Stations')} />
-              
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.caseIntel', 'CASE INTELLIGENCE')}</div>
-              <NavItem to="/cases" icon={Search} label={t('nav.caseSearch', 'State Case Registry')} />
-              <NavItem to="/intelligence/alerts" icon={ShieldAlert} label={t('nav.notifications', 'State Alerts')} badge={unreadAlerts} />
-              
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.networkIntel', 'NETWORK INTELLIGENCE')}</div>
-              <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'State Network Explorer')} />
-              
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.reports', 'REPORTS')}</div>
-              <NavItem to="/reports" icon={FileBarChart} label={t('nav.monthlyReports', 'Monthly Crime Reports')} />
+              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-3 mb-1.5 tracking-wider">COMMAND SUPERVISOR</div>
+              <NavItem to="/dashboard" icon={LayoutDashboard} label="Operations Command" />
+              <NavItem to="/supervisor/performance" icon={Users} label="Officer & Station Performance" />
+              <NavItem to="/supervisor/assignment" icon={CheckSquare} label="Case Assignment" />
+              <NavItem to="/supervisor/approvals" icon={ClipboardCheck} label="Sanctions & Warrants" badge={pendingRequests} />
+              <NavItem to="/supervisor/dispatch" icon={Navigation} label="Fleet & Patrol Dispatch" />
+              <NavItem to="/network" icon={GitBranch} label="Cross-Station Network Graph" />
+              <NavItem to="/supervisor/escalations" icon={AlertTriangle} label="Emergency Broadcast & QRT" badge={unreadAlerts} />
+              <NavItem to="/supervisor/audit" icon={History} label="Audit & Compliance Logs" />
+              <NavItem to="/assistant" icon={Bot} label="Supervisor Co-Pilot" />
+              <NavItem to="/analytics" icon={FileBarChart} label="Analytics" />
+              <NavItem to="/news" icon={Radio} label="Live News" />
+              <NavItem to="/map" icon={Globe} label="GIS Crime Map" />
+              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'Legal Intelligence')} />
             </>
           )}
+
+
+
 
           {role === 'STATION_ADMIN' && (
             <>
@@ -127,9 +135,19 @@ export function SIHLayout() {
               <NavItem to="/evidence" icon={FileText} label={t('nav.evidenceVault', 'Evidence Vault')} />
               
               <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.intelligence', 'INTELLIGENCE')}</div>
-              <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
-              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'Legal Intelligence')} />
               <NavItem to="/assistant" icon={Sparkles} label={t('nav.aiAssistant', 'AI Assistant')} />
+              <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
+              <NavItem to="/analytics" icon={FileBarChart} label="Analytics" />
+              <NavItem to="/news" icon={Radio} label="Live News" />
+              <NavItem to="/map" icon={Globe} label="GIS Crime Map" />
+              <NavItem to="/cctv" icon={Video} label="CCTV Surveillance" />
+              <NavItem to="/trail" icon={Navigation} label="Vehicle Geo-Trail" />
+              <NavItem to="/money-trail" icon={CreditCard} label="Money Trail" />
+              <NavItem to="/cdr" icon={PhoneCall} label="CDR Intelligence" />
+              <NavItem to="/identity-review" icon={UserCheck} label="Identity Review" />
+              <NavItem to="/anomalies" icon={TrendingUp} label="Anomaly Radar" />
+              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'Legal Intelligence')} />
+              <NavItem to="/supervisor/fleet" icon={Truck} label="Fleet Status" />
               
               <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.operations', 'OPERATIONS')}</div>
               <NavItem to="/investigators" icon={Users} label={t('nav.officers', 'Officers')} />
@@ -153,17 +171,22 @@ export function SIHLayout() {
               <NavItem to="/case-search" icon={Search} label={t('nav.caseSearch', 'Case Search')} />
               
               <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.intelligence', 'INTELLIGENCE')}</div>
-              <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
-              <NavItem to="/reports" icon={FileBarChart} label={t('nav.crimeIntelligence', 'Crime Intelligence')} />
-              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'Legal Intelligence')} />
-              
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.assistance', 'ASSISTANCE')}</div>
               <NavItem to="/assistant" icon={Sparkles} label={t('nav.aiAssistant', 'AI Assistant')} />
-
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.reports', 'REPORTS')}</div>
-              <NavItem to="/reports" icon={FileBarChart} label={t('nav.caseReports', 'Case Reports')} />
+              <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
+              <NavItem to="/analytics" icon={FileBarChart} label="Analytics" />
+              <NavItem to="/news" icon={Radio} label="Live News" />
+              <NavItem to="/map" icon={Globe} label="GIS Crime Map" />
+              <NavItem to="/cctv" icon={Video} label="CCTV Surveillance" />
+              <NavItem to="/trail" icon={Navigation} label="Vehicle Geo-Trail" />
+              <NavItem to="/money-trail" icon={CreditCard} label="Money Trail" />
+              <NavItem to="/cdr" icon={PhoneCall} label="CDR Intelligence" />
+              <NavItem to="/identity-review" icon={UserCheck} label="Identity Review" />
+              <NavItem to="/anomalies" icon={TrendingUp} label="Anomaly Radar" />
+              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'Legal Intelligence')} />
             </>
           )}
+
+
         </nav>
 
         <div className="p-3.5 border-t border-border-soft bg-surface-2/60">
@@ -313,33 +336,28 @@ function NavItem({ to, icon: Icon, label, badge }: { to: string, icon: any, labe
     <NavLink
       to={to}
       className={({ isActive }) => `
-        group relative flex items-center justify-between px-3 py-2 rounded-lg text-[13.5px] transition-all
+        group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer
         ${isActive 
-          ? 'bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold border border-[var(--nav-active-border)] shadow-xs' 
-          : 'text-[var(--nav-text)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)] border border-transparent'
+          ? 'bg-brand text-bg font-bold shadow-md border border-brand' 
+          : 'text-text-dim hover:text-text hover:bg-surface-hover border border-transparent'
         }
       `}
     >
       {({ isActive }) => (
         <>
-          {isActive && (
-            <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-[var(--nav-active-indicator)] transition-all" />
-          )}
-          <div className="flex items-center gap-2.5 pl-0.5">
+          <div className="flex items-center gap-3">
             <Icon 
-              size={17} 
-              className={`shrink-0 transition-colors ${
-                badge 
-                  ? 'text-danger' 
-                  : isActive 
-                  ? 'text-[var(--nav-active-icon)]' 
-                  : 'text-[var(--nav-text)] group-hover:text-[var(--nav-hover-text)]'
+              size={18} 
+              className={`shrink-0 transition-transform duration-150 group-hover:scale-110 ${
+                isActive ? 'text-bg' : 'text-text-dim group-hover:text-text'
               }`} 
             />
-            <span className="font-medium truncate">{label}</span>
+            <span className="tracking-tight truncate">{label}</span>
           </div>
           {(badge !== undefined && badge > 0) && (
-            <span className="bg-danger text-white px-2 py-0.2 rounded-full text-[10px] font-bold shadow-xs">
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm ${
+              isActive ? 'bg-bg text-brand' : 'bg-danger text-white'
+            }`}>
               {badge}
             </span>
           )}
@@ -348,3 +366,4 @@ function NavItem({ to, icon: Icon, label, badge }: { to: string, icon: any, labe
     </NavLink>
   );
 }
+
