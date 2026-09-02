@@ -520,7 +520,7 @@ export function CdrIntelligencePage() {
                 <Zap size={14} /> COMMUNICATION PATTERN LEADS
               </span>
               <span className="text-[9px] font-mono bg-brand/20 text-brand px-2 py-0.5 rounded border border-brand/30">
-                GLASS-BOX
+                S.I.R.I.S.
               </span>
             </div>
 

@@ -2,17 +2,20 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Network, Search, Radio, Lock, CheckCircle2,
   Layers, Newspaper, Database, Navigation, Crosshair,
-  ZoomIn, ZoomOut, Plus, MapPin, ArrowRight, ShieldAlert, FileText, Radio as RadioIcon
+  ZoomIn, ZoomOut, Plus, MapPin, ArrowRight, ShieldAlert, FileText, Radio as RadioIcon, Globe, Cpu
 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import {
-  NodeType, NETWORK_NODES, NETWORK_EDGES
+  NodeType, NETWORK_NODES, NETWORK_EDGES, NetworkNode, NetworkEdge
 } from '../mockServices/networkGraphData';
 
 import { IntelligenceGraph } from '../components/graph/IntelligenceGraph';
 import { NodeDetailPanel } from '../components/graph/NodeDetailPanel';
+import { ArgusWhyPanel } from '../components/graph/ArgusWhyPanel';
+import { OsintPanel } from '../components/intelligence/OsintPanel';
+import { graphIntelligenceService, GraphOverview, IntelAlert } from '../services/graphIntelligenceService';
 import { useMockState } from '../mockServices/MockStateContext';
 import { workspaceApi, WorkspaceDTO } from '../services/api/workspaceApi';
 import { transformResultPayloadToGraph } from '../utils/graphTransform';
@@ -389,11 +392,15 @@ export function NetworkExplorer() {
   const { state } = useMockState();
   const role = state.currentUser?.role || 'OFFICER';
 
-  type TabType = 'graph' | 'wall' | 'cards' | 'matrix' | 'routes';
+  type TabType = 'graph' | 'wall' | 'cards' | 'matrix' | 'routes' | 'osint';
   const [activeTab, setActiveTab] = useState<TabType>('graph');
 
   const [selectedSyndicate, setSelectedSyndicate] = useState(SYNDICATES[0]);
   const [selectedEvidenceModal, setSelectedEvidenceModal] = useState<Record<string, string> | null>(null);
+
+  const [argusLiveOverview, setArgusLiveOverview] = useState<GraphOverview | null>(null);
+  const [argusAlerts, setArgusAlerts] = useState<IntelAlert[]>([]);
+  const [showWhyPanel, setShowWhyPanel] = useState<boolean>(false);
 
   const [customPins, setCustomPins] = useState([
     {
@@ -453,14 +460,68 @@ export function NetworkExplorer() {
       }
     }
     loadWorkspaceData();
+
+    // Fetch ARGUS live graph overview & alerts
+    graphIntelligenceService.getOverview(150).then(data => {
+      if (data && data.nodes && data.nodes.length > 0) {
+        setArgusLiveOverview(data);
+      }
+    });
+    graphIntelligenceService.getAlerts().then(res => {
+      if (res && res.alerts) {
+        setArgusAlerts(res.alerts);
+      }
+    });
   }, []);
 
   const dynamicGraphData = useMemo(() => {
+    if (argusLiveOverview && argusLiveOverview.nodes.length > 0) {
+      const nodes: NetworkNode[] = argusLiveOverview.nodes.map(n => {
+        const rawType = (n.entity_type || (n.node_type === 'case' ? 'CASE' : 'PERSON')).toUpperCase();
+        let nodeType: NodeType = 'PERSON';
+        if (rawType === 'CASE') nodeType = 'CASE';
+        else if (rawType === 'PHONE') nodeType = 'PHONE';
+        else if (rawType === 'VEHICLE') nodeType = 'VEHICLE';
+        else if (rawType === 'LOCATION') nodeType = 'LOCATION';
+        else if (rawType === 'STATION') nodeType = 'STATION';
+        else if (rawType === 'EVIDENCE') nodeType = 'EVIDENCE';
+
+        return {
+          id: n.id,
+          type: nodeType,
+          label: n.label || n.id,
+          sublabel: `Betweenness: ${n.betweenness} | Complaints: ${n.complaint_count}`,
+          stationId: n.station_id || 'OP-BBSR-CAP',
+          accessStatus: 'AUTHORIZED',
+          isCrossStation: n.is_flagged || n.betweenness > 0.2,
+          isAiDiscovered: n.betweenness > 0.1,
+          metadata: {
+            betweenness: n.betweenness,
+            influence: n.influence,
+            complaintCount: n.complaint_count,
+            district: n.district || 'Khordha (Bhubaneswar)'
+          }
+        };
+      });
+
+      const edges: NetworkEdge[] = argusLiveOverview.edges.map((e, idx) => ({
+        id: `argus-edge-${idx}`,
+        source: e.source,
+        target: e.target,
+        relationship: 'MATCHED_ENTITY',
+        label: e.weight >= 1 ? 'Linked Entity' : 'Associate',
+        isCrossStation: e.weight > 0.8,
+        isAiDiscovered: true,
+        confidence: Math.round(e.weight * 100)
+      }));
+
+      return { nodes, edges };
+    }
     if (activeWorkspace?.results) {
       return transformResultPayloadToGraph(activeWorkspace.results);
     }
     return { nodes: NETWORK_NODES, edges: NETWORK_EDGES };
-  }, [activeWorkspace]);
+  }, [argusLiveOverview, activeWorkspace]);
 
   const filteredNodes = useMemo(() => {
     return dynamicGraphData.nodes.filter(n => {
@@ -532,6 +593,7 @@ export function NetworkExplorer() {
             { id: 'cards', label: 'Syndicate Cards', icon: Layers },
             { id: 'matrix', label: 'Nexus Matrix', icon: Database },
             { id: 'routes', label: 'Predictive Routes', icon: Navigation },
+            { id: 'osint', label: 'OSINT Hub', icon: Globe },
           ].map(tab => {
             const IconComp = tab.icon;
             const isActive = activeTab === tab.id;
@@ -606,13 +668,42 @@ export function NetworkExplorer() {
 
             <div className="lg:col-span-4 space-y-4">
               {selectedNode ? (
-                <NodeDetailPanel
-                  node={selectedNode}
-                  edges={dynamicGraphData.edges}
-                  allNodes={dynamicGraphData.nodes}
-                  onClose={() => setSelectedNodeId(null)}
-                  onSelectNode={(nodeId) => setSelectedNodeId(nodeId)}
-                />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between bg-surface-2 p-1.5 rounded-xl border border-border-soft text-xs font-mono">
+                    <button
+                      onClick={() => setShowWhyPanel(false)}
+                      className={`flex-1 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                        !showWhyPanel ? 'bg-brand text-white' : 'text-text-dim hover:text-text'
+                      }`}
+                    >
+                      Node Details
+                    </button>
+                    <button
+                      onClick={() => setShowWhyPanel(true)}
+                      className={`flex-1 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                        showWhyPanel ? 'bg-brand text-white' : 'text-text-dim hover:text-text'
+                      }`}
+                    >
+                      <Cpu size={12} />
+                      <span>S.I.R.I.S. Why?</span>
+                    </button>
+                  </div>
+
+                  {showWhyPanel ? (
+                    <ArgusWhyPanel
+                      nodeId={selectedNode.id}
+                      label={selectedNode.label}
+                      entityType={selectedNode.type}
+                      onClose={() => setSelectedNodeId(null)}
+                    />
+                  ) : (
+                    <NodeDetailPanel
+                      node={selectedNode}
+                      onClose={() => setSelectedNodeId(null)}
+                      onExpandNode={(nodeId) => setSelectedNodeId(nodeId)}
+                    />
+                  )}
+                </div>
               ) : (
                 <>
                   <SummaryPanel summary={summaryStats} />
@@ -1167,6 +1258,13 @@ export function NetworkExplorer() {
 
           {/* INTERACTIVE LEAFLET TACTICAL MAP */}
           <PredictiveRoutesMap syndicate={selectedSyndicate} />
+        </div>
+      )}
+
+      {/* ── TAB 6: ARGUS OSINT ENRICHMENT HUB ── */}
+      {activeTab === 'osint' && (
+        <div className="max-w-4xl mx-auto space-y-4">
+          <OsintPanel />
         </div>
       )}
 

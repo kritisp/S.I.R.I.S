@@ -41,7 +41,7 @@ export function IdentityReviewPage() {
             <Users className="text-brand" /> Identity Resolution & Duplicate Review
           </h1>
           <p className="text-xs text-text-dim mt-1">
-            Glass-Box entity resolution · Detect candidate suspect duplicates while preventing namesake false merges
+            S.I.R.I.S. entity resolution · Detect candidate suspect duplicates while preventing namesake false merges
           </p>
         </div>
       </div>

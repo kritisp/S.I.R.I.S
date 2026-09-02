@@ -270,10 +270,10 @@ export function CaseWorkspace() {
               </div>
             )}
 
-            {/* Glass-Box Explainable Intelligence & Officer Verification Section */}
+            {/* S.I.R.I.S. Explainable Intelligence & Officer Verification Section */}
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-brand font-mono flex items-center gap-1.5">
-                <Sparkles size={14} /> Glass-Box Explainable Intelligence Leads
+                <Sparkles size={14} /> S.I.R.I.S. Explainable Intelligence Leads
               </h3>
               {explainableIntelStore.getLeads().slice(0, 2).map(lead => (
                 <ExplainableLeadCard key={lead.id} lead={lead} />
@@ -394,7 +394,27 @@ export function CaseWorkspace() {
 
                 {/* Extracted Entities */}
                 <div className="glass p-6 rounded-xl bg-surface border border-border-soft space-y-3">
-                  <h3 className="text-sm font-bold text-text uppercase tracking-wider border-b border-border-soft pb-2">Extracted Entities</h3>
+                  <div className="flex items-center justify-between border-b border-border-soft pb-2">
+                    <h3 className="text-sm font-bold text-text uppercase tracking-wider">Extracted Entities</h3>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { graphIntelligenceService } = await import('../services/graphIntelligenceService');
+                          const res = await graphIntelligenceService.extractEntities(currentCase.description, currentCase.id);
+                          if (res.entities && res.entities.length > 0) {
+                            alert(`S.I.R.I.S. Entity Extraction complete (${res.duration_ms}ms):\nFound ${res.entities.length} entities: ` + res.entities.map(e => `${e.type}: ${e.value}`).join(', '));
+                          } else {
+                            alert('S.I.R.I.S. Entity Extraction complete: No regex/NER entities detected in narrative.');
+                          }
+                        } catch (err: any) {
+                          alert('S.I.R.I.S. Entity Extraction service error: ' + err.message);
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded bg-brand/10 text-brand border border-brand/30 hover:bg-brand/20 text-[10px] font-mono font-bold cursor-pointer transition-colors"
+                    >
+                      ⚡ Run S.I.R.I.S. Extractor
+                    </button>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {currentCase.entities.map(e => (
                       <div

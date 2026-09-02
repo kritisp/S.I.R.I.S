@@ -26,7 +26,7 @@ export function AnomalyRadarPage() {
             <TrendingUp className="text-brand" /> Anomaly Radar & Pattern Scanner
           </h1>
           <p className="text-xs text-text-dim mt-1">
-            Glass-Box deterministic statistical scan · Detects surges, offender activity bursts, emerging patterns & timing clusters
+            S.I.R.I.S. deterministic statistical scan · Detects surges, offender activity bursts, emerging patterns & timing clusters
           </p>
         </div>
       </div>
