@@ -5,7 +5,7 @@ import { useAira } from './AiraProvider';
 export function AiraOrb() {
   const { 
     orbState, togglePanel, isListening, isMuted, toggleMute,
-    liveTranscript, response, startListening, stopListening, sendQuery, suggestions, audioLevel
+    liveTranscript, response, startListening, stopListening, toggleListening, sendQuery, suggestions, audioLevel
   } = useAira();
 
   const [showTypingInput, setShowTypingInput] = useState<boolean>(false);
@@ -137,7 +137,7 @@ export function AiraOrb() {
             </div>
             <button
               onClick={() => setDismissedBubble(true)}
-              className="text-text-dim hover:text-text p-1 rounded-lg transition-colors text-xs"
+              className="text-text-dim hover:text-text p-1 rounded-lg transition-colors text-xs cursor-pointer"
             >
               <X size={13} />
             </button>
@@ -205,29 +205,41 @@ export function AiraOrb() {
         </div>
       </div>
 
-
       {/* Floating Controls Bar */}
       <div className="mt-2.5 flex items-center gap-2 glass px-3 py-1.5 rounded-full bg-surface border border-border-soft shadow-xl text-xs font-mono">
-        {/* PTT Hold-to-Talk Mic Button */}
+        {/* PTT Hold-to-Talk Button (DRISHTI Exact Pattern) */}
         <button
-          onMouseDown={(e) => { e.preventDefault(); startListening(); }}
-          onMouseUp={(e) => { e.preventDefault(); stopListening(); }}
-          onTouchStart={(e) => { e.preventDefault(); startListening(); }}
-          onTouchEnd={(e) => { e.preventDefault(); stopListening(); }}
-          className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase transition-all flex items-center gap-1.5 ${
+          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
+          onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
+          onMouseLeave={isListening ? (e) => { e.preventDefault(); e.stopPropagation(); stopListening(); } : undefined}
+          onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
+          onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
+          className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
             isListening
               ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30 scale-105 animate-pulse'
               : 'bg-surface-2 text-text hover:text-brand border border-border-soft'
           }`}
+          title="Press and hold to speak"
         >
           <Mic size={12} className={isListening ? 'animate-bounce' : ''} />
           <span>{isListening ? 'LISTENING…' : 'HOLD TO TALK'}</span>
         </button>
 
+        {/* Tap Mic Toggle */}
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleListening(); }}
+          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+            isListening ? 'bg-emerald-500/20 text-emerald-400' : 'text-text-dim hover:text-brand hover:bg-surface-hover'
+          }`}
+          title="Tap to toggle mic on/off"
+        >
+          <Mic size={14} />
+        </button>
+
         {/* Keyboard Input Toggle */}
         <button
-          onClick={() => setShowTypingInput(!showTypingInput)}
-          className="p-1.5 rounded-full text-text-dim hover:text-brand hover:bg-surface-hover transition-colors"
+          onClick={(e) => { e.stopPropagation(); setShowTypingInput(!showTypingInput); }}
+          className="p-1.5 rounded-full text-text-dim hover:text-brand hover:bg-surface-hover transition-colors cursor-pointer"
           title="Type query"
         >
           <Keyboard size={14} />
@@ -235,8 +247,8 @@ export function AiraOrb() {
 
         {/* Mute Toggle */}
         <button
-          onClick={toggleMute}
-          className="p-1.5 rounded-full text-text-dim hover:text-brand hover:bg-surface-hover transition-colors"
+          onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+          className="p-1.5 rounded-full text-text-dim hover:text-brand hover:bg-surface-hover transition-colors cursor-pointer"
           title={isMuted ? 'Unmute' : 'Mute'}
         >
           {isMuted ? <VolumeX size={14} className="text-danger-bright" /> : <Volume2 size={14} />}
@@ -256,7 +268,7 @@ export function AiraOrb() {
           />
           <button
             type="submit"
-            className="px-3 py-1 rounded-xl bg-brand text-bg font-bold text-xs hover:bg-brand-bright transition-colors font-mono"
+            className="px-3 py-1 rounded-xl bg-brand text-bg font-bold text-xs hover:bg-brand-bright transition-colors font-mono cursor-pointer"
           >
             SEND
           </button>

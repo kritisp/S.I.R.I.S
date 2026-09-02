@@ -5,7 +5,7 @@ import {
   Network, Sparkles, Scale, FileText, FileBarChart,
   Bell, LogOut, Moon, Sun, Lock, Building, Users, Globe, ChevronDown, Briefcase, Video, Navigation,
   CreditCard, UserCheck, TrendingUp, PhoneCall, ClipboardCheck, CheckSquare, History, AlertTriangle, Bot, GitBranch
-, Radio, Truck } from 'lucide-react';
+, Radio, Truck, Layers } from 'lucide-react';
 
 
 
@@ -104,7 +104,14 @@ export function SIHLayout() {
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {isSuperAdmin && (
             <>
-              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-3 mb-1.5 tracking-wider">COMMAND SUPERVISOR</div>
+              <div className="text-[10px] uppercase font-bold text-brand px-3 mt-4 mb-1.5 tracking-wider flex items-center gap-1">
+                <Sparkles size={12} /> ROUND 3 PROACTIVE INTEL
+              </div>
+              <NavItem to="/intelligence-fusion" icon={Layers} label="Intelligence Fusion" />
+              <NavItem to="/predictive-risk" icon={TrendingUp} label="Predictive Crime Risk" />
+              <NavItem to="/resource-optimization" icon={Truck} label="Resource Optimization" />
+              
+              <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">COMMAND SUPERVISOR</div>
               <NavItem to="/dashboard" icon={LayoutDashboard} label="Operations Command" />
               <NavItem to="/supervisor/performance" icon={Users} label="Officer & Station Performance" />
               <NavItem to="/supervisor/assignment" icon={CheckSquare} label="Case Assignment" />
@@ -135,6 +142,9 @@ export function SIHLayout() {
               <NavItem to="/evidence" icon={FileText} label={t('nav.evidenceVault', 'Evidence Vault')} />
               
               <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.intelligence', 'INTELLIGENCE')}</div>
+              <NavItem to="/intelligence-fusion" icon={Layers} label="Intelligence Fusion Center" />
+              <NavItem to="/predictive-risk" icon={TrendingUp} label="Predictive Crime Risk" />
+              <NavItem to="/resource-optimization" icon={Truck} label="AI Resource Optimization" />
               <NavItem to="/assistant" icon={Sparkles} label={t('nav.aiAssistant', 'AI Assistant')} />
               <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
               <NavItem to="/analytics" icon={FileBarChart} label="Analytics" />
@@ -171,6 +181,9 @@ export function SIHLayout() {
               <NavItem to="/case-search" icon={Search} label={t('nav.caseSearch', 'Case Search')} />
               
               <div className="text-[10px] uppercase font-bold text-text-faint px-3 mt-4 mb-1.5 tracking-wider">{t('nav.section.intelligence', 'INTELLIGENCE')}</div>
+              <NavItem to="/intelligence-fusion" icon={Layers} label="Intelligence Fusion Center" />
+              <NavItem to="/predictive-risk" icon={TrendingUp} label="Predictive Crime Risk" />
+              <NavItem to="/resource-optimization" icon={Truck} label="AI Resource Optimization" />
               <NavItem to="/assistant" icon={Sparkles} label={t('nav.aiAssistant', 'AI Assistant')} />
               <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
               <NavItem to="/analytics" icon={FileBarChart} label="Analytics" />

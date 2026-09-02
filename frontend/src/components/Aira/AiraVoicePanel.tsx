@@ -160,11 +160,12 @@ export function AiraVoicePanel() {
 
           <div className="flex items-center gap-2">
             <button
-              onMouseDown={(e) => { e.preventDefault(); startListening(); }}
-              onMouseUp={(e) => { e.preventDefault(); stopListening(); }}
-              onTouchStart={(e) => { e.preventDefault(); startListening(); }}
-              onTouchEnd={(e) => { e.preventDefault(); stopListening(); }}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-mono transition-all ${
+              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
+              onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
+              onMouseLeave={isListening ? (e) => { e.preventDefault(); e.stopPropagation(); stopListening(); } : undefined}
+              onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-mono transition-all cursor-pointer ${
                 isListening
                   ? 'bg-emerald-500 text-white shadow-md animate-pulse'
                   : 'bg-surface border border-border-soft text-text hover:text-brand'

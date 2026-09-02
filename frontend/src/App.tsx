@@ -26,6 +26,9 @@ import { IdentityReviewPage } from './pages/IdentityReviewPage';
 import { AnomalyRadarPage } from './pages/AnomalyRadarPage';
 import { GisCrimeMapPage } from './pages/GisCrimeMapPage';
 import { CdrIntelligencePage } from './pages/CdrIntelligencePage';
+import { IntelligenceFusionPage } from './pages/IntelligenceFusionPage';
+import { PredictiveRiskPage } from './pages/PredictiveRiskPage';
+import { ResourceOptimizationPage } from './pages/ResourceOptimizationPage';
 import { StateCommandSupervisorPage } from './pages/StateCommandSupervisorPage';
 import { SupervisorFleetDispatchPage } from './pages/SupervisorFleetDispatchPage';
 import { SupervisorPerformancePage } from './pages/SupervisorPerformancePage';
@@ -119,6 +122,9 @@ function App() {
 
               {/* Intelligence */}
               <Route path="/intelligence/alerts" element={<EmergencyBroadcastRouter />} />
+              <Route path="/intelligence-fusion" element={<IntelligenceFusionPage />} />
+              <Route path="/predictive-risk" element={<PredictiveRiskPage />} />
+              <Route path="/resource-optimization" element={<ResourceOptimizationPage />} />
               <Route path="/network" element={<NetworkExplorer />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/news" element={<LiveNews />} />

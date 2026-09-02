@@ -56,6 +56,136 @@ export function processAiraQuery(query: string, context: AiraContext): AiraRespo
   const stations = context.stations || [];
 
   // ===========================================================================
+  // 0. ROUND 3 PROACTIVE INTEL & RESOURCE OPTIMIZATION INTENTS
+  // ===========================================================================
+  
+  if (q.includes('how many entities') || q.includes('entities were discovered') || q.includes('entities discovered')) {
+    return {
+      intent: 'ROUND3_ENTITIES_COUNT',
+      response: "42 entities were discovered across 5 ingested evidence sources for Operation Nightfall, including canonical suspects, phone lines, vehicle plates, CCTV nodes, and bank accounts.",
+      structuredData: {
+        title: "Knowledge Graph Summary",
+        stats: [
+          { label: "Entities Discovered", value: "42 Nodes" },
+          { label: "Total Relationships", value: "67 Edges" },
+          { label: "Evidence Feeds", value: "5 Ingested Sources" }
+        ]
+      },
+      actions: [
+        { label: 'OPEN KNOWLEDGE GRAPH', route: '/intelligence-fusion', primary: true }
+      ],
+      route: '/intelligence-fusion'
+    };
+  }
+
+  if (q.includes('what connections were found') || q.includes('connections were found') || q.includes('what connections') || q.includes('hidden connection')) {
+    return {
+      intent: 'ROUND3_CONNECTIONS_FOUND',
+      response: "6 cross-source correlations were identified linking Rahul S. to vehicle OD-02-MJ-8821, CCTV KDG-04, Mule Account M-204, and a 92% confidence cross-case match with FIR-2025-114.",
+      structuredData: {
+        title: "Intelligence Discovery",
+        stats: [
+          { label: "Primary Correlation", value: "Rahul S. ↔ OD-02-MJ-8821" },
+          { label: "Cross-Case Match", value: "FIR-2025-114 (92% Conf.)" },
+          { label: "Financial Link", value: "Mule Account M-204" }
+        ]
+      },
+      actions: [
+        { label: 'VIEW INTELLIGENCE FUSION', route: '/intelligence-fusion', primary: true }
+      ],
+      route: '/intelligence-fusion'
+    };
+  }
+
+  if (q.includes('2026-0817') || q.includes('threat for case 2026-0817') || q.includes('summarize the threat')) {
+    return {
+      intent: 'ROUND3_CASE_THREAT_SUMMARY',
+      response: "Case 2026-0817 (Organized Vehicle Theft) has a Threat Score of 91 out of 100 with HIGH threat level. 6 independent corroborating signals connect subject Rahul S., vehicle OD-02-MJ-8821, CCTV KDG-04, and Mule Account M-204.",
+      structuredData: {
+        title: "Intelligence Fusion: CASE #2026-0817",
+        stats: [
+          { label: "Threat Score", value: "91 / 100 (HIGH)" },
+          { label: "Corroborating Feeds", value: "06 Independent Signals" },
+          { label: "Primary Suspect", value: "Rahul S. (+91-9199370000)" }
+        ],
+        listTitle: "Connected Key Entities:",
+        items: [
+          { id: "VEHICLE", location: "Khandagiri Square", date: "2026-09-02", description: "Mahindra Thar (OD-02-MJ-8821) ANPR Flagged" },
+          { id: "MULE_ACC", location: "Utkal Gramya Bank", date: "2026-09-01", description: "Mule Account M-204 (₹2,45,000 structured volume)" }
+        ]
+      },
+      actions: [
+        { label: 'OPEN INTELLIGENCE FUSION', route: '/intelligence-fusion', primary: true },
+        { label: 'FORECAST AREA RISK', route: '/predictive-risk' }
+      ],
+      route: '/intelligence-fusion'
+    };
+  }
+
+  if (q.includes('highest predicted risk') || q.includes('highest risk area') || q.includes('which area has')) {
+    return {
+      intent: 'ROUND3_HIGHEST_RISK_AREA',
+      response: "Khandagiri currently has the highest simulated risk score at 87 out of 100. Vehicle theft is the dominant predicted category during the 19:00 to 22:00 IST peak window.",
+      structuredData: {
+        title: "Predictive Risk: Top Risk Zones",
+        stats: [
+          { label: "Top Risk Zone", value: "Khandagiri (87/100 - CRITICAL)" },
+          { label: "Dominant Category", value: "Vehicle Theft (82% Probability)" },
+          { label: "Peak Risk Window", value: "19:00 — 22:00 IST" }
+        ]
+      },
+      actions: [
+        { label: 'VIEW PREDICTIVE RISK', route: '/predictive-risk', primary: true },
+        { label: 'VIEW RISK TERRAIN MAP', route: '/map?mode=risk-terrain' }
+      ],
+      route: '/predictive-risk'
+    };
+  }
+
+  if (q.includes('why is khandagiri') || q.includes('why khandagiri')) {
+    return {
+      intent: 'ROUND3_WHY_KHANDAGIRI_RISK',
+      response: "Khandagiri is flagged high risk due to a 32% historical baseline, recent surge (+32%), 3 nearby repeat offenders including Rahul S., 5 recent CCTV alerts, and high evening transit activity.",
+      actions: [
+        { label: 'VIEW PREDICTIVE BREAKDOWN', route: '/predictive-risk', primary: true },
+        { label: 'OPTIMIZE RESOURCES', route: '/resource-optimization' }
+      ],
+      route: '/predictive-risk'
+    };
+  }
+
+  if (q.includes('patrol unit do you recommend') || q.includes('recommend patrol unit') || q.includes('what patrol unit')) {
+    return {
+      intent: 'ROUND3_PATROL_RECOMMENDATION',
+      response: "Unit B-17 is recommended for Khandagiri between 19:00 and 22:00 due to elevated vehicle theft risk and recent CCTV activity.",
+      structuredData: {
+        title: "AI Resource Optimization",
+        stats: [
+          { label: "Recommended Unit", value: "Unit B-17 (QRT Interceptor)" },
+          { label: "Target Zone", value: "Khandagiri Square" },
+          { label: "Time Window", value: "19:00 — 22:00 IST" }
+        ]
+      },
+      actions: [
+        { label: 'OPEN RESOURCE OPTIMIZATION', route: '/resource-optimization', primary: true }
+      ],
+      route: '/resource-optimization'
+    };
+  }
+
+  if (q.includes('intelligence network for this case') || q.includes('intelligence network')) {
+    return {
+      intent: 'ROUND3_INTELLIGENCE_NETWORK',
+      response: "Opening Intelligence Fusion Network for Case 2026-0817 displaying 9 linked entity nodes and cross-station corroborating feeds.",
+      actions: [
+        { label: 'VIEW INTELLIGENCE FUSION', route: '/intelligence-fusion', primary: true },
+        { label: 'GLOBAL NETWORK EXPLORER', route: '/network' }
+      ],
+      route: '/intelligence-fusion'
+    };
+  }
+
+  // ===========================================================================
   // 0. HERO SUGGESTION CARD QUERIES (In-Chat Insights, NO Redirect)
   // ===========================================================================
   
