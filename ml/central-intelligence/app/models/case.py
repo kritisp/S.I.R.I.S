@@ -52,7 +52,11 @@ class Case(Base, TimestampMixin):
         "CasePerson", back_populates="case", cascade="all, delete-orphan"
     )
     vehicle_associations: Mapped[List["CaseVehicle"]] = relationship(
-        "CaseVehicle", back_populates="case", cascade="all, delete-orphan"
+        "CaseVehicle",
+        primaryjoin="cast(Case.id, String) == CaseVehicle.case_id",
+        foreign_keys="CaseVehicle.case_id",
+        back_populates="case",
+        cascade="all, delete-orphan"
     )
     phone_associations: Mapped[List["CasePhone"]] = relationship(
         "CasePhone", back_populates="case", cascade="all, delete-orphan"

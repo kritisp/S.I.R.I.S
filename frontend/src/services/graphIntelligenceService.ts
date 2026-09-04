@@ -1,11 +1,8 @@
 /**
- * S.I.R.I.S. — ARGUS Graph Intelligence Service Client
+ * S.I.R.I.S. — Graph Intelligence Service Client
  *
  * TypeScript API client for the central-intelligence FastAPI service's
- * /api/v1/graph/* endpoints (added by ARGUS→S.I.R.I.S. integration).
- *
- * All methods degrade gracefully: if the Python service is unreachable,
- * they return mock data so the NetworkExplorer remains functional for demos.
+ * /api/v1/graph/* endpoints.
  *
  * Endpoint base: http://localhost:8000/api/v1/graph  (central-intelligence)
  */
@@ -247,38 +244,11 @@ export const graphIntelligenceService = {
   },
 
   /**
-   * ARGUS explainability panel for a node: betweenness rank, bridge paths, removal test.
+   * S.I.R.I.S explainability panel for a node: betweenness rank, bridge paths, removal test.
    */
   async getWhy(nodeId: string): Promise<WhyResult | null> {
     const enc = encodeURIComponent(nodeId);
-    const result = await fetchWithTimeout<WhyResult>(`${BASE_URL}/why/${enc}`);
-    if (result) return result;
-
-    // Mock fallback for coordinators
-    if (nodeId.includes('coord')) {
-      return {
-        node_id: nodeId,
-        found: true,
-        label: 'Network Coordinator',
-        entity_type: 'PHONE',
-        betweenness: 0.82,
-        influence: 0.90,
-        betweenness_rank: 1,
-        complaint_count: 0,
-        is_flagged: true,
-        bridge_paths: [
-          { from: 'phone:alpha-h1', to: 'phone:alpha-h3', path: ['phone:alpha-h1', nodeId, 'phone:alpha-h3'], passes_through: true },
-        ],
-        removal_test: {
-          components_before: 1,
-          components_after: 3,
-          delta: 2,
-          is_bridge: true,
-          note: 'Removing this node splits the network into 3 components (was 1).',
-        },
-      };
-    }
-    return null;
+    return fetchWithTimeout<WhyResult>(`${BASE_URL}/why/${enc}`);
   },
 
   /**
@@ -300,18 +270,16 @@ export const graphIntelligenceService = {
   },
 
   /**
-   * Live ARGUS alert rules results.
-   * Falls back to mock alerts if service unreachable.
+   * Live S.I.R.I.S alert rules results.
    */
   async getAlerts(): Promise<AlertsResult> {
     const result = await fetchWithTimeout<AlertsResult>(`${BASE_URL}/alerts`);
     if (result && Array.isArray(result.alerts)) return result;
-    return { alerts: MOCK_ALERTS, count: MOCK_ALERTS.length };
+    return { alerts: [], count: 0 };
   },
 
   /**
-   * Entity extraction from FIR narrative — ARGUS regex pipeline.
-   * Falls back to client-side basic regex if service unreachable.
+   * Entity extraction from FIR narrative — S.I.R.I.S regex pipeline.
    */
   async extractEntities(narrative: string, complaintId?: string): Promise<ExtractResult> {
     const result = await fetchWithTimeout<ExtractResult>(`${BASE_URL}/extract`, {
@@ -342,6 +310,9 @@ export const graphIntelligenceService = {
   /**
    * Check if the graph intelligence service is reachable.
    */
+  /**
+   * Check if the graph intelligence service is reachable.
+   */
   async isReachable(): Promise<boolean> {
     try {
       const res = await fetch(`${BASE_URL.replace('/graph', '')}/health`, { signal: AbortSignal.timeout(2000) });
@@ -350,4 +321,105 @@ export const graphIntelligenceService = {
       return false;
     }
   },
+
+  /**
+   * Database-driven Case Workspace payload aggregator endpoint.
+   */
+  async getCaseWorkspace(caseId: string): Promise<CaseWorkspaceData | null> {
+    const enc = encodeURIComponent(caseId);
+    const workspaceUrl = BASE_URL.replace('/graph', '/workspace');
+    return fetchWithTimeout<CaseWorkspaceData>(`${workspaceUrl}/case/${enc}`);
+  },
+
+  /**
+   * Authoritative PostgreSQL case list for case selection.
+   */
+  async getWorkspaceCases(limit = 100, offset = 0): Promise<{ total: number; count: number; cases: any[] } | null> {
+    const workspaceUrl = BASE_URL.replace('/graph', '/workspace');
+    return fetchWithTimeout<{ total: number; count: number; cases: any[] }>(`${workspaceUrl}/cases?limit=${limit}&offset=${offset}`);
+  },
 };
+
+export interface CaseWorkspaceData {
+  case_id: string;
+  fir_number: string;
+  is_authoritative_postgres: boolean;
+  metadata: {
+    title: string;
+    fir_number: string;
+    status: string;
+    priority: string;
+    police_station: string;
+    station_id: string;
+    district: string;
+    state: string;
+    registration_date: string;
+    incident_date?: string;
+    crime_type: string;
+    crime_category: string;
+    description: string;
+    created_at: string;
+  };
+  location?: {
+    id: string;
+    locality: string;
+    city: string;
+    district: string;
+    state: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  entities: {
+    persons: Array<{ id: string; name: string; role: string; gender?: string; identifier_hash?: string }>;
+    phones: Array<{ id: string; normalized_number: string; number_hash?: string }>;
+    vehicles: Array<{ id: string; registration_number: string; make?: string; model?: string; vehicle_type?: string; role?: string }>;
+    locations: Array<{ id: string; locality: string; city: string; district: string; state: string }>;
+    evidences: Array<{ id: string; evidence_type: string; source?: string; status?: string }>;
+    legal_sections: Array<{ id: string; code: string; title: string; law_name: string }>;
+  };
+  graph_neighborhood: {
+    nodes: GraphNode[];
+    edges: GraphEdge[];
+    total_nodes: number;
+    total_edges: number;
+    focus_node_id: string;
+  };
+  analytics: {
+    degree: number;
+    pagerank: number;
+    betweenness: number;
+    community_id: number;
+    connected_components: number;
+    is_important_connector: boolean;
+  };
+  cross_case_intelligence: {
+    related_cases: Array<{
+      target_case_id: string;
+      confidence_score: number;
+      relationship_type: string;
+      explanation: string;
+    }>;
+    shared_counts: {
+      persons: number;
+      phones: number;
+      vehicles: number;
+      locations: number;
+    };
+  };
+  patterns: Array<{
+    pattern_id: string;
+    pattern_name: string;
+    confidence_score: number;
+    supporting_evidence: string;
+    cases_involved: string[];
+  }>;
+  alerts: Array<{
+    id: string;
+    severity: string;
+    alert_type?: string;
+    title?: string;
+    message?: string;
+    details?: Record<string, unknown>;
+  }>;
+  explainability?: Record<string, any>;
+}

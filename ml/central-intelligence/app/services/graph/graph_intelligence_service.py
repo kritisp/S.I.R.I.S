@@ -1,8 +1,8 @@
 """
-ARGUS → S.I.R.I.S. Graph Intelligence Service
-==============================================
+S.I.R.I.S. Graph Intelligence Service
+======================================
 
-Integrates ARGUS graph algorithms (PageRank-style influence scoring, Brandes
+Integrates S.I.R.I.S graph algorithms (PageRank-style influence scoring, Brandes
 betweenness, bridge path detection, entity reuse alert rules) into the
 S.I.R.I.S. central-intelligence service.
 
@@ -20,7 +20,7 @@ betweenness (which operates on Neo4j). This is a Postgres-first graph that:
 
 Design decisions:
   - TTL-cached (60 s) so repeated NetworkExplorer loads are cheap
-  - Degrades gracefully: if DB is unreachable, returns empty graph + mock alerts
+  - Degrades gracefully: if DB is unreachable, returns empty graph with clear offline status
   - All normalization uses the existing central-intelligence normalizers
 """
 
@@ -550,6 +550,10 @@ def _build_graph_from_postgres(db_session) -> Tuple[Graph, Dict[str, int]]:
 
     except Exception as exc:
         logger.error("Failed to build graph from Postgres: %s", exc)
+        try:
+            db_session.rollback()
+        except Exception:
+            pass
 
     return graph, entity_complaint_counts
 
@@ -561,9 +565,9 @@ def _build_graph_from_postgres(db_session) -> Tuple[Graph, Dict[str, int]]:
 _CACHE_TTL = 60.0   # seconds
 
 
-class ArgusGraphService:
+class GraphIntelligenceService:
     """
-    Wraps the in-memory ARGUS graph with TTL caching and exposes
+    Wraps the in-memory graph with TTL caching and exposes
     methods matching the /api/v1/graph/* endpoint needs.
     """
 
@@ -579,7 +583,7 @@ class ArgusGraphService:
         return (time.monotonic() - self._built_at) > _CACHE_TTL
 
     def _rebuild(self, db_session):
-        logger.info("ArgusGraphService: rebuilding in-memory graph from Postgres...")
+        logger.info("GraphIntelligenceService: rebuilding in-memory graph from Postgres...")
         t0 = time.monotonic()
 
         graph, ecc = _build_graph_from_postgres(db_session)
@@ -615,7 +619,7 @@ class ArgusGraphService:
 
         elapsed = round(time.monotonic() - t0, 2)
         logger.info(
-            "ArgusGraphService: graph built — %d nodes, %d edges, "
+            "GraphIntelligenceService: graph built — %d nodes, %d edges, "
             "%d alerts in %.2fs",
             len(self._graph.nodes), len(self._graph.edges),
             len(self._alerts), elapsed
@@ -626,7 +630,7 @@ class ArgusGraphService:
             try:
                 self._rebuild(db_session)
             except Exception as exc:
-                logger.error("ArgusGraphService rebuild failed: %s", exc)
+                logger.error("GraphIntelligenceService rebuild failed: %s", exc)
                 if self._graph is None:
                     self._graph = Graph()
 
@@ -748,7 +752,7 @@ class ArgusGraphService:
 
     def get_why(self, db_session, node_id: str) -> Dict[str, Any]:
         """
-        ARGUS explainability panel for a given entity node.
+        S.I.R.I.S explainability panel for a given entity node.
         Returns betweenness rank, influence, bridge paths, removal test.
         """
         self._ensure_fresh(db_session)
@@ -856,13 +860,13 @@ class ArgusGraphService:
         return {"a": a, "b": b, "common": shared_nodes, "count": len(shared_nodes)}
 
     def get_alerts(self, db_session) -> List[Dict[str, Any]]:
-        """Returns live ARGUS alert rules results."""
+        """Returns live S.I.R.I.S alert rules results."""
         self._ensure_fresh(db_session)
         return self._alerts
 
     @staticmethod
     def extract_entities(narrative: str) -> Dict[str, Any]:
-        """Entity extraction from FIR narrative — ARGUS regex pipeline."""
+        """Entity extraction from FIR narrative — S.I.R.I.S regex pipeline."""
         entities, duration_ms = extract_entities_from_narrative(narrative)
         return {
             "entities": entities,
@@ -875,4 +879,4 @@ class ArgusGraphService:
 
 
 # Singleton
-argus_graph_service = ArgusGraphService()
+graph_intelligence_service = GraphIntelligenceService()

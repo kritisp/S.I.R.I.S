@@ -117,6 +117,7 @@ function App() {
               <Route path="/cases/search" element={<Navigate to="/case-search" replace />} />
               <Route path="/cases/new" element={<RegisterFIR />} />
               <Route path="/cases/:id" element={<CaseWorkspace />} />
+              <Route path="/workspace/case/:id" element={<CaseWorkspace />} />
               <Route path="/investigations" element={<Navigate to="/cases" replace />} />
               <Route path="/investigations/:id" element={<Navigate to="/cases/:id" replace />} />
 

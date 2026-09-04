@@ -1,7 +1,7 @@
 """
-End-to-End API Test Script for ARGUS Graph Intelligence Endpoints
+End-to-End API Test Script for S.I.R.I.S Graph Intelligence Endpoints
 ================================================================
-Executes direct python calls against ArgusGraphService with a real DB session
+Executes direct python calls against GraphIntelligenceService with a real DB session
 to verify data flow, schema, graph topology, betweenness, alert rules, and entity extraction.
 """
 
@@ -18,7 +18,7 @@ if repo_root not in sys.path:
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.services.graph.argus_graph_service import argus_graph_service, extract_entities_from_narrative
+from app.services.graph.graph_intelligence_service import graph_intelligence_service, extract_entities_from_narrative
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-5s %(message)s")
 logger = logging.getLogger("test_graph_api")
@@ -48,7 +48,7 @@ def main():
     print("\n" + "=" * 70)
     print("1. VERIFYING /api/v1/graph/overview")
     print("=" * 70)
-    overview = argus_graph_service.get_overview(session, limit=150)
+    overview = graph_intelligence_service.get_overview(session, limit=150)
     print(f"Total Nodes Returned: {overview['total_nodes']}")
     print(f"Total Edges Returned: {overview['total_edges']}")
     print(f"Components Count: {overview['components']}")
@@ -69,7 +69,7 @@ def main():
     print("=" * 70)
     test_node_id = coordinator_node['id'] if coordinator_node else (overview['nodes'][0]['id'] if overview['nodes'] else "")
     if test_node_id:
-        why = argus_graph_service.get_why(session, test_node_id)
+        why = graph_intelligence_service.get_why(session, test_node_id)
         print(f"Target Node: {why.get('label')} ({test_node_id})")
         print(f"  Betweenness Score : {why.get('betweenness')}")
         print(f"  Betweenness Rank  : #{why.get('betweenness_rank')}")
@@ -81,13 +81,13 @@ def main():
     print("3. VERIFYING /api/v1/graph/neighbors")
     print("=" * 70)
     if test_node_id:
-        nbrs = argus_graph_service.get_neighbors(session, test_node_id, depth=1)
+        nbrs = graph_intelligence_service.get_neighbors(session, test_node_id, depth=1)
         print(f"Neighbors around {test_node_id}: {nbrs.get('total_nodes')} nodes, {nbrs.get('total_edges')} edges")
 
     print("\n" + "=" * 70)
     print("4. VERIFYING /api/v1/graph/alerts")
     print("=" * 70)
-    alerts = argus_graph_service.get_alerts(session)
+    alerts = graph_intelligence_service.get_alerts(session)
     print(f"Live Alert Rules Triggered: {len(alerts)}")
     for a in alerts[:5]:
         print(f"  - [{a['severity']}] {a['alert_type']}: {a['title']}")

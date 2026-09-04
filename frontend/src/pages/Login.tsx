@@ -84,11 +84,11 @@ export function Login() {
   }
 
 
-  // ARGUS / VERITAS ORIGINAL DARK LOGIN UI
+  // S.I.R.I.S DARK LOGIN UI
   return (
     <div className="min-h-screen bg-[#0A0E17] text-[#E8EAF1] flex items-center justify-center p-4 relative font-sans select-none">
       <div className="w-[390px] bg-[#111827] border border-[#263244] rounded-xl relative overflow-hidden shadow-2xl animate-fade-in">
-        {/* Top gold bar from Argus */}
+        {/* Top gold bar */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#B88922] to-transparent" />
         
         <div className="p-[38px_36px_32px]">

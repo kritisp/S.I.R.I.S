@@ -1,6 +1,6 @@
 import re
 import unicodedata
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from app.normalization.models import EntityType, NormalizedEntity
 
 TITLES = {

@@ -32,41 +32,28 @@ class Vehicle(Base, TimestampMixin):
     make: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
-    # Relationships
-    case_associations: Mapped[List["CaseVehicle"]] = relationship(
-        "CaseVehicle", back_populates="vehicle", cascade="all, delete-orphan"
-    )
 
 
-class CaseVehicle(Base, TimestampMixin):
+
+from sqlalchemy import cast
+
+class CaseVehicle(Base):
     __tablename__ = "case_vehicles"
-    __table_args__ = (
-        UniqueConstraint("case_id", "vehicle_id", "role", name="uq_case_vehicle_role"),
-    )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        GUID,
+    case_id: Mapped[str] = mapped_column(
+        String(100),
         primary_key=True,
-        default=uuid.uuid4
-    )
-    case_id: Mapped[uuid.UUID] = mapped_column(
-        GUID,
-        ForeignKey("cases.id", ondelete="CASCADE"),
-        nullable=False,
         index=True
     )
-    vehicle_id: Mapped[uuid.UUID] = mapped_column(
-        GUID,
-        ForeignKey("vehicles.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
-    role: Mapped[VehicleRole] = mapped_column(
-        Enum(VehicleRole, name="vehicle_role_enum", create_type=False),
-        default=VehicleRole.OTHER,
-        nullable=False
+    vehicle: Mapped[str] = mapped_column(
+        String(100),
+        primary_key=True
     )
 
     # Relationships
-    case: Mapped["Case"] = relationship("Case", back_populates="vehicle_associations")
-    vehicle: Mapped["Vehicle"] = relationship("Vehicle", back_populates="case_associations")
+    case: Mapped["Case"] = relationship(
+        "Case",
+        primaryjoin="cast(Case.id, String) == CaseVehicle.case_id",
+        foreign_keys=[case_id],
+        back_populates="vehicle_associations"
+    )

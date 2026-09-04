@@ -12,6 +12,23 @@ class EntityResolver:
 
     @staticmethod
     def resolve_person(p1: Dict[str, Any], p2: Dict[str, Any]) -> ResolutionResult:
+        # Check exact canonical match first
+        id1 = str(p1.get("id"))
+        id2 = str(p2.get("id"))
+        if id1 == id2:
+            from app.normalization.models import EntityType
+            from app.services.resolution.models import ResolutionDecision
+            return ResolutionResult(
+                source_entity_id=id1,
+                candidate_entity_id=id2,
+                entity_type=EntityType.PERSON,
+                overall_score=1.0,
+                decision=ResolutionDecision.CONFIRMED_MATCH,
+                matching_signals=[],
+                conflicting_signals=[],
+                unavailable_signals=[],
+                explanation="Exact canonical entity ID match."
+            )
         return resolve_person_pair(p1, p2)
 
     @staticmethod

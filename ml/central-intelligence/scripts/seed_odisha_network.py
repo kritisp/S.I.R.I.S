@@ -1,13 +1,13 @@
 """
-ARGUS → S.I.R.I.S. Odisha-Adapted Seed Script
-===============================================
+S.I.R.I.S. Odisha Network Seed Script
+======================================
 
-Migrates the ARGUS criminal network dataset into S.I.R.I.S.'s Supabase
+Migrates the synthetic criminal network dataset into S.I.R.I.S.'s Supabase
 PostgreSQL database with full Odisha geography.
 
 WHAT THIS SCRIPT DOES
 ─────────────────────
-1. Generates ARGUS-topology clusters adapted for Odisha:
+1. Generates criminal network clusters adapted for Odisha:
    • ALPHA — Investment scam / crypto fraud ring (3 cells, 42 FIRs)
               BBSR, Cuttack, Puri — coordinator unreachable via FIR reading alone
    • BETA  — Digital arrest + VoIP gateway scam (28 FIRs)
@@ -18,18 +18,18 @@ WHAT THIS SCRIPT DOES
 3. Normalizes → deduplicates → upserts into S.I.R.I.S. Postgres tables:
    cases, persons, phones, vehicles, locations
 
-KEY TOPOLOGICAL INVARIANTS (from ARGUS docs/PROJECT.md §R)
-──────────────────────────────────────────────────────────
+KEY TOPOLOGICAL INVARIANTS
+──────────────────────────
 • ALPHA coordinator appears in ZERO FIRs — reachable only via phone associations
   of the 3 handler phones, which all link to one coordinator phone entity.
 • Cells are AIRTIGHT: each has its own callers, phones, suspects. Nothing shared.
 • Rotation: 2–3 phones per cell so no single phone out-ranks the coordinator.
-• betweenness(coordinator) > betweenness(any handler) — verified by argus_graph_service.
+• betweenness(coordinator) > betweenness(any handler) — verified by graph_intelligence_service.
 
 HOW TO RUN
 ──────────
 From ml/central-intelligence/:
-  python -m scripts.seed_argus_odisha
+  python -m scripts.seed_odisha_network
 
 Requires .env with DATABASE_URL set to the Supabase connection string.
 """
@@ -41,6 +41,10 @@ import re
 import sys
 import uuid
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-5s %(message)s")
+logger = logging.getLogger("seed_odisha_network")port datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-5s %(message)s")
@@ -225,13 +229,13 @@ def _person_hash(name: str) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. ODISHA ARGUS CLUSTER BUILDER
-#    Mirrors the ARGUS topology exactly — coordinator in zero FIRs.
+# 3. ODISHA NETWORK CLUSTER BUILDER
+#    Coordinator in zero FIRs.
 # ─────────────────────────────────────────────────────────────────────────────
 
-class OdishaArgusSeeder:
+class OdishaNetworkSeeder:
     """
-    Builds the 3 ARGUS clusters adapted for Odisha geography and
+    Builds the 3 network clusters adapted for Odisha geography and
     upserts them into S.I.R.I.S.'s Postgres tables.
 
     Topology invariants (must survive verify-plant):
@@ -765,7 +769,7 @@ def main():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    seeder = OdishaArgusSeeder(session)
+    seeder = OdishaNetworkSeeder(session)
     seeder.run()
     session.close()
 

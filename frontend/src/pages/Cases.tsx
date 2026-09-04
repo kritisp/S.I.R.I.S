@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Briefcase, Search, Filter, FileText, ChevronRight, AlertTriangle, 
@@ -8,6 +8,7 @@ import {
 import { useMockState } from '../mockServices/MockStateContext';
 import { useLanguage } from '../context/LanguageContext';
 import { CaseRecord } from '../mockServices/types';
+import { graphIntelligenceService } from '../services/graphIntelligenceService';
 
 export function Cases() {
   const { state } = useMockState();
@@ -16,20 +17,51 @@ export function Cases() {
 
   const [activeTab, setActiveTab] = useState<'ALL' | 'ACTIVE' | 'PENDING' | 'OVERDUE' | 'HIGH PRIORITY'>('ALL');
   const [searchFilter, setSearchFilter] = useState('');
+  const [dbCases, setDbCases] = useState<any[]>([]);
+
+  useEffect(() => {
+    graphIntelligenceService.getWorkspaceCases(500, 0)
+      .then((res) => {
+        if (res && res.cases) {
+          setDbCases(res.cases);
+        }
+      })
+      .catch((err) => console.warn('Workspace cases fetch notice:', err));
+  }, []);
 
   const currentUser = state.currentUser;
   const officerName = currentUser?.name || 'Insp. Vikram';
   const stationId = currentUser?.stationId || 'OP-BBSR-CAP';
 
-  // Cases assigned to current officer / desk
+  // Combined assigned cases from state and PostgreSQL backend
   const assignedCases = useMemo(() => {
-    return state.cases.filter(c => 
-      c.investigatorId === currentUser?.id || 
-      c.stationId === stationId ||
-      c.investigatorId === 'INV-BBSR-001' || 
-      c.investigatorId === 'INV-KHD-024'
-    );
-  }, [state.cases, currentUser, stationId]);
+    const combinedMap = new Map<string, any>();
+    
+    // Add DB cases first
+    dbCases.forEach(dbc => {
+      combinedMap.set(dbc.case_id, {
+        id: dbc.case_id,
+        firNumber: dbc.fir_number || dbc.case_id,
+        title: dbc.title || `Case ${dbc.fir_number}`,
+        description: dbc.description || 'Authoritative PostgreSQL Case Record',
+        status: dbc.status || 'INVESTIGATING',
+        priority: dbc.priority || 'HIGH',
+        crimeType: dbc.crime_type || 'Investigation',
+        stationId: dbc.police_station || stationId,
+        createdAt: dbc.created_at || new Date().toISOString(),
+        entities: []
+      });
+    });
+
+    // Add state cases
+    state.cases.forEach(c => {
+      if (!combinedMap.has(c.id)) {
+        combinedMap.set(c.id, c);
+      }
+    });
+
+    return Array.from(combinedMap.values());
+  }, [state.cases, dbCases, stationId]);
 
   // Tab filtering
   const filteredCases = useMemo(() => {

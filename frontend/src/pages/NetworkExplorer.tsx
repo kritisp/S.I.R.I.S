@@ -13,7 +13,7 @@ import {
 
 import { IntelligenceGraph } from '../components/graph/IntelligenceGraph';
 import { NodeDetailPanel } from '../components/graph/NodeDetailPanel';
-import { ArgusWhyPanel } from '../components/graph/ArgusWhyPanel';
+import { IntelligenceExplainabilityPanel } from '../components/graph/IntelligenceExplainabilityPanel';
 import { OsintPanel } from '../components/intelligence/OsintPanel';
 import { graphIntelligenceService, GraphOverview, IntelAlert } from '../services/graphIntelligenceService';
 import { useMockState } from '../mockServices/MockStateContext';
@@ -399,8 +399,8 @@ export function NetworkExplorer() {
   const [selectedSyndicate, setSelectedSyndicate] = useState(SYNDICATES[0]);
   const [selectedEvidenceModal, setSelectedEvidenceModal] = useState<Record<string, string> | null>(null);
 
-  const [argusLiveOverview, setArgusLiveOverview] = useState<GraphOverview | null>(null);
-  const [argusAlerts, setArgusAlerts] = useState<IntelAlert[]>([]);
+  const [liveOverview, setLiveOverview] = useState<GraphOverview | null>(null);
+  const [graphAlerts, setGraphAlerts] = useState<IntelAlert[]>([]);
   const [showWhyPanel, setShowWhyPanel] = useState<boolean>(false);
 
   const [customPins, setCustomPins] = useState([
@@ -470,7 +470,7 @@ export function NetworkExplorer() {
     graphIntelligenceService.getOverview(150)
       .then(data => {
         if (data && data.nodes && data.nodes.length > 0) {
-          setArgusLiveOverview(data);
+          setLiveOverview(data);
           setGraphError(null);
         } else if (data && data.nodes && data.nodes.length === 0) {
           setGraphError("Neo4j Database connected, but 0 nodes found. Please project cases into Neo4j.");
@@ -487,7 +487,7 @@ export function NetworkExplorer() {
 
     graphIntelligenceService.getAlerts().then(res => {
       if (res && res.alerts) {
-        setArgusAlerts(res.alerts);
+        setGraphAlerts(res.alerts);
       }
     });
   }, []);
@@ -498,7 +498,7 @@ export function NetworkExplorer() {
     graphIntelligenceService.getNeighborhood(nodeId, 2)
       .then(data => {
         if (data && data.nodes && data.nodes.length > 0) {
-          setArgusLiveOverview(data);
+          setLiveOverview(data);
           setGraphError(null);
         }
       })
@@ -516,7 +516,7 @@ export function NetworkExplorer() {
     graphIntelligenceService.getOverview(150)
       .then(data => {
         if (data && data.nodes && data.nodes.length > 0) {
-          setArgusLiveOverview(data);
+          setLiveOverview(data);
           setGraphError(null);
         }
       })
@@ -525,8 +525,8 @@ export function NetworkExplorer() {
   };
 
   const dynamicGraphData = useMemo(() => {
-    if (argusLiveOverview && argusLiveOverview.nodes.length > 0) {
-      const nodes: NetworkNode[] = argusLiveOverview.nodes.map(n => {
+    if (liveOverview && liveOverview.nodes.length > 0) {
+      const nodes: NetworkNode[] = liveOverview.nodes.map(n => {
         const rawType = (n.entity_type || (n.node_type === 'case' ? 'CASE' : 'PERSON')).toUpperCase();
         let nodeType: NodeType = 'PERSON';
         if (rawType === 'CASE') nodeType = 'CASE';
@@ -557,8 +557,8 @@ export function NetworkExplorer() {
         };
       });
 
-      const edges: NetworkEdge[] = argusLiveOverview.edges.map((e, idx) => ({
-        id: `argus-edge-${idx}`,
+      const edges: NetworkEdge[] = liveOverview.edges.map((e, idx) => ({
+        id: `edge-${idx}`,
         source: e.source,
         target: e.target,
         relationship: (e.relationship || 'MATCHED_ENTITY') as any,
@@ -574,7 +574,7 @@ export function NetworkExplorer() {
       return transformResultPayloadToGraph(activeWorkspace.results);
     }
     return { nodes: NETWORK_NODES, edges: NETWORK_EDGES };
-  }, [argusLiveOverview, activeWorkspace]);
+  }, [liveOverview, activeWorkspace]);
 
   const filteredNodes = useMemo(() => {
     return dynamicGraphData.nodes.filter(n => {
@@ -717,7 +717,7 @@ export function NetworkExplorer() {
                   <span className="text-xs text-text-dim font-bold">Querying Live Neo4j Graph Database...</span>
                 </div>
               )}
-              {graphError && !argusLiveOverview && (
+              {graphError && !liveOverview && (
                 <div className="absolute inset-x-4 top-4 z-30 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-mono flex items-center justify-between gap-2 shadow-lg backdrop-blur-md">
                   <div className="flex items-center gap-2">
                     <ShieldAlert size={16} />
@@ -728,7 +728,7 @@ export function NetworkExplorer() {
                       setGraphLoading(true);
                       graphIntelligenceService.getOverview(150).then(data => {
                         if (data && data.nodes && data.nodes.length > 0) {
-                          setArgusLiveOverview(data);
+                          setLiveOverview(data);
                           setGraphError(null);
                         }
                       }).finally(() => setGraphLoading(false));
@@ -783,7 +783,7 @@ export function NetworkExplorer() {
                   </div>
 
                   {showWhyPanel ? (
-                    <ArgusWhyPanel
+                    <IntelligenceExplainabilityPanel
                       nodeId={selectedNode.id}
                       label={selectedNode.label}
                       entityType={selectedNode.type}
@@ -799,7 +799,7 @@ export function NetworkExplorer() {
                 </div>
               ) : (
                 <>
-                  <SummaryPanel summary={summaryStats} stats={argusLiveOverview?.stats} />
+                  <SummaryPanel summary={summaryStats} stats={liveOverview?.stats} />
                   <GraphLegend />
                 </>
               )}
@@ -1354,7 +1354,7 @@ export function NetworkExplorer() {
         </div>
       )}
 
-      {/* ── TAB 6: ARGUS OSINT ENRICHMENT HUB ── */}
+      {/* ── TAB 6: OSINT INTELLIGENCE HUB ── */}
       {activeTab === 'osint' && (
         <div className="max-w-4xl mx-auto space-y-4">
           <OsintPanel />

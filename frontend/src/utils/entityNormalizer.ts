@@ -1,11 +1,10 @@
 /**
- * S.I.R.I.S. — Entity Normalizer (TypeScript port of ARGUS normalize.js)
+ * S.I.R.I.S. — Entity Normalizer
  *
  * Provides canonical entity normalization for use in the frontend before
  * API calls, ensuring deduplication consistency with the Python backend.
  *
- * Rules mirror ARGUS normalize.js exactly — this is load-bearing for
- * entity deduplication: two phones in different formats must hash to the
+ * Rules enforce entity deduplication: two phones in different formats must hash to the
  * same normalized value, or they become two separate graph nodes.
  */
 

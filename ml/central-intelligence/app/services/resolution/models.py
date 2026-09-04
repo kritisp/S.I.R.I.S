@@ -5,7 +5,8 @@ from app.normalization.models import EntityType
 
 
 class ResolutionDecision(str, Enum):
-    HIGH_CONFIDENCE_MATCH = "HIGH_CONFIDENCE_MATCH"
+    CONFIRMED_MATCH = "CONFIRMED_MATCH"
+    HIGH_CONFIDENCE_MATCH = "CONFIRMED_MATCH"
     POSSIBLE_MATCH = "POSSIBLE_MATCH"
     NO_MATCH = "NO_MATCH"
 

@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { X, Network, Share2, AlertTriangle, ShieldCheck, Cpu } from 'lucide-react';
 import { graphIntelligenceService, WhyResult } from '../../services/graphIntelligenceService';
 
-interface ArgusWhyPanelProps {
+interface IntelligenceExplainabilityPanelProps {
   nodeId: string;
   label: string;
   entityType: string;
   onClose: () => void;
 }
 
-export function ArgusWhyPanel({ nodeId, label, entityType, onClose }: ArgusWhyPanelProps) {
+export function IntelligenceExplainabilityPanel({ nodeId, label, entityType, onClose }: IntelligenceExplainabilityPanelProps) {
   const [loading, setLoading] = useState(true);
   const [whyData, setWhyData] = useState<WhyResult | null>(null);
 

@@ -199,31 +199,50 @@ class PatternIntelligenceEngine:
                 
                 # Check for shared evidence types
                 evidence_types = set()
+                shared_entity_ids = set()
+                shared_entity_types = set()
+                
                 for c in c_list:
                     for ev in getattr(c, "evidences", []):
                         if getattr(ev, "evidence_type", None):
                             evidence_types.add(ev.evidence_type)
+                    for assoc in getattr(c, "person_associations", []):
+                        if assoc.person and getattr(assoc.person, "id", None):
+                            shared_entity_ids.add(str(assoc.person.id))
+                            shared_entity_types.add("Person")
+                    for assoc in getattr(c, "phone_associations", []):
+                        if assoc.phone and getattr(assoc.phone, "id", None):
+                            shared_entity_ids.add(str(assoc.phone.id))
+                            shared_entity_types.add("Phone")
+                    for assoc in getattr(c, "vehicle_associations", []):
+                        if assoc.vehicle and getattr(assoc.vehicle, "id", None):
+                            shared_entity_ids.add(str(assoc.vehicle.id))
+                            shared_entity_types.add("Vehicle")
+
                 for et in sorted(list(evidence_types)):
                     signals.append(f"Evidence Type: {et}")
+                if shared_entity_ids:
+                    signals.append(f"Graph Entities Associated: {len(shared_entity_ids)}")
 
-                pat_id = self._generate_pattern_id(PatternType.MODUS_OPERANDI, case_ids, [], signals)
+                pat_id = self._generate_pattern_id(PatternType.MODUS_OPERANDI, case_ids, sorted(list(shared_entity_ids)), signals)
                 patterns.append(
                     PatternObservation(
                         pattern_id=pat_id,
                         pattern_type=PatternType.MODUS_OPERANDI,
                         title=f"Recurring Operational Characteristics Pattern: {crime_type}",
-                        description=f"Identified {len(c_list)} cases exhibiting matching crime category '{category}' and operational crime type '{crime_type}'. Indicates shared operational characteristics across cases.",
+                        description=f"Identified {len(c_list)} cases exhibiting matching crime category '{category}' and operational crime type '{crime_type}'. Combines text operational signals with {len(shared_entity_ids)} graph entities across cases.",
                         case_ids=case_ids,
-                        entity_ids=[],
-                        entity_types=[],
+                        entity_ids=sorted(list(shared_entity_ids))[:10],
+                        entity_types=sorted(list(shared_entity_types)),
                         station_ids=station_ids,
                         supporting_signals=signals,
                         occurrence_count=len(c_list),
-                        structural_strength=round(min(1.0, len(c_list) / 5.0), 4),
+                        structural_strength=round(min(1.0, (len(c_list) * 0.4 + len(shared_entity_ids) * 0.1) / 5.0), 4),
                         provenance={
                             "source_cases": case_ids,
                             "crime_category": category,
                             "crime_type": crime_type,
+                            "associated_graph_entities_count": len(shared_entity_ids),
                             "methodology": request.methodology_version,
                         },
                     )

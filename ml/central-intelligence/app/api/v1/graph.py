@@ -1,5 +1,5 @@
 """
-ARGUS Graph Intelligence API endpoints.
+S.I.R.I.S Graph Intelligence API endpoints.
 
 Registered on the central-intelligence FastAPI app under /api/v1/graph/*.
 These endpoints are consumed by the S.I.R.I.S. NetworkExplorer frontend.
@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database.postgres import get_db
-from app.services.graph.argus_graph_service import argus_graph_service
+from app.services.graph.graph_intelligence_service import graph_intelligence_service
 from app.services.graph.neo4j_graph_service import neo4j_graph_service
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,7 @@ def graph_neighbors(
 
 @router.get(
     "/why/{node_id:path}",
-    summary="ARGUS explainability panel",
+    summary="S.I.R.I.S explainability panel",
     description=(
         "Returns why a node is significant: betweenness rank, influence score, "
         "bridge paths through the node, and removal test (how many components "
@@ -134,7 +134,7 @@ def graph_why(
     db: Session = Depends(get_db),
 ):
     try:
-        result = argus_graph_service.get_why(db, node_id)
+        result = graph_intelligence_service.get_why(db, node_id)
         if not result.get("found"):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -190,16 +190,16 @@ def graph_common(
 
 @router.get(
     "/alerts",
-    summary="Live ARGUS alert rules",
+    summary="Live S.I.R.I.S alert rules",
     description=(
-        "Runs ARGUS alert rules (ENTITY_REUSE, MASTERMIND_IDENTIFIED, "
+        "Runs S.I.R.I.S alert rules (ENTITY_REUSE, MASTERMIND_IDENTIFIED, "
         "SHARED_INFRASTRUCTURE, HIGH_BETWEENNESS_BRIDGE) against the "
         "current in-memory graph and returns fired alerts."
     ),
 )
 def graph_alerts(db: Session = Depends(get_db)):
     try:
-        alerts = argus_graph_service.get_alerts(db)
+        alerts = graph_intelligence_service.get_alerts(db)
         return {"alerts": alerts, "count": len(alerts)}
     except Exception as exc:
         logger.error("graph_alerts error: %s", exc, exc_info=True)
@@ -213,14 +213,14 @@ def graph_alerts(db: Session = Depends(get_db)):
     "/extract",
     summary="Entity extraction from FIR narrative",
     description=(
-        "Applies the ARGUS regex pipeline to extract identifiers "
+        "Applies the S.I.R.I.S regex pipeline to extract identifiers "
         "(PHONE, UPI, WALLET, EMAIL, BANK_ACCOUNT, IP, TELEGRAM) "
         "from a FIR complaint narrative. Fast synchronous call (~5ms)."
     ),
 )
 def graph_extract(body: ExtractRequest):
     try:
-        return argus_graph_service.extract_entities(body.narrative)
+        return graph_intelligence_service.extract_entities(body.narrative)
     except Exception as exc:
         logger.error("graph_extract error: %s", exc, exc_info=True)
         raise HTTPException(

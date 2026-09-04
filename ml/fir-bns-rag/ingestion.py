@@ -1,15 +1,19 @@
 import os
 import re
-from typing import List, Dict
+from typing import List, Dict, Optional
 import pypdf
 from langchain_core.documents import Document
 
 
-def load_and_parse_bnss(pdf_path: str = "documents/BNSS_2023.pdf") -> List[Document]:
+def load_and_parse_bnss(pdf_path: Optional[str] = None) -> List[Document]:
     """
     Legal-aware parser for Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023.
     Extracts all 531 structured sections with Section Number, Section Title, Chapter, and Text.
     """
+    if not pdf_path:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        pdf_path = os.path.join(base_dir, "documents", "BNSS_2023.pdf")
+
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"PDF file not found at: {pdf_path}")
 

@@ -1,7 +1,7 @@
 import os
 import re
 import json
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import pypdf
 from langchain_core.documents import Document
 
@@ -369,11 +369,15 @@ def extract_section_legal_metadata(sec_num: str, sec_title: str, section_raw_tex
     }
 
 
-def load_and_parse_bns(pdf_path: str = "documents/BNS_2023.pdf") -> List[Document]:
+def load_and_parse_bns(pdf_path: Optional[str] = None) -> List[Document]:
     """
     Legal-aware parser for Bharatiya Nyaya Sanhita (BNS), 2023 (Substantive Penal Offences).
     Extracts structured Section Number, Section Title, Chapter, Crime Category, Legal Ingredients, Acts, Intent, and Exclusions.
     """
+    if not pdf_path:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        pdf_path = os.path.join(base_dir, "documents", "BNS_2023.pdf")
+
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"BNS PDF file not found at: {pdf_path}")
 
