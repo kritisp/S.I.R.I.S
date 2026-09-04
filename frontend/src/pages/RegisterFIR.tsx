@@ -176,12 +176,20 @@ export function RegisterFIR() {
                 <AlertCircle size={40} className="text-danger-bright mx-auto" />
                 <h3 className="text-base font-bold text-danger-bright uppercase font-mono">FIR RAG PIPELINE ERROR</h3>
                 <p className="text-xs text-text-dim">{analysisError}</p>
-                <button
-                  onClick={() => setStep(1)}
-                  className="bg-surface-2 border border-border-soft px-4 py-2 rounded-lg text-xs font-bold text-text hover:bg-surface-hover transition-colors"
-                >
-                  Return to Input
-                </button>
+                <div className="flex justify-center gap-3">
+                  <button
+                    onClick={() => setStep(1)}
+                    className="bg-surface-2 border border-border-soft px-4 py-2 rounded-lg text-xs font-bold text-text hover:bg-surface-hover transition-colors"
+                  >
+                    Return to Input
+                  </button>
+                  <button
+                    onClick={handleAnalyze}
+                    className="bg-brand text-bg px-4 py-2 rounded-lg text-xs font-bold hover:bg-brand-bright transition-colors"
+                  >
+                    Retry Analysis
+                  </button>
+                </div>
               </div>
             ) : analysisResult ? (
               <div className="space-y-6 animate-slide-in">
@@ -189,21 +197,37 @@ export function RegisterFIR() {
                 <div className="p-4 bg-brand/10 border border-brand/30 rounded-xl space-y-1 font-mono">
                   <div className="flex items-center justify-between text-xs font-bold text-brand">
                     <span className="uppercase">CRIME CATEGORY: {analysisResult.crime_category}</span>
-                    <span className="text-[10px] bg-success/20 text-success px-2 py-0.5 rounded border border-success/30">
-                      RAG VERIFIED ANALYSIS
+                    <span className={`text-[10px] px-2 py-0.5 rounded border ${
+                      analysisResult.execution_metadata?.source === 'statutory_engine_fallback'
+                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                        : 'bg-success/20 text-success border-success/30'
+                    }`}>
+                      {analysisResult.execution_metadata?.source === 'statutory_engine_fallback'
+                        ? 'STATUTORY ENGINE INTAKE'
+                        : 'RAG VERIFIED ANALYSIS'}
                     </span>
                   </div>
                   <h3 className="text-base font-bold text-text font-sans mt-1">{analysisResult.crime_type}</h3>
                   <p className="text-xs text-text-dim leading-relaxed">{analysisResult.summary}</p>
                 </div>
 
+                {analysisResult.execution_metadata?.source === 'statutory_engine_fallback' && (
+                  <div className="p-3 bg-brand/5 border border-brand/20 rounded-lg text-xs font-mono text-text-dim flex items-center justify-between">
+                    <span>⚡ Live RAG pipeline model service is currently offline. Formulated via S.I.R.I.S BNS Statutory Intelligence Engine.</span>
+                  </div>
+                )}
+
                 {/* Real RAG BNS Provisions */}
                 <div className="glass p-5 rounded-xl border border-brand/30 space-y-4">
                   <div className="flex items-center justify-between border-b border-border-soft pb-2">
                     <h4 className="text-xs font-bold text-brand uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                      <Scale size={15} /> Real Backend BNS Statutory Recommendations ({analysisResult.bns_sections.length})
+                      <Scale size={15} /> BNS Statutory Recommendations ({analysisResult.bns_sections.length})
                     </h4>
-                    <span className="text-[9px] font-mono text-text-dim">Source: Multi-Law RAG Engine</span>
+                    <span className="text-[9px] font-mono text-text-dim">
+                      {analysisResult.execution_metadata?.source === 'statutory_engine_fallback'
+                        ? 'Source: S.I.R.I.S Statutory Corpus'
+                        : 'Source: Multi-Law RAG Engine'}
+                    </span>
                   </div>
 
                   <div className="space-y-3">
