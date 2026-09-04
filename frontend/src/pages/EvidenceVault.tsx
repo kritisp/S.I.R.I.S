@@ -9,6 +9,7 @@ import { evidenceApi } from '../services/api';
 import { PRIMARY_DEMO_CASE } from '../data/round3DemoData';
 import { GraphConstructionOverlay } from '../components/intelligence/GraphConstructionOverlay';
 import { WorkspaceInitModal } from '../components/workspace/WorkspaceInitModal';
+import { AgenticInvestigatorModal } from '../components/intelligence/AgenticInvestigatorModal';
 
 export interface IngestionEvidenceItem {
   id: string;
@@ -77,6 +78,7 @@ export function EvidenceVault() {
   const [activeTab, setActiveTab] = useState<'queue' | 'custom'>('queue');
   const [isInitModalOpen, setIsInitModalOpen] = useState(false);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+  const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
   
   // State for ingested evidence items
   const [evidenceItems, setEvidenceItems] = useState<IngestionEvidenceItem[]>([]);
@@ -169,6 +171,14 @@ export function EvidenceVault() {
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => setIsAgentModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-brand/20 hover:bg-brand/30 text-brand font-bold text-xs rounded-xl border border-brand/40 shadow-sm transition-all cursor-pointer font-mono uppercase tracking-wider"
+          >
+            <Bot size={16} className="animate-pulse" />
+            <span>RUN MULTI-AGENTIC AI INVESTIGATOR</span>
+          </button>
+
           <button
             onClick={handleLoadDemoEvidence}
             className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-hover text-bg font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer font-mono uppercase tracking-wider"
@@ -398,6 +408,12 @@ export function EvidenceVault() {
       <GraphConstructionOverlay
         isOpen={isOverlayOpen}
         onComplete={() => setIsOverlayOpen(false)}
+      />
+
+      <AgenticInvestigatorModal
+        isOpen={isAgentModalOpen}
+        onClose={() => setIsAgentModalOpen(false)}
+        evidenceContextText={customEvidenceText}
       />
     </div>
   );
