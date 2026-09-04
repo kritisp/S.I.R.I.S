@@ -378,6 +378,16 @@ def load_and_parse_bns(pdf_path: Optional[str] = None) -> List[Document]:
         base_dir = os.path.dirname(os.path.abspath(__file__))
         pdf_path = os.path.join(base_dir, "documents", "BNS_2023.pdf")
 
+    cache_path = os.path.splitext(pdf_path)[0] + "_cache.json"
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, "r", encoding="utf-8") as f:
+                raw_docs = json.load(f)
+                print(f"Loaded {len(raw_docs)} cached BNS legal sections from {os.path.basename(cache_path)}.")
+                return [Document(page_content=d["content"], metadata=d["metadata"]) for d in raw_docs]
+        except Exception as ce:
+            print(f"Cache read error, falling back to PDF: {ce}")
+
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"BNS PDF file not found at: {pdf_path}")
 
@@ -452,6 +462,13 @@ def load_and_parse_bns(pdf_path: Optional[str] = None) -> List[Document]:
         documents.append(doc)
 
     print(f"Successfully parsed {len(documents)} structured BNS substantive offence sections with enriched legal metadata.")
+    try:
+        with open(cache_path, "w", encoding="utf-8") as cf:
+            json.dump([{"content": d.page_content, "metadata": d.metadata} for d in documents], cf, ensure_ascii=False)
+        print(f"Saved {len(documents)} BNS sections to fast cache {os.path.basename(cache_path)}.")
+    except Exception as ce:
+        print(f"Cache write notice: {ce}")
+
     return documents
 
 

@@ -5,13 +5,37 @@ import { useMockState } from '../mockServices/MockStateContext';
 import { firAnalysisService, ProcessFirResponse } from '../services/firAnalysisService';
 import { casesApi } from '../services/api';
 
+const QUICK_SCENARIOS = [
+  {
+    title: "Night Burglary (BNS 305/331)",
+    icon: "🏠",
+    text: "On the night of 14.08.2026, unknown intruders broke the rear latch of residence at Plot 412, Khandagiri, Bhubaneswar, and stole 40 grams of gold jewelry and Rs 85,000 cash while family was away."
+  },
+  {
+    title: "Cyber UPI Scam (BNS 318(4))",
+    icon: "💳",
+    text: "On 22.08.2026, complainant received a fraudulent call from +91-9876543210 posing as bank manager, sent a malicious APK link, and unauthorizedly debited Rs 1,50,000 via UPI to an unknown beneficiary account."
+  },
+  {
+    title: "Armed Robbery (BNS 309)",
+    icon: "🏍️",
+    text: "On 01.09.2026 near Saheed Nagar flyover, two masked men on motorcycle OD-02-AK-4455 brandished a sharp knife, physically threatened complainant, and snatched a mobile phone and wallet containing Rs 12,000."
+  },
+  {
+    title: "Assault & Hurt (BNS 115/117)",
+    icon: "⚔️",
+    text: "On 28.08.2026 at Rasulgarh square, an altercation occurred where accused Ramesh struck the victim with an iron rod causing severe fracture on left arm and bleeding head injury."
+  }
+];
+
 export function RegisterFIR() {
   const { state, dispatch } = useMockState();
   const navigate = useNavigate();
   
   const [step, setStep] = useState<1 | 2>(1);
-  const [narrative, setNarrative] = useState("On 2026-03-14 at 02:00 hrs, unknown culprits broke open the rear wooden door of House No. 45, Master Canteen, entered the residential premises, and stole gold jewellery worth Rs 3,50,000 and Rs 40,000 cash from the bedroom almirah. One of them dropped a mobile phone with number 9876543210.");
+  const [narrative, setNarrative] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [validationWarning, setValidationWarning] = useState<string | null>(null);
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -20,14 +44,17 @@ export function RegisterFIR() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
+      setValidationWarning(null);
     }
   };
 
   const handleAnalyze = async () => {
-    if (!narrative.trim() && !selectedFile) {
-      alert("Please enter an FIR narrative or upload an FIR document file.");
+    const trimmed = narrative.trim();
+    if (!selectedFile && trimmed.length < 15) {
+      setValidationWarning("⚠️ Statement is too brief or unreadable. Please enter descriptive incident particulars (what happened, date, location, loss) or choose a preset below.");
       return;
     }
+    setValidationWarning(null);
 
     setIsAnalyzing(true);
     setAnalysisError(null);
@@ -114,15 +141,45 @@ export function RegisterFIR() {
         {step === 1 && (
           <div className="p-6 space-y-6">
             <div>
-              <label className="block text-xs font-bold text-text-dim uppercase tracking-wider mb-2">
-                FIR Incident Narrative (Text Input)
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-text-dim uppercase tracking-wider">
+                  FIR Incident Narrative (Text Input)
+                </label>
+                <span className="text-[10px] font-mono text-text-dim">
+                  Select a test scenario preset or enter complaint particulars
+                </span>
+              </div>
+
+              {/* 1-Click Quick Scenario Presets */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                {QUICK_SCENARIOS.map((sc, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setNarrative(sc.text); setValidationWarning(null); }}
+                    className="p-2.5 bg-surface-2 hover:bg-surface-hover border border-border-soft hover:border-brand/60 rounded-xl text-left transition-all group shadow-sm"
+                  >
+                    <div className="text-xs font-bold text-text group-hover:text-brand flex items-center gap-1.5 font-mono">
+                      <span>{sc.icon}</span>
+                      <span className="truncate">{sc.title}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {validationWarning && (
+                <div className="p-3 mb-3 bg-warning/10 border border-warning/30 rounded-xl text-xs text-warning-bright font-mono flex items-center gap-2">
+                  <AlertCircle size={16} />
+                  <span>{validationWarning}</span>
+                </div>
+              )}
+
               <textarea 
                 rows={6}
                 className="w-full bg-surface-2 border border-border-soft rounded-xl p-4 text-sm text-text focus:border-brand outline-none transition-colors font-sans leading-relaxed"
                 value={narrative}
-                onChange={(e) => setNarrative(e.target.value)}
-                placeholder="Enter raw FIR narrative, incident details, statement of informant..."
+                onChange={(e) => { setNarrative(e.target.value); if (validationWarning) setValidationWarning(null); }}
+                placeholder="Enter raw FIR narrative, incident details, statement of informant... (or click a test scenario preset above)"
               />
             </div>
 
@@ -217,55 +274,93 @@ export function RegisterFIR() {
                   </div>
                 )}
 
-                {/* Real RAG BNS Provisions */}
-                <div className="glass p-5 rounded-xl border border-brand/30 space-y-4">
-                  <div className="flex items-center justify-between border-b border-border-soft pb-2">
-                    <h4 className="text-xs font-bold text-brand uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                      <Scale size={15} /> BNS Statutory Recommendations ({analysisResult.bns_sections.length})
-                    </h4>
-                    <span className="text-[9px] font-mono text-text-dim">
-                      {analysisResult.execution_metadata?.source === 'statutory_engine_fallback'
-                        ? 'Source: S.I.R.I.S Statutory Corpus'
-                        : 'Source: Multi-Law RAG Engine'}
-                    </span>
-                  </div>
+                {/* Statutory Provisions or Preliminary Inquiry Mandate */}
+                {analysisResult.bns_sections.length === 0 ? (
+                  <div className="p-6 bg-warning/10 border border-warning/30 rounded-xl space-y-4 animate-fade-in">
+                    <div className="flex items-center gap-2 text-warning-bright font-bold font-mono text-sm">
+                      <AlertTriangle size={20} />
+                      <span className="uppercase">INSUFFICIENT FACTUAL AVERMENTS — BNSS SECTION 173(3) MANDATE</span>
+                    </div>
+                    <p className="text-xs text-text-dim leading-relaxed">
+                      {analysisResult.summary}
+                    </p>
 
-                  <div className="space-y-3">
-                    {analysisResult.bns_sections.map((bns, idx) => (
-                      <div key={idx} className="p-4 bg-surface-2 border border-border-soft rounded-xl text-xs space-y-2">
-                        <div className="flex items-center justify-between font-mono font-bold">
-                          <span className="text-brand text-sm">{bns.law} {bns.section}: {bns.title}</span>
-                          <span className={`px-2 py-0.5 rounded text-[9px] uppercase border ${
-                            bns.confidence === 'HIGH' ? 'bg-success/10 text-success border-success/30' :
-                            bns.confidence === 'MEDIUM' ? 'bg-warning/10 text-warning border-warning/30' :
-                            'bg-surface-2 text-text-dim border-border-soft'
-                          }`}>
-                            CONFIDENCE: {bns.confidence}
-                          </span>
+                    {analysisResult.missing_information && analysisResult.missing_information.length > 0 && (
+                      <div className="p-4 bg-surface-2 rounded-xl border border-border-soft space-y-2">
+                        <div className="text-xs font-bold text-brand uppercase font-mono">
+                          Particulars Required from Informant to Frame Charges:
                         </div>
-                        <p className="text-text-dim leading-relaxed">{bns.reason}</p>
-                        
-                        {bns.confidence_reason && (
-                          <div className="text-[11px] font-mono text-text-bright bg-surface p-2 rounded border border-border-soft/60">
-                            <strong>Statutory Verification:</strong> {bns.confidence_reason}
-                          </div>
-                        )}
-
-                        {bns.supporting_fir_evidence && bns.supporting_fir_evidence.length > 0 && (
-                          <div className="text-[10px] font-mono text-text-dim space-y-1">
-                            <span className="font-bold uppercase text-text-faint">Supporting FIR Evidence:</span>
-                            {bns.supporting_fir_evidence.map((ev, eidx) => (
-                              <div key={eidx} className="flex items-center gap-1.5 pl-2">
-                                <span className="w-1 h-1 bg-brand rounded-full" />
-                                <span>{ev}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <ul className="text-xs text-text-dim space-y-1.5 list-disc list-inside font-mono">
+                          {analysisResult.missing_information.map((item: string, idx: number) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
                       </div>
-                    ))}
+                    )}
+
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-[11px] font-mono text-text-dim">
+                        Substantive charges withheld in compliance with BNSS 173(3) preliminary verification rule.
+                      </span>
+                      <button
+                        onClick={() => setStep(1)}
+                        className="bg-brand text-bg px-4 py-2 rounded-lg text-xs font-bold hover:bg-brand-bright transition-colors font-mono"
+                      >
+                        ← Return & Choose Scenario Preset
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Real RAG BNS Provisions */
+                  <div className="glass p-5 rounded-xl border border-brand/30 space-y-4">
+                    <div className="flex items-center justify-between border-b border-border-soft pb-2">
+                      <h4 className="text-xs font-bold text-brand uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                        <Scale size={15} /> BNS Statutory Recommendations ({analysisResult.bns_sections.length})
+                      </h4>
+                      <span className="text-[9px] font-mono text-text-dim">
+                        {analysisResult.execution_metadata?.source === 'statutory_engine_fallback'
+                          ? 'Source: S.I.R.I.S Statutory Corpus'
+                          : 'Source: Multi-Law RAG Engine'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {analysisResult.bns_sections.map((bns, idx) => (
+                        <div key={idx} className="p-4 bg-surface-2 border border-border-soft rounded-xl text-xs space-y-2">
+                          <div className="flex items-center justify-between font-mono font-bold">
+                            <span className="text-brand text-sm">{bns.law} {bns.section}: {bns.title}</span>
+                            <span className={`px-2 py-0.5 rounded text-[9px] uppercase border ${
+                              bns.confidence === 'HIGH' ? 'bg-success/10 text-success border-success/30' :
+                              bns.confidence === 'MEDIUM' ? 'bg-warning/10 text-warning border-warning/30' :
+                              'bg-surface-2 text-text-dim border-border-soft'
+                            }`}>
+                              CONFIDENCE: {bns.confidence}
+                            </span>
+                          </div>
+                          <p className="text-text-dim leading-relaxed">{bns.reason}</p>
+                          
+                          {bns.confidence_reason && (
+                            <div className="text-[11px] font-mono text-text-bright bg-surface p-2 rounded border border-border-soft/60">
+                              <strong>Statutory Verification:</strong> {bns.confidence_reason}
+                            </div>
+                          )}
+
+                          {bns.supporting_fir_evidence && bns.supporting_fir_evidence.length > 0 && (
+                            <div className="text-[10px] font-mono text-text-dim space-y-1">
+                              <span className="font-bold uppercase text-text-faint">Supporting FIR Evidence:</span>
+                              {bns.supporting_fir_evidence.map((ev, eidx) => (
+                                <div key={eidx} className="flex items-center gap-1.5 pl-2">
+                                  <span className="w-1 h-1 bg-brand rounded-full" />
+                                  <span>{ev}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* BNSS Procedural Actions */}
                 {analysisResult.bnss_procedural_actions.length > 0 && (

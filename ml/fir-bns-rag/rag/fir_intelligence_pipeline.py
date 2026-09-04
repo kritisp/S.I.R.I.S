@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import re
 from typing import Dict, Any, List, Optional, Union
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -65,6 +66,36 @@ class FIRIntelligencePipeline:
         self.is_cloud_provider = os.getenv("LLM_PROVIDER", "").lower() in ["groq", "gemini", "remote_qwen", "openai", "anthropic"]
         print(f"CrimeLens FIR Intelligence Pipeline ready! (Cloud Privacy Guardrail: {'ENFORCED' if self.is_cloud_provider else 'LOCAL MODE'})")
 
+    def _is_unintelligible_or_insufficient(self, text: str) -> bool:
+        """Detects if text is too brief, random keyboard typing, or lacks intelligible words."""
+        clean = (text or "").strip()
+        words = [w for w in re.findall(r'[a-zA-Z]+', clean) if len(w) > 1]
+        if len(clean) < 15 or len(words) < 3:
+            return True
+
+        # Check for keyboard mash / consonant clusters without vowels (e.g. 'bhjijlnb njb', 'ghbnmfvbhjn')
+        vowel_pattern = re.compile(r'[aeiouy]', re.IGNORECASE)
+        words_without_vowels = [w for w in words if len(w) >= 3 and not vowel_pattern.search(w)]
+        if len(words_without_vowels) / max(1, len(words)) > 0.4:
+            return True
+
+        consonant_cluster = re.compile(r'[bcdfghjklmnpqrstvwxyz]{6,}', re.IGNORECASE)
+        if any(consonant_cluster.search(w) for w in words):
+            return True
+
+        common_tokens = {
+            "on", "at", "the", "in", "by", "of", "to", "and", "a", "an", "is", "was", "for", "with",
+            "stole", "theft", "complainant", "police", "money", "cash", "gold", "bike", "car", "mobile",
+            "phone", "accused", "person", "shop", "house", "night", "day", "threat", "attack", "injured",
+            "knife", "gun", "fraud", "cyber", "upi", "bank", "account", "transfer", "lock", "broken",
+            "report", "case", "incident", "loss", "vehicle", "victim", "suspect", "road", "street"
+        }
+        words_lower = [w.lower() for w in words]
+        if len(words) < 7 and not any(w in common_tokens for w in words_lower):
+            return True
+
+        return False
+
     def process_fir(self, fir_input: Union[str, bytes, Dict[str, Any]], source_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Executes the full FIR Intelligence Pipeline from intake to structured intelligence JSON.
@@ -78,6 +109,95 @@ class FIRIntelligencePipeline:
             intake_res = self.intake_parser.ingest(fir_input, source_name=source_name)
 
         clean_text = intake_res.get("full_text", "")
+
+        # ---------------------------------------------------------------------
+        # 1B. Narrative Quality & Insufficient Particulars Guardrail
+        # ---------------------------------------------------------------------
+        if self._is_unintelligible_or_insufficient(clean_text):
+            return {
+                "fir_metadata": {
+                    "police_station": "Station Intake Desk",
+                    "status": "PRELIMINARY_INQUIRY_REQUIRED",
+                    "date": None
+                },
+                "summary": f"The submitted text narrative ('{clean_text[:120]}') does not contain sufficient intelligible factual averments (acts, date, location, persons, or property) to establish ingredients of a cognizable offence.",
+                "crime_type": "Unspecified / Insufficient Factual Particulars",
+                "crime_category": "INSUFFICIENT_NARRATIVE",
+                "incident": {
+                    "incident_location": "Unspecified / Undetermined",
+                    "occurrence_timeline": "Unspecified",
+                    "alleged_acts": ["Statement contains insufficient factual clarity"]
+                },
+                "entities": {
+                    "people": {},
+                    "weapons": [],
+                    "property": [],
+                    "evidence": [{"description": "Raw statement submitted for intake"}],
+                    "phones": [],
+                    "vehicles": [],
+                    "locations": []
+                },
+                "timeline": [
+                    {"time": "T-Submission", "event": "Intake statement received at police station"}
+                ],
+                "modus_operandi": [
+                    "Cannot be determined from insufficient text narrative"
+                ],
+                "bns_sections": [],
+                "bnss_procedural_actions": [
+                    {
+                        "law": "BNSS",
+                        "section": "Section 173(3)",
+                        "action": "Conduct Preliminary Inquiry under BNSS Section 173(3) within 14 days to ascertain whether a cognizable offence is disclosed before formal FIR registration when narrative lacks clear particulars."
+                    },
+                    {
+                        "law": "BNSS",
+                        "section": "Section 173(1)",
+                        "action": "Re-examine the complainant/informant to record a detailed supplementary statement specifying occurrence details, acts, and participants."
+                    }
+                ],
+                "investigation_actions": [
+                    {
+                        "action": "Re-examine Informant to Record Detailed Statement",
+                        "priority": "HIGH",
+                        "reason": "Initial narrative lacks substantive factual averments (acts committed, scene, time, suspects, or stolen property) necessary to frame statutory BNS charges.",
+                        "expected_value": "Detailed and coherent complaint disclosing actionable cognizable elements"
+                    },
+                    {
+                        "action": "Verify Locus of Occurrence & Informant Identity",
+                        "priority": "MEDIUM",
+                        "reason": "Ascertain jurisdictional validity and verify contact particulars of reporting party under BNSS 173(3).",
+                        "expected_value": "Verification of informant bona fides"
+                    }
+                ],
+                "investigation_intelligence": {
+                    "priority_level": "LOW",
+                    "priority_reason": "Narrative lacks intelligible factual particulars to substantiate cognizable criminal threat.",
+                    "legal_compliance_checklist": [
+                        "Mandatory preliminary inquiry within 14 days under BNSS Section 173(3)",
+                        "Detailed examination of informant before charge formulation"
+                    ],
+                    "investigation_timeline": [
+                        "Day 1: Contact informant for recording detailed statement",
+                        "Days 2-14: Complete preliminary verification under BNSS 173(3)"
+                    ]
+                },
+                "insights": [
+                    "Input detected as insufficient or unintelligible text. Statutory BNS recommendations withheld to prevent hallucination.",
+                    "Under BNSS 2023 Section 173(3), police officers are legally empowered to conduct a preliminary inquiry when a complaint lacks clear particulars."
+                ],
+                "missing_information": [
+                    "Specific allegations of criminal acts committed",
+                    "Date, approximate time, and scene of occurrence",
+                    "Particulars of complainant, victim, or suspected persons",
+                    "Details of loss, injury, or stolen property"
+                ],
+                "masking_used": False,
+                "execution_metadata": {
+                    "source": "rag_live",
+                    "quality_check": "INSUFFICIENT_PARTICULARS"
+                }
+            }
 
         # ---------------------------------------------------------------------
         # 2. FIR Entity & Metadata Extraction (NER)
