@@ -90,6 +90,25 @@ export interface CameraProfile {
 // S.I.R.I.S. Odisha Police Camera Network (Bhubaneswar-Cuttack Surveillance Matrix)
 const SURVEILLANCE_CAMERAS: CameraProfile[] = [
   {
+    id: 'CAM-BBSR-0015',
+    name: 'Saheed Nagar Commercial Intersection',
+    location: 'Saheed Nagar Commercial Hub, Bhubaneswar',
+    type: 'anpr',
+    is_active: true,
+    has_anpr: true,
+    has_face_recog: false,
+    videoUrl: `${CDN_BASE}/traffic2.mp4`,
+    suspectName: 'KLO5AN6247',
+    suspectAlias: 'White Compact SUV (KLO5AN6247)',
+    riskScore: 88,
+    confidence: 94.2,
+    firNumber: 'FIR-2026-BBSR-8821',
+    legalSection: 'BNS §303 (Vehicle Hotlist Watchlist)',
+    incidentBriefing: 'Target vehicle KLO5AN6247 flagged passing flyover approach. Vehicle co-linked to watchlist syndicate.',
+    targetCue: 'Vehicle entering checkpoint lane near flyover ramp',
+    drishtiSpeech: 'Alert. License plate hit confirmed on Camera BBSR 0015 for KLO5AN6247.'
+  },
+  {
     id: 'CAM-BBSR-0010',
     name: 'Khandagiri Square Checkpoint',
     location: 'Khandagiri Intersection, Bhubaneswar',
@@ -126,25 +145,6 @@ const SURVEILLANCE_CAMERAS: CameraProfile[] = [
     incidentBriefing: 'Prime kingpin Ramesh Kumar identified on Master Canteen walkway. Active non-bailable warrant in multiple vehicle theft syndicates.',
     targetCue: 'Subject in dark jacket walking along pedestrian walkway towards camera',
     drishtiSpeech: 'Alert. Suspect match confirmed on Camera BBSR 0012. Bullet Ramesh at Master Canteen Square.'
-  },
-  {
-    id: 'CAM-BBSR-0015',
-    name: 'Saheed Nagar Commercial Intersection',
-    location: 'Saheed Nagar Commercial Hub, Bhubaneswar',
-    type: 'anpr',
-    is_active: true,
-    has_anpr: true,
-    has_face_recog: false,
-    videoUrl: `${CDN_BASE}/traffic2.mp4`,
-    suspectName: 'OD-02-MJ-8821',
-    suspectAlias: 'Black Bajaj Pulsar 220',
-    riskScore: 88,
-    confidence: 94.2,
-    firNumber: 'FIR-2026-BBSR-8821',
-    legalSection: 'BNS §303 (Serial Snatching Watchlist)',
-    incidentBriefing: 'Black Pulsar 220 flagged passing flyover approach. Vehicle co-linked to snatching syndicate.',
-    targetCue: 'Motorcycle weaving between lanes near flyover ramp',
-    drishtiSpeech: 'Alert. License plate hit confirmed on Camera BBSR 0015.'
   },
   {
     id: 'CAM-BBSR-0042',
@@ -225,16 +225,16 @@ const SURVEILLANCE_CAMERAS: CameraProfile[] = [
 ];
 
 const INITIAL_AUDIT_LOG = [
+  { time: '21:12:05', cam: 'CAM-BBSR-0015', type: 'ANPR HIT', severity: 'critical', desc: 'Target Vehicle KLO5AN6247 matched at Saheed Nagar Commercial Hub · Conf: 94.2%' },
   { time: '21:10:15', cam: 'CAM-BBSR-0010', type: 'ANPR HIT', severity: 'critical', desc: 'Target Vehicle OD-02-AB-1234 matched at Khandagiri Checkpoint · Conf: 99.1%' },
   { time: '21:07:42', cam: 'CAM-BBSR-0055', type: 'FACE AI', severity: 'critical', desc: 'Farid Mirza (SUS-6091) · Bhubaneswar Station Platform 3 · Conf: 95.3%' },
-  { time: '21:04:10', cam: 'CAM-BBSR-0015', type: 'ANPR HIT', severity: 'warn', desc: 'OD-02-MJ-8821 (Pulsar 220) · Saheed Nagar Commercial Hub · Watchlist Match' },
   { time: '21:01:28', cam: 'CAM-BBSR-0050', type: 'ANPR HIT', severity: 'warn', desc: 'OD-02-HA-4410 (Honda City) · Palasuni Flyover Checkpoint' },
-  { time: '20:55:00', cam: 'CAM-BBSR-0010', type: 'COMMAND', severity: 'info', desc: 'S.I.R.I.S. Surveillance Matrix Live Sweep Active' }
+  { time: '20:55:00', cam: 'CAM-BBSR-0015', type: 'COMMAND', severity: 'info', desc: 'S.I.R.I.S. Surveillance Matrix Live Sweep Active' }
 ];
 
 export function CCTVModule() {
   const [viewMode, setViewMode] = useState<'grid' | 'focused'>('focused');
-  const [selectedCamId, setSelectedCamId] = useState<string>('CAM-BBSR-0010');
+  const [selectedCamId, setSelectedCamId] = useState<string>('CAM-BBSR-0015');
   const [filterType, setFilterType] = useState<'all' | 'anpr' | 'face'>('all');
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [visionMode, setVisionMode] = useState<'standard' | 'night' | 'thermal'>('standard');
@@ -252,7 +252,7 @@ export function CCTVModule() {
   // Geo-Trail & Vehicle Modals
   const [showGeoTrailModal, setShowGeoTrailModal] = useState<boolean>(false);
   const [showVehicleModal, setShowVehicleModal] = useState<boolean>(false);
-  const [activePlate, setActivePlate] = useState<string>('OD-02-AB-1234');
+  const [activePlate, setActivePlate] = useState<string>('KLO5AN6247');
 
 
   const [searchParams] = useSearchParams();
@@ -293,13 +293,14 @@ export function CCTVModule() {
   const handleSearchPlate = () => {
     const q = plateQuery.trim().toUpperCase();
     if (!q) return;
+    const isTargetCar = q.includes('6247') || q.includes('KLO5') || q.includes('KL05') || q.includes('KA05');
     setPlateResult({
       plate_number: q,
       matched: true,
-      vehicle_details: q.startsWith('OD-02') ? 'Silver Maruti Suzuki Swift' : q.startsWith('OD-01') ? 'Black Bajaj Pulsar 220' : 'Dark Blue Honda City',
+      vehicle_details: isTargetCar ? 'White Compact SUV (KLO5AN6247)' : q.startsWith('OD-02') ? 'Silver Maruti Suzuki Swift' : q.startsWith('OD-01') ? 'Black Bajaj Pulsar 220' : 'Dark Blue Honda City',
       status: 'HOTLIST WATCHLIST HIT',
-      case_id: q === 'OD-02-AB-1234' ? 'FIR-2026-CTC-0112' : 'FIR-2026-BBSR-8821',
-      suspect: 'Ramesh Kumar'
+      case_id: isTargetCar ? 'FIR-2026-BBSR-8821' : q === 'OD-02-AB-1234' ? 'FIR-2026-CTC-0112' : 'FIR-2026-BBSR-8821',
+      suspect: isTargetCar ? 'Syndicate Hotlist Vehicle' : 'Ramesh Kumar'
     });
   };
 
@@ -654,7 +655,7 @@ export function CCTVModule() {
               value={plateQuery}
               onChange={(e) => setPlateQuery(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleSearchPlate()}
-              placeholder="Enter Vehicle Plate Number (e.g., OD-02-AB-1234, OD-02-MJ-8821, OD-02-HA-4410)..."
+              placeholder="Enter Vehicle Plate Number (e.g., KLO5AN6247, OD-02-AB-1234, OD-02-HA-4410)..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border text-xs font-mono font-bold text-text outline-none focus:border-brand"
             />
           </div>

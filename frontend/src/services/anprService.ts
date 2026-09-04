@@ -68,6 +68,21 @@ export async function checkAnprPlate(plateNumber: string, location?: { lat: numb
   }
 
   // Dynamic Algorithmic Engine Fallback
+  if (cleanPlate.includes('KLO5AN6247') || cleanPlate.includes('KL05AN6247') || cleanPlate.includes('KA05NA6247') || cleanPlate.includes('6247')) {
+    return {
+      alert: true,
+      severity: 'CRITICAL',
+      plateNumber: 'KLO5AN6247',
+      firCaseNumber: 'FIR-2026-BBSR-8821',
+      originalCrime: 'Inter-District Crime Watchlist / Hotlist Vehicle',
+      crimeDate: '2026-08-21T21:04:10Z',
+      district: 'Khordha (Saheed Nagar)',
+      associatedPerson: 'Watchlist Syndicate Unit',
+      instructions: 'Target vehicle detected by optical ANPR sensor at Saheed Nagar Commercial Intersection. High alert interception protocol.',
+      provenance: 'Demonstration Watchlist Match — Live Optical ANPR Hit'
+    };
+  }
+
   if (cleanPlate.includes('OD02AB1234') || cleanPlate.includes('OD02') || cleanPlate.includes('KA01MJ8821')) {
     return {
       alert: true,
