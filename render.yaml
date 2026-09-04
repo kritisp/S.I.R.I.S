@@ -1,0 +1,82 @@
+services:
+  # ---------------------------------------------------------------------------
+  # 1. FRONTEND WEB APPLICATION (React + Vite SPA)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: siris-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://siris-central-intel.onrender.com/api/v1
+      - key: VITE_INTEL_SERVICE_URL
+        value: https://siris-central-intel.onrender.com/api/v1/graph
+      - key: VITE_RAG_API_URL
+        value: https://siris-fir-bns-rag.onrender.com
+      - key: VITE_INTERNAL_API_KEY
+        value: crimelens-internal-secret-key-2026
+
+  # ---------------------------------------------------------------------------
+  # 2. CENTRAL INTELLIGENCE BACKEND (FastAPI + NetworkX + Neo4j Aura + Supabase)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: siris-central-intel
+    runtime: python
+    buildCommand: cd ml/central-intelligence && pip install -r requirements.txt
+    startCommand: cd ml/central-intelligence && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: INTERNAL_API_KEY
+        value: crimelens-internal-secret-key-2026
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USERNAME
+        sync: false
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+
+  # ---------------------------------------------------------------------------
+  # 3. FIR / BNS RAG LEGAL INTELLIGENCE (FastAPI + ChromaDB + BNS statutory)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: siris-fir-bns-rag
+    runtime: python
+    buildCommand: cd ml/fir-bns-rag && pip install -r requirements.txt
+    startCommand: cd ml/fir-bns-rag && uvicorn api_server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: INTERNAL_API_KEY
+        value: crimelens-internal-secret-key-2026
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+
+  # ---------------------------------------------------------------------------
+  # 4. GEMINI LIVE GATEWAY (Node.js WebSocket & Voice Bridge)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: siris-voice-gateway
+    runtime: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && node index.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: GOOGLE_API_KEY
+        sync: false
