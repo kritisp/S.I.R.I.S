@@ -13,7 +13,8 @@ export interface TranslationResponse {
   provider: 'BHASINI_API' | 'LOCAL_TRANSLATION_FALLBACK';
 }
 
-const BHASINI_API_KEY = import.meta.env.VITE_BHASINI_API_KEY || 'bhasini-api-key-siris-2026';
+const BHASINI_API_KEY = import.meta.env.VITE_BHASINI_API_KEY || '-_oVT-BJc9miqpgS6SpTTixyQGXhebibkgsI3CTmelTau7QuQxT_Mnl1R7MgWy8h';
+const BHASINI_UDYAT_KEY = import.meta.env.VITE_BHASINI_UDYAT_KEY || '36bcfef5a1-1c64-4bd1-ba20-329f198c0ed2';
 const BHASINI_API_URL = import.meta.env.VITE_BHASINI_API_URL || 'https://dhruva-api.bhasini.gov.in/services/inference/translation';
 
 // Local offline translation dictionary for Indian Languages (Crime & Legal Terminology)
@@ -112,6 +113,8 @@ export const bhasiniTranslationService = {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': BHASINI_API_KEY,
+          'ulcaApiKey': BHASINI_UDYAT_KEY,
+          'userID': BHASINI_UDYAT_KEY,
         },
         body: JSON.stringify({
           pipelineTasks: [
