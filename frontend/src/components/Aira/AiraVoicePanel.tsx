@@ -9,7 +9,7 @@ import { bhasiniTranslationService } from '../../services/bhasiniTranslationServ
 export function AiraVoicePanel() {
   const { 
     isPanelOpen, togglePanel, orbState, isListening, isSpeaking, isMuted, toggleMute,
-    language, setLanguage, liveTranscript, response, chatHistory, startListening, stopListening,
+    language, setLanguage, liveTranscript, response, chatHistory, startListening, stopListening, toggleListening,
     sendQuery, speakText, stopSpeaking, suggestions
   } = useAira();
 
@@ -22,10 +22,20 @@ export function AiraVoicePanel() {
     }
   }, [chatHistory, response]);
 
+  // Live Speech-to-Text Transcribing into Input Field
+  useEffect(() => {
+    if (isListening && liveTranscript) {
+      setInputText(liveTranscript);
+    }
+  }, [isListening, liveTranscript]);
+
   if (!isPanelOpen) return null;
 
   const handleSend = () => {
     if (inputText.trim()) {
+      if (isListening) {
+        stopListening();
+      }
       sendQuery(inputText.trim());
       setInputText('');
     }
@@ -175,27 +185,45 @@ export function AiraVoicePanel() {
           {isSpeaking && (
             <button
               onClick={stopSpeaking}
-              className="w-full py-1.5 rounded-xl bg-danger/10 text-danger-bright border border-danger/30 text-xs font-mono font-bold hover:bg-danger/20 transition-colors flex items-center justify-center gap-1.5"
+              className="w-full py-1.5 rounded-xl bg-danger/10 text-danger-bright border border-danger/30 text-xs font-mono font-bold hover:bg-danger/20 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <VolumeX size={14} /> STOP VOICE OUTPUT
             </button>
           )}
 
+          {isListening && (
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-pulse">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                <span className="font-semibold font-mono text-[11px]">Transcribing speech live…</span>
+              </div>
+              <button
+                onClick={stopListening}
+                className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 text-[10px] font-mono font-bold uppercase hover:bg-rose-500/40 cursor-pointer"
+              >
+                Stop & Edit
+              </button>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <button
-              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
-              onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
-              onMouseLeave={isListening ? (e) => { e.preventDefault(); e.stopPropagation(); stopListening(); } : undefined}
-              onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
-              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                if (isListening) {
+                  stopListening();
+                } else {
+                  startListening();
+                }
+              }}
               className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-mono transition-all cursor-pointer ${
                 isListening
-                  ? 'bg-emerald-500 text-white shadow-md animate-pulse'
+                  ? 'bg-rose-600 text-white shadow-lg animate-pulse ring-2 ring-rose-400'
                   : 'bg-surface border border-border-soft text-text hover:text-brand'
               }`}
-              title="Hold to Talk"
+              title={isListening ? "Click to Stop Recording" : "Click to Talk"}
             >
-              <Mic size={16} />
+              <Mic size={16} className={isListening ? "animate-bounce" : ""} />
             </button>
 
             <input
@@ -205,14 +233,14 @@ export function AiraVoicePanel() {
               onKeyDown={e => {
                 if (e.key === 'Enter') handleSend();
               }}
-              placeholder="Ask S.I.R.I.S AI co-pilot..."
-              className="flex-1 bg-surface border border-border-soft rounded-xl px-3.5 py-2 text-xs font-mono text-text outline-none"
+              placeholder={isListening ? "Listening... Speak now" : "Ask S.I.R.I.S AI co-pilot or file FIR..."}
+              className="flex-1 bg-surface border border-border-soft rounded-xl px-3.5 py-2 text-xs font-mono text-text outline-none focus:border-brand transition-colors"
             />
 
             <button
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className="w-10 h-10 rounded-xl bg-brand text-bg font-bold flex items-center justify-center shrink-0 hover:bg-brand-bright transition-colors disabled:opacity-40"
+              className="w-10 h-10 rounded-xl bg-brand text-bg font-bold flex items-center justify-center shrink-0 hover:bg-brand-bright transition-colors disabled:opacity-40 cursor-pointer"
             >
               <Send size={15} />
             </button>

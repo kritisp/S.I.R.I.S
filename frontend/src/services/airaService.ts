@@ -1,4 +1,5 @@
 import { CaseRecord, Station, Evidence } from '../mockServices/types';
+import { groqService } from './groqService';
 
 export interface AiraContext {
   currentUser?: string;
@@ -44,6 +45,90 @@ export interface AiraResponse {
   actions?: AiraAction[];
   route?: string;
   caseData?: CaseRecord;
+}
+
+/**
+ * Asynchronous Intelligence Assistant Processor.
+ * Integrates Groq LLM Cloud Reasoning (`openai/gpt-oss-120b`) for FIR Registration parsing
+ * and fallback AI reasoning alongside deterministic command routing.
+ */
+export async function processAiraQueryAsync(query: string, context: AiraContext): Promise<AiraResponse> {
+  const qTrim = query.trim();
+
+  // 1. Check for FIR Registration Intent via Groq LLM / Natural Language Parser
+  try {
+    const parsedFir = await groqService.parseFirFromNaturalLanguage(qTrim);
+    if (parsedFir.isFirRequest && parsedFir.narrative) {
+      const pStation = parsedFir.policeStation || 'Saheed Nagar PS';
+      const cType = parsedFir.incidentType || 'Reported BNS Offence';
+      const sections = parsedFir.suggestedBnsSections?.length 
+        ? parsedFir.suggestedBnsSections.join(', ')
+        : 'BNS Section 304, Section 317';
+      
+      const draftUrl = `/cases/new?narrative=${encodeURIComponent(parsedFir.narrative)}&crime_type=${encodeURIComponent(cType)}&location=${encodeURIComponent(parsedFir.incidentLocation || '')}&station=${encodeURIComponent(pStation)}`;
+
+      return {
+        intent: 'REGISTER_FIR',
+        response: parsedFir.summaryResponse || `S.I.R.I.S. AI Investigator has drafted an FIR for **${cType}** under **${sections}**. Redirecting to official FIR intake console for statutory digital seal.`,
+        structuredData: {
+          title: `FIR DRAFT: ${cType.toUpperCase()}`,
+          stats: [
+            { label: "Police Station", value: pStation },
+            { label: "Complainant", value: parsedFir.complainantName || "Informant / Officer" },
+            { label: "Recommended BNS", value: sections }
+          ],
+          listTitle: "Extracted Narrative Details:",
+          items: [
+            {
+              id: "NARRATIVE",
+              location: parsedFir.incidentLocation || "Jurisdiction Area",
+              date: parsedFir.incidentDate || new Date().toLocaleDateString(),
+              description: parsedFir.narrative
+            }
+          ]
+        },
+        actions: [
+          { label: 'CONFIRM & SUBMIT DIGITAL FIR', route: draftUrl, primary: true },
+          { label: 'OPEN STATUTORY RAG', route: '/cases/new' }
+        ],
+        route: draftUrl
+      };
+    }
+  } catch (e) {
+    console.warn("[AiraService] Groq FIR parsing fallback:", e);
+  }
+
+  // 2. Deterministic Intent Routing
+  const deterministicRes = processAiraQuery(qTrim, context);
+  if (deterministicRes.intent !== 'GENERAL_ASSISTANCE') {
+    return deterministicRes;
+  }
+
+  // 3. Groq LLM Fallback for General Reasoning Queries
+  try {
+    const systemPrompt = `You are S.I.R.I.S. AI Co-Pilot, an intelligent police investigator assistant for Indian Law Enforcement (Odisha Police / BNS 2023 / BNSS 2023 / BSA 2023).
+Provide a concise, authoritative, professional 2-3 sentence answer to the officer's query. Use bullet points or crisp statutory references if needed. Do not use generic AI greetings.`;
+
+    const groqAnswer = await groqService.chatCompletion([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: qTrim }
+    ]);
+
+    if (groqAnswer && groqAnswer.trim()) {
+      return {
+        intent: 'GROQ_REASONING',
+        response: groqAnswer.trim(),
+        actions: [
+          { label: 'REGISTER FIR', route: '/cases/new', primary: true },
+          { label: 'VIEW INVESTIGATIONS', route: '/cases' }
+        ]
+      };
+    }
+  } catch (err) {
+    console.warn("[AiraService] Groq reasoning fallback to deterministic assistance:", err);
+  }
+
+  return deterministicRes;
 }
 
 /**

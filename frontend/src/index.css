@@ -127,10 +127,15 @@
   }
 
   body {
+    font-family: Calibri, "Gill Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
     background-color: var(--bg);
     color: var(--text);
     @apply antialiased transition-colors duration-200;
     min-height: 100vh;
+  }
+
+  h1, h2, .font-serif, .official-title {
+    font-family: "Times New Roman", Times, Garamond, Georgia, serif;
   }
 
   ::-webkit-scrollbar {

@@ -43,6 +43,17 @@ export function RegisterFIR() {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<ProcessFirResponse | null>(null);
 
+  // Auto-fill FIR narrative if passed from AI Assistant draft
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlNarrative = params.get('narrative');
+      if (urlNarrative && urlNarrative.trim()) {
+        setNarrative(urlNarrative.trim());
+      }
+    }
+  }, []);
+
   // Bhasini ASR Speech-to-Text State
   const [asrLang, setAsrLang] = useState<SupportedLanguage>('hi');
   const [isRecording, setIsRecording] = useState(false);

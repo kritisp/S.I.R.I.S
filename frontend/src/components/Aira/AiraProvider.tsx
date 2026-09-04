@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { processAiraQuery } from '../../services/airaService';
+import { processAiraQuery, processAiraQueryAsync } from '../../services/airaService';
 import { useDrishtiVoice } from '../../hooks/useDrishtiVoice';
 
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
@@ -84,7 +84,7 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
     voice.stopSpeaking();
   }, [voice]);
 
-  const sendQuery = useCallback((query: string) => {
+  const sendQuery = useCallback(async (query: string) => {
     if (!query.trim()) return;
 
     const userMsg: ChatMessage = {
@@ -96,8 +96,8 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setChatHistory(prev => [...prev, userMsg]);
     setIsThinking(true);
 
-    setTimeout(() => {
-      const res = processAiraQuery(query, { currentUser: 'Comm. Mahapatra' });
+    try {
+      const res = await processAiraQueryAsync(query, { currentUser: 'Comm. Mahapatra' });
       const botResponseText = res.response;
       const botSuggestions = res.actions ? res.actions.map(a => a.label) : [];
 
@@ -112,7 +112,6 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setResponse(botResponseText);
       setSuggestions(botSuggestions);
       setChatHistory(prev => [...prev, botMsg]);
-      setIsThinking(false);
 
       if (!isMuted) {
         voice.speak(botResponseText, language === 'hi' ? 'hi-IN' : 'en-IN');
@@ -127,7 +126,11 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }, 800);
       }
-    }, 600);
+    } catch (err) {
+      console.error("[AiraProvider] Error processing query:", err);
+    } finally {
+      setIsThinking(false);
+    }
   }, [isMuted, language, voice]);
 
   const startListening = useCallback(() => {

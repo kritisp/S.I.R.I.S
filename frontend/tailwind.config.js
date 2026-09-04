@@ -25,10 +25,10 @@ export default {
         warning: 'var(--warning)',
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "sans-serif"],
-        serif: ["Source Serif 4", "serif"],
-        mono: ["IBM Plex Mono", "monospace"],
+        sans: ["Calibri", "Gill Sans", "Trebuchet MS", "Segoe UI", "system-ui", "sans-serif"],
+        display: ["Times New Roman", "Times", "Garamond", "Georgia", "serif"],
+        serif: ["Times New Roman", "Times", "Garamond", "Georgia", "serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       boxShadow: {
         glass: "0 8px 32px rgba(0, 0, 0, 0.37)",
