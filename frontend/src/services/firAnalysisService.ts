@@ -422,14 +422,18 @@ export const firAnalysisService = {
       return fd;
     };
 
-    // Potential endpoints to attempt
+    // Potential endpoints to attempt in priority order
     const candidateEndpoints: Array<{ url: string; headers: Record<string, string>; isSpringBoot?: boolean }> = [
       {
-        url: `${RAG_BASE_URL}/process-fir`,
+        url: 'http://localhost:8001/process-fir',
         headers: { 'X-Internal-API-Key': INTERNAL_API_KEY },
       },
       {
         url: '/process-fir',
+        headers: { 'X-Internal-API-Key': INTERNAL_API_KEY },
+      },
+      {
+        url: `${RAG_BASE_URL}/process-fir`,
         headers: { 'X-Internal-API-Key': INTERNAL_API_KEY },
       },
       {
@@ -448,7 +452,7 @@ export const firAnalysisService = {
     for (const candidate of candidateEndpoints) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s network timeout per attempt
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s network timeout for dense RAG inference
 
         const res = await fetch(candidate.url, {
           method: 'POST',
@@ -464,12 +468,15 @@ export const firAnalysisService = {
           // If Spring Boot wraps response in ApiResponse (with data field)
           const data = (json && typeof json === 'object' && 'data' in json && json.data) ? json.data : json;
           if (data && (data.bns_sections || data.summary || data.crime_type)) {
+            console.log('[firAnalysisService] Successfully received RAG analysis from live backend:', candidate.url);
             data.execution_metadata = {
               source: 'rag_live',
               timestamp: new Date().toISOString(),
             };
             return data as ProcessFirResponse;
           }
+        } else {
+          console.warn(`[firAnalysisService] Endpoint ${candidate.url} returned HTTP ${res.status}`);
         }
       } catch (err: any) {
         lastError = err;

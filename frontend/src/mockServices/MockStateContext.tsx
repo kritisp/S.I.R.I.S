@@ -102,59 +102,52 @@ export const MockStateProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const refreshBackendData = useCallback(async () => {
-    const token = getAuthToken();
-    if (!token) {
-      dispatch({ type: 'SET_LOADING', payload: false });
-      return;
-    }
-
     try {
-      // 1. Fetch user profile if not set
-      if (!state.currentUser) {
-        const me = await authApi.getMe();
-        if (me && me.user) {
-          dispatch({ type: 'SET_USER', payload: me.user });
-        }
-      }
-
-      // 2. Fetch Cases
-      const cases = await casesApi.getCases();
+      // 1. Fetch Cases directly from authoritative Database (430 cases)
+      const cases = await casesApi.getCases({ size: 100 }).catch(() => []);
       if (cases && cases.length > 0) {
         dispatch({ type: 'SET_CASES', payload: cases });
       }
 
-      // 3. Fetch Alerts
-      const alerts = await alertsApi.getAlerts();
-      if (alerts && alerts.length > 0) {
-        dispatch({ type: 'SET_ALERTS', payload: alerts });
-      }
-
-      // 4. Fetch Evidence
-      const evidence = await evidenceApi.getEvidence();
-      if (evidence && evidence.length > 0) {
-        dispatch({ type: 'SET_EVIDENCE', payload: evidence });
-      }
-
-      // 5. Fetch Access Requests
-      const [incoming, outgoing] = await Promise.all([
-        requestsApi.getIncomingRequests().catch(() => []),
-        requestsApi.getOutgoingRequests().catch(() => []),
-      ]);
-      const combinedRequests = [...incoming, ...outgoing];
-      if (combinedRequests.length > 0) {
-        dispatch({ type: 'SET_ACCESS_REQUESTS', payload: combinedRequests });
-      }
-
-      // 6. Fetch Stations
+      // 2. Fetch Stations from Database / backend
       const stations = await stationsApi.getStations().catch(() => []);
       if (stations && stations.length > 0) {
         dispatch({ type: 'SET_STATIONS', payload: stations });
       }
 
-      // 7. Fetch Users
-      const users = await usersApi.getUsers().catch(() => []);
-      if (users && users.length > 0) {
-        dispatch({ type: 'SET_USERS', payload: users });
+      // 3. If user has JWT auth token, fetch authenticated profile and evidence
+      const token = getAuthToken();
+      if (token) {
+        if (!state.currentUser) {
+          const me = await authApi.getMe().catch(() => null);
+          if (me && me.user) {
+            dispatch({ type: 'SET_USER', payload: me.user });
+          }
+        }
+
+        const alerts = await alertsApi.getAlerts().catch(() => []);
+        if (alerts && alerts.length > 0) {
+          dispatch({ type: 'SET_ALERTS', payload: alerts });
+        }
+
+        const evidence = await evidenceApi.getEvidence().catch(() => []);
+        if (evidence && evidence.length > 0) {
+          dispatch({ type: 'SET_EVIDENCE', payload: evidence });
+        }
+
+        const [incoming, outgoing] = await Promise.all([
+          requestsApi.getIncomingRequests().catch(() => []),
+          requestsApi.getOutgoingRequests().catch(() => []),
+        ]);
+        const combinedRequests = [...incoming, ...outgoing];
+        if (combinedRequests.length > 0) {
+          dispatch({ type: 'SET_ACCESS_REQUESTS', payload: combinedRequests });
+        }
+
+        const users = await usersApi.getUsers().catch(() => []);
+        if (users && users.length > 0) {
+          dispatch({ type: 'SET_USERS', payload: users });
+        }
       }
     } catch (err) {
       console.warn('Backend connection unavailable, using local initial state:', err);
