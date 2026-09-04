@@ -26,9 +26,9 @@ services:
   # ---------------------------------------------------------------------------
   - type: web
     name: siris-central-intel
-    runtime: python
-    buildCommand: cd ml/central-intelligence && pip install -r requirements.txt
-    startCommand: cd ml/central-intelligence && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    runtime: docker
+    dockerfilePath: ./ml/central-intelligence/Dockerfile
+    dockerContext: ./ml/central-intelligence
     envVars:
       - key: PORT
         value: 10000
@@ -54,9 +54,9 @@ services:
   # ---------------------------------------------------------------------------
   - type: web
     name: siris-fir-bns-rag
-    runtime: python
-    buildCommand: cd ml/fir-bns-rag && pip install -r requirements.txt
-    startCommand: cd ml/fir-bns-rag && uvicorn api_server:app --host 0.0.0.0 --port $PORT
+    runtime: docker
+    dockerfilePath: ./ml/fir-bns-rag/Dockerfile
+    dockerContext: ./ml/fir-bns-rag
     envVars:
       - key: PORT
         value: 10000
@@ -72,9 +72,9 @@ services:
   # ---------------------------------------------------------------------------
   - type: web
     name: siris-voice-gateway
-    runtime: node
-    buildCommand: cd server && npm install
-    startCommand: cd server && node index.js
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
     envVars:
       - key: PORT
         value: 10000
