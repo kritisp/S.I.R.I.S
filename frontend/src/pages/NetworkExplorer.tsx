@@ -450,6 +450,9 @@ export function NetworkExplorer() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceDTO | null>(null);
 
+  const [graphLoading, setGraphLoading] = useState<boolean>(true);
+  const [graphError, setGraphError] = useState<string | null>(null);
+
   useEffect(() => {
     async function loadWorkspaceData() {
       try {
@@ -461,12 +464,26 @@ export function NetworkExplorer() {
     }
     loadWorkspaceData();
 
-    // Fetch ARGUS live graph overview & alerts
-    graphIntelligenceService.getOverview(150).then(data => {
-      if (data && data.nodes && data.nodes.length > 0) {
-        setArgusLiveOverview(data);
-      }
-    });
+    // Fetch live Neo4j graph overview & alerts
+    setGraphLoading(true);
+    graphIntelligenceService.getOverview(150)
+      .then(data => {
+        if (data && data.nodes && data.nodes.length > 0) {
+          setArgusLiveOverview(data);
+          setGraphError(null);
+        } else if (data && data.nodes && data.nodes.length === 0) {
+          setGraphError("Neo4j Database connected, but 0 nodes found. Please project cases into Neo4j.");
+        } else {
+          setGraphError("Neo4j Graph Service is offline or unreachable.");
+        }
+      })
+      .catch(err => {
+        setGraphError(`Neo4j Connection Error: ${err.message || err}`);
+      })
+      .finally(() => {
+        setGraphLoading(false);
+      });
+
     graphIntelligenceService.getAlerts().then(res => {
       if (res && res.alerts) {
         setArgusAlerts(res.alerts);
@@ -658,6 +675,34 @@ export function NetworkExplorer() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-8 bg-surface border border-border-soft rounded-2xl p-4 h-[640px] relative overflow-hidden shadow-xs">
+              {graphLoading && (
+                <div className="absolute inset-0 z-30 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 font-mono">
+                  <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs text-text-dim font-bold">Querying Live Neo4j Graph Database...</span>
+                </div>
+              )}
+              {graphError && !argusLiveOverview && (
+                <div className="absolute inset-x-4 top-4 z-30 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-mono flex items-center justify-between gap-2 shadow-lg backdrop-blur-md">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert size={16} />
+                    <span><strong>NEO4J GRAPH OFFLINE:</strong> {graphError}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setGraphLoading(true);
+                      graphIntelligenceService.getOverview(150).then(data => {
+                        if (data && data.nodes && data.nodes.length > 0) {
+                          setArgusLiveOverview(data);
+                          setGraphError(null);
+                        }
+                      }).finally(() => setGraphLoading(false));
+                    }}
+                    className="px-2.5 py-1 bg-rose-500 text-white rounded-lg font-bold text-[10px] hover:bg-rose-600 transition-all cursor-pointer"
+                  >
+                    RETRY NEO4J
+                  </button>
+                </div>
+              )}
               <IntelligenceGraph
                 nodes={filteredNodes}
                 edges={filteredEdges}

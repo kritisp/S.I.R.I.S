@@ -5,17 +5,12 @@ from app.services.relationship_engine.confidence.models import RelationshipConfi
 
 
 def canonicalize_case_pair(id1: str, id2: str) -> tuple[str, str, str]:
-    """Returns (min_case_id, max_case_id, canonical_relationship_key) for any pair of case IDs.
-    
-    Raises ValueError if id1 and id2 are identical or malformed UUIDs.
-    """
-    u1 = uuid.UUID(str(id1))
-    u2 = uuid.UUID(str(id2))
+    """Returns (min_case_id, max_case_id, canonical_relationship_key) for any pair of case IDs."""
+    s1, s2 = sorted([str(id1).strip(), str(id2).strip()])
 
-    if u1 == u2:
+    if s1 == s2:
         raise ValueError("Self-comparison relationships between identical case IDs are invalid.")
 
-    s1, s2 = sorted([str(u1), str(u2)])
     return s1, s2, f"{s1}:{s2}:RELATED_TO"
 
 
@@ -32,9 +27,10 @@ class BaseGraphNode(BaseModel):
 
     @field_validator("node_id", "source_id")
     def validate_uuid_string(cls, v: str) -> str:
-        # Ensures node_id is a valid UUID string
-        uuid.UUID(str(v))
-        return str(v)
+        # Ensures node_id is a valid non-empty string identifier
+        if not v or not str(v).strip():
+            raise ValueError("node_id / source_id cannot be empty")
+        return str(v).strip()
 
 
 class CaseGraphNode(BaseGraphNode):
@@ -111,7 +107,7 @@ class LegalSectionGraphNode(BaseGraphNode):
 # =====================================================================
 
 class BaseGraphRelationship(BaseModel):
-    """Base contract for graph relationships enforcing UUID validation on ID fields."""
+    """Base contract for graph relationships enforcing validation on ID fields."""
 
     @field_validator(
         "case_id",
@@ -127,9 +123,8 @@ class BaseGraphRelationship(BaseModel):
         check_fields=False,
     )
     def validate_uuid_relationship_field(cls, v: str) -> str:
-        if v is not None:
-            uuid.UUID(str(v))
-            return str(v)
+        if v is not None and str(v).strip():
+            return str(v).strip()
         return v
 
 

@@ -210,24 +210,12 @@ const MOCK_ALERTS: IntelAlert[] = [
 
 export const graphIntelligenceService = {
 
-  /**
-   * Returns the top-influence entities and case nodes for the D3 force graph.
-   * Falls back to deterministic mock data if the service is unreachable.
-   */
-  async getOverview(limit = 150): Promise<GraphOverview> {
+  async getOverview(limit = 150): Promise<GraphOverview | null> {
     const result = await fetchWithTimeout<GraphOverview>(`${BASE_URL}/overview?limit=${limit}`);
     if (result && Array.isArray(result.nodes)) return result;
 
-    // Graceful fallback
-    console.warn('[graphIntelligenceService] Service unreachable — using mock data');
-    return {
-      nodes: MOCK_NODES.slice(0, limit),
-      edges: MOCK_EDGES,
-      total_nodes: MOCK_NODES.length,
-      total_edges: MOCK_EDGES.length,
-      components: 3,
-      built_at: Date.now() / 1000,
-    };
+    console.error('[graphIntelligenceService] Real Neo4j graph service unreachable or returned error.');
+    return null;
   },
 
   /**

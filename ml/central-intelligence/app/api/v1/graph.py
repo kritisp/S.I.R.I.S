@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 
 from app.database.postgres import get_db
 from app.services.graph.argus_graph_service import argus_graph_service
+from app.services.graph.neo4j_graph_service import neo4j_graph_service
 
 logger = logging.getLogger(__name__)
 
@@ -43,44 +44,41 @@ class ExtractRequest(BaseModel):
 
 @router.get(
     "/overview",
-    summary="ARGUS Network Overview",
+    summary="Neo4j Graph Network Overview",
     description=(
-        "Returns the top-influence entity nodes and case nodes for the "
-        "NetworkExplorer D3 force graph, sorted by ARGUS influence score "
-        "(betweenness × 0.6 + PageRank × 0.4)."
+        "Returns top investigation entity and case nodes from live Neo4j database "
+        "for the NetworkExplorer D3 force graph."
     ),
 )
 def graph_overview(
     limit: int = Query(default=150, ge=10, le=600),
-    db: Session = Depends(get_db),
 ):
     try:
-        return argus_graph_service.get_overview(db, limit=limit)
+        return neo4j_graph_service.get_overview(limit=limit)
     except Exception as exc:
         logger.error("graph_overview error: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Graph overview failed: {exc}",
+            detail=f"Neo4j graph overview failed: {exc}",
         )
 
 
 @router.get(
     "/neighbors/{node_id:path}",
-    summary="Expand node neighborhood",
-    description="Returns BFS subgraph around a node up to `depth` hops.",
+    summary="Expand node neighborhood in Neo4j",
+    description="Returns Cypher BFS subgraph around a node up to `depth` hops in Neo4j.",
 )
 def graph_neighbors(
     node_id: str,
     depth: int = Query(default=1, ge=1, le=3),
     limit: int = Query(default=50, ge=10, le=200),
-    db: Session = Depends(get_db),
 ):
     try:
-        result = argus_graph_service.get_neighbors(db, node_id, depth=depth, limit=limit)
+        result = neo4j_graph_service.get_neighbors(node_id, depth=depth, limit=limit)
         if not result.get("found"):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Node '{node_id}' not found in graph.",
+                detail=f"Node '{node_id}' not found in Neo4j graph.",
             )
         return result
     except HTTPException:
@@ -89,7 +87,7 @@ def graph_neighbors(
         logger.error("graph_neighbors error for %s: %s", node_id, exc, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Neighborhood expansion failed: {exc}",
+            detail=f"Neo4j neighborhood expansion failed: {exc}",
         )
 
 
@@ -126,40 +124,38 @@ def graph_why(
 
 @router.get(
     "/path",
-    summary="Shortest path between two nodes",
-    description="BFS shortest path from `from` to `to` node IDs.",
+    summary="Shortest path between two nodes in Neo4j",
+    description="Cypher shortest path from `from` to `to` node IDs.",
 )
 def graph_path(
     from_id: str = Query(..., alias="from"),
     to_id: str = Query(..., alias="to"),
-    db: Session = Depends(get_db),
 ):
     try:
-        return argus_graph_service.get_path(db, from_id, to_id)
+        return neo4j_graph_service.get_path(from_id, to_id)
     except Exception as exc:
         logger.error("graph_path error: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Path computation failed: {exc}",
+            detail=f"Neo4j path computation failed: {exc}",
         )
 
 
 @router.get(
     "/common",
-    summary="Shared neighbors of two nodes",
+    summary="Shared neighbors of two nodes in Neo4j",
 )
 def graph_common(
     a: str = Query(...),
     b: str = Query(...),
-    db: Session = Depends(get_db),
 ):
     try:
-        return argus_graph_service.get_common(db, a, b)
+        return neo4j_graph_service.get_common(a, b)
     except Exception as exc:
         logger.error("graph_common error: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Common-neighbors computation failed: {exc}",
+            detail=f"Neo4j common-neighbors computation failed: {exc}",
         )
 
 
