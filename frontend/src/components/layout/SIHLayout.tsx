@@ -5,7 +5,7 @@ import {
   Network, Sparkles, Scale, FileText, FileBarChart,
   Bell, LogOut, Moon, Sun, Lock, Building, Users, Globe, ChevronDown, Briefcase, Video, Navigation,
   CreditCard, UserCheck, TrendingUp, PhoneCall, ClipboardCheck, CheckSquare, History, AlertTriangle, Bot, GitBranch
-, Radio, Truck, Layers } from 'lucide-react';
+, Radio, Truck, Layers, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 
 
@@ -22,6 +22,7 @@ export function SIHLayout() {
   const { language, setLanguage, t, languages } = useLanguage();
   const navigate = useNavigate();
   
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('crimelens_theme') as 'dark' | 'light') || 'light';
   });
@@ -88,7 +89,9 @@ export function SIHLayout() {
     <AiraProvider>
       <div className="flex h-screen bg-bg text-text font-sans selection:bg-accent/15 selection:text-accent">
       {/* Sidebar Navigation */}
-      <aside className="w-64 flex flex-col bg-surface border-r border-border shadow-[1px_0_4px_rgba(0,0,0,0.03)] z-30 select-none">
+      <aside className={`flex flex-col bg-surface border-r border-border shadow-[1px_0_4px_rgba(0,0,0,0.03)] z-30 select-none transition-all duration-300 ${
+        isSidebarCollapsed ? 'w-16 overflow-hidden' : 'w-64'
+      }`}>
         {/* Official Police Seal Header */}
         <div className="p-4 border-b border-border-soft bg-surface-2/60">
           <div className="flex items-center gap-3">
@@ -238,6 +241,14 @@ export function SIHLayout() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-bg">
         <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0 z-20 shadow-[0_1px_2px_rgba(16,24,40,0.02)]">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarCollapsed(prev => !prev)}
+              className="p-2 text-text-dim hover:text-brand hover:bg-surface-hover border border-border-soft rounded-xl transition-all cursor-pointer mr-1"
+              title={isSidebarCollapsed ? "Expand Sidebar Navigation" : "Collapse Sidebar Navigation"}
+            >
+              {isSidebarCollapsed ? <Menu size={18} /> : <PanelLeftClose size={18} />}
+            </button>
+
             {state.currentUser.stationId ? (
               <div className="flex items-center gap-2 text-xs font-mono bg-surface-2 px-3 py-1.5 rounded-lg border border-border">
                 <span className="text-text-faint font-semibold uppercase text-[10px]">{t('header.station', 'STATION')}:</span>
@@ -345,12 +356,13 @@ export function SIHLayout() {
   );
 }
 
-function NavItem({ to, icon: Icon, label, badge }: { to: string, icon: any, label: string, badge?: number }) {
+function NavItem({ to, icon: Icon, label, badge, collapsed }: { to: string, icon: any, label: string, badge?: number, collapsed?: boolean }) {
   return (
     <NavLink
       to={to}
+      title={collapsed ? label : undefined}
       className={({ isActive }) => `
-        group relative flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer overflow-hidden
+        group relative flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer overflow-hidden
         ${isActive 
           ? 'bg-surface-2 text-brand font-bold border border-border-soft/80 shadow-xs' 
           : 'text-text-dim hover:text-text hover:bg-surface-hover/80 border border-transparent'
@@ -362,16 +374,16 @@ function NavItem({ to, icon: Icon, label, badge }: { to: string, icon: any, labe
           {isActive && (
             <span className="absolute left-0 top-0 bottom-0 w-1 bg-brand rounded-r" />
           )}
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'} min-w-0`}>
             <Icon 
               size={16} 
               className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
                 isActive ? 'text-brand' : 'text-text-dim group-hover:text-text'
               }`} 
             />
-            <span className="tracking-tight truncate">{label}</span>
+            {!collapsed && <span className="tracking-tight truncate">{label}</span>}
           </div>
-          {(badge !== undefined && badge > 0) && (
+          {(!collapsed && badge !== undefined && badge > 0) && (
             <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold shadow-xs ${
               isActive ? 'bg-brand/15 text-brand border border-brand/30' : 'bg-danger/20 text-danger-bright border border-danger/30'
             }`}>
