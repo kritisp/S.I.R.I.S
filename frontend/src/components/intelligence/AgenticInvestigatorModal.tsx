@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
 import { 
   Bot, ShieldAlert, Sparkles, Languages, CheckCircle2, AlertTriangle, 
-  CreditCard, PhoneCall, Scale, ArrowRight, X, Play, RefreshCw, FileText
+  CreditCard, PhoneCall, Scale, ArrowRight, X, Play, RefreshCw, FileText, Volume2, VolumeX
 } from 'lucide-react';
 import { 
   agenticIntelligenceService, 
@@ -33,8 +32,33 @@ export function AgenticInvestigatorModal({
 }: AgenticInvestigatorModalProps) {
   const [selectedLang, setSelectedLang] = useState<SupportedLanguage>('en');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isPlayingTts, setIsPlayingTts] = useState(false);
   const [executionSteps, setExecutionSteps] = useState<AgentExecutionStep[]>([]);
   const [report, setReport] = useState<AgenticAnalysisReport | null>(null);
+
+  const handlePlayTts = async () => {
+    if (!report) return;
+    if (isPlayingTts) {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      setIsPlayingTts(false);
+      return;
+    }
+
+    setIsPlayingTts(true);
+    try {
+      const res = await bhasiniTranslationService.textToSpeech(report.summary, selectedLang);
+      if (res.audioUrl) {
+        await bhasiniTranslationService.playAudio(res.audioUrl);
+      } else {
+        bhasiniTranslationService.speakNativeSpeechSynthesis(report.summary, selectedLang);
+      }
+    } catch (err) {
+      console.warn('Bhasini TTS fallback notice:', err);
+      bhasiniTranslationService.speakNativeSpeechSynthesis(report.summary, selectedLang);
+    } finally {
+      setIsPlayingTts(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -214,9 +238,23 @@ export function AgenticInvestigatorModal({
                       AGENTIC SYNTHESIS REPORT (LANGUAGE: {LANGUAGES.find(l => l.code === selectedLang)?.label})
                     </span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-danger/20 text-danger-bright border border-danger/30 text-[10px] font-bold uppercase">
-                    THREAT SCORE: {report.threatScore} / 100 ({report.overallThreatLevel})
-                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handlePlayTts}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                        isPlayingTts ? 'bg-brand text-bg animate-pulse' : 'bg-brand/10 hover:bg-brand/20 text-brand border border-brand/30'
+                      }`}
+                    >
+                      {isPlayingTts ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                      <span>{isPlayingTts ? 'STOP BRIEFING' : 'LISTEN VOICE BRIEFING (BHASINI TTS)'}</span>
+                    </button>
+
+                    <span className="px-2.5 py-0.5 rounded-full bg-danger/20 text-danger-bright border border-danger/30 text-[10px] font-bold uppercase">
+                      THREAT SCORE: {report.threatScore} / 100 ({report.overallThreatLevel})
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-xs text-text leading-relaxed font-sans font-medium bg-surface/80 p-3 rounded-xl border border-border-soft">

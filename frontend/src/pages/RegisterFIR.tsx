@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, FileText, CheckCircle, AlertTriangle, Sparkles, Upload, FileUp, AlertCircle, RefreshCw, CheckCircle2, Shield, Scale, Info } from 'lucide-react';
+import { Bot, FileText, CheckCircle, AlertTriangle, Sparkles, Upload, FileUp, AlertCircle, RefreshCw, CheckCircle2, Shield, Scale, Info, Mic, Square, Languages, Volume2 } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
 import { firAnalysisService, ProcessFirResponse } from '../services/firAnalysisService';
 import { casesApi } from '../services/api';
+import { AudioRecorder } from '../utils/audioRecorder';
+import { bhasiniTranslationService, SupportedLanguage } from '../services/bhasiniTranslationService';
 
 const QUICK_SCENARIOS = [
   {
@@ -40,6 +42,38 @@ export function RegisterFIR() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<ProcessFirResponse | null>(null);
+
+  // Bhasini ASR Speech-to-Text State
+  const [asrLang, setAsrLang] = useState<SupportedLanguage>('hi');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [recorder] = useState(() => new AudioRecorder());
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      setIsRecording(false);
+      setIsTranscribing(true);
+      try {
+        const audioBase64 = await recorder.stop();
+        const res = await bhasiniTranslationService.speechToText(audioBase64, asrLang);
+        if (res.transcribedText) {
+          setNarrative(prev => prev ? `${prev}\n${res.transcribedText}` : res.transcribedText);
+        }
+      } catch (err) {
+        console.error('Bhasini ASR error:', err);
+      } finally {
+        setIsTranscribing(false);
+      }
+    } else {
+      try {
+        await recorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        alert('Microphone access permission required for Bhasini Indian Language voice dictation.');
+        console.error('Microphone error:', err);
+      }
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -143,11 +177,37 @@ export function RegisterFIR() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-text-dim uppercase tracking-wider">
-                  FIR Incident Narrative (Text Input)
+                  FIR Incident Narrative (Text & Voice Input)
                 </label>
-                <span className="text-[10px] font-mono text-text-dim">
-                  Select a test scenario preset or enter complaint particulars
-                </span>
+                
+                {/* Bhasini Voice Dictation Control Bar */}
+                <div className="flex items-center gap-2">
+                  <select
+                    value={asrLang}
+                    onChange={(e) => setAsrLang(e.target.value as SupportedLanguage)}
+                    className="bg-surface-2 border border-border-soft rounded-lg px-2 py-1 text-[11px] font-mono text-text outline-none cursor-pointer"
+                  >
+                    <option value="hi">🇮🇳 हिन्दी (Hindi Voice)</option>
+                    <option value="or">🏛️ ଓଡ଼ିଆ (Odia Voice)</option>
+                    <option value="bn">🐯 বাংলা (Bengali Voice)</option>
+                    <option value="mr">🚩 मराठी (Marathi Voice)</option>
+                    <option value="en">🇬🇧 English Voice</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={toggleRecording}
+                    disabled={isTranscribing}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                      isRecording ? 'bg-danger text-white animate-pulse' :
+                      isTranscribing ? 'bg-brand/20 text-brand' :
+                      'bg-brand/10 hover:bg-brand/20 text-brand border border-brand/30'
+                    }`}
+                  >
+                    {isRecording ? <Square size={13} /> : <Mic size={13} />}
+                    <span>{isRecording ? 'STOP RECORDING' : isTranscribing ? 'TRANSCRIBING...' : 'VOICE DICTATION (BHASINI ASR)'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* 1-Click Quick Scenario Presets */}

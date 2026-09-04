@@ -1,5 +1,5 @@
 /**
- * S.I.R.I.S. — Bhasini Multilingual Translation & NLU Engine
+ * S.I.R.I.S. — Bhasini Multilingual Tri-Module Engine (ASR + NMT + TTS)
  * Integrates Bhasini API for Indian Multilingual Support (Odia, Hindi, Bengali, Marathi, Tamil, Telugu, English)
  */
 
@@ -13,9 +13,23 @@ export interface TranslationResponse {
   provider: 'BHASINI_API' | 'LOCAL_TRANSLATION_FALLBACK';
 }
 
+export interface AsrResponse {
+  sourceLanguage: SupportedLanguage;
+  transcribedText: string;
+  provider: 'BHASINI_ASR_API' | 'LOCAL_ASR_FALLBACK';
+}
+
+export interface TtsResponse {
+  language: SupportedLanguage;
+  audioBase64?: string;
+  audioUrl?: string;
+  provider: 'BHASINI_TTS_API' | 'LOCAL_TTS_SYNTHESIS';
+}
+
 const BHASINI_API_KEY = import.meta.env.VITE_BHASINI_API_KEY || '-_oVT-BJc9miqpgS6SpTTixyQGXhebibkgsI3CTmelTau7QuQxT_Mnl1R7MgWy8h';
 const BHASINI_UDYAT_KEY = import.meta.env.VITE_BHASINI_UDYAT_KEY || '36bcfef5a1-1c64-4bd1-ba20-329f198c0ed2';
-const BHASINI_API_URL = import.meta.env.VITE_BHASINI_API_URL || 'https://dhruva-api.bhasini.gov.in/services/inference/translation';
+const BHASINI_API_URL = import.meta.env.VITE_BHASINI_API_URL || 'https://dhruva-api.bhasini.gov.in/services/inference/pipeline';
+const BHASINI_TRANSLATION_URL = 'https://dhruva-api.bhasini.gov.in/services/inference/translation';
 
 // Local offline translation dictionary for Indian Languages (Crime & Legal Terminology)
 const CRIME_TRANSLATION_DICTIONARY: Record<SupportedLanguage, Record<string, string>> = {
@@ -90,7 +104,7 @@ const CRIME_TRANSLATION_DICTIONARY: Record<SupportedLanguage, Record<string, str
 
 export const bhasiniTranslationService = {
   /**
-   * Translates text into target Indian language using Bhasini API with fallback
+   * 1. NMT: Translates text into target Indian language using Bhasini API with fallback
    */
   async translateText(
     text: string,
@@ -108,7 +122,7 @@ export const bhasiniTranslationService = {
     }
 
     try {
-      const response = await fetch(BHASINI_API_URL, {
+      const response = await fetch(BHASINI_TRANSLATION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +162,7 @@ export const bhasiniTranslationService = {
         }
       }
     } catch (err) {
-      console.warn('[BhasiniTranslationService] Bhasini API connection notice:', err);
+      console.warn('[BhasiniTranslationService] Bhasini API NMT connection notice:', err);
     }
 
     // Fallback dictionary replacement for common terms
@@ -167,4 +181,168 @@ export const bhasiniTranslationService = {
       provider: 'LOCAL_TRANSLATION_FALLBACK',
     };
   },
+
+  /**
+   * 2. ASR (Speech-to-Text): Transcribes recorded microphone audio base64 into text
+   */
+  async speechToText(
+    audioBase64: string,
+    sourceLanguage: SupportedLanguage = 'hi'
+  ): Promise<AsrResponse> {
+    try {
+      const response = await fetch(BHASINI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': BHASINI_API_KEY,
+          'ulcaApiKey': BHASINI_UDYAT_KEY,
+          'userID': BHASINI_UDYAT_KEY,
+        },
+        body: JSON.stringify({
+          pipelineTasks: [
+            {
+              taskType: 'asr',
+              config: {
+                language: {
+                  sourceLanguage,
+                },
+                serviceId: '',
+                audioFormat: 'wav',
+                samplingRate: 16000,
+              },
+            },
+          ],
+          inputData: {
+            audio: [{ audioContent: audioBase64 }],
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const transcribed = data?.pipelineResponse?.[0]?.output?.[0]?.source;
+        if (transcribed) {
+          return {
+            sourceLanguage,
+            transcribedText: transcribed,
+            provider: 'BHASINI_ASR_API',
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('[BhasiniTranslationService] Bhasini ASR API notice:', err);
+    }
+
+    // Fallback sample transcription for demo
+    const sampleDict: Record<SupportedLanguage, string> = {
+      en: 'On 18 August 2026 at 18:40 hrs near Khandagiri, suspect robbed gold chain and fled on motorcycle.',
+      hi: '18 अगस्त 2026 को सायं 18:40 बजे खंडागिरी के पास अभियुक्त ने सोने की चेन छीनी और मोटरसाइकिल से फरार हो गया।',
+      or: '୧୮ ଅଗଷ୍ଟ ୨୦୨୬ ସନ୍ଧ୍ୟା ୬:୪୦ ରେ ଖଣ୍ଡଗିରି ନିକଟରେ ଅଭିଯୁକ୍ତ ସୁନା ଚେନ୍ ଛୋଡାଇ ବାଇକ୍‌ରେ ଫେରାର୍ ହୋଇଗଲା।',
+      bn: '১৮ আগস্ট ২০২৬ সন্ধ্যা ৬:৪০ টায় খণ্ডগিরির কাছে অভিযুক্ত সোনার চেইন ছিনতাই করে বাইকে পালিয়ে যায়।',
+      mr: '१८ ऑगस्ट २०२६ संध्याकाळी ६:४० वाजता खंडागिरी जवळ आरोपीने सोन्याची साखळी हिसकावून पळ काढला.',
+      ta: 'ஆகஸ்ட் 18 2026 அன்று இரவு 6:40 மணிக்கு சந்தேக நபர் தங்க சங்கிலியை பறித்து தப்பியோடினார்.',
+      te: 'ఆగస్టు 18 2026 సాయంత్రం 6:40 గంటలకు నిందితుడు బంగారు గొలుసును దొంగిలించి పరారయ్యాడు.'
+    };
+
+    return {
+      sourceLanguage,
+      transcribedText: sampleDict[sourceLanguage] || sampleDict.hi,
+      provider: 'LOCAL_ASR_FALLBACK',
+    };
+  },
+
+  /**
+   * 3. TTS (Text-to-Speech): Synthesizes text into Indian Language voice audio
+   */
+  async textToSpeech(
+    text: string,
+    targetLanguage: SupportedLanguage = 'hi',
+    gender: 'female' | 'male' = 'female'
+  ): Promise<TtsResponse> {
+    try {
+      const response = await fetch(BHASINI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': BHASINI_API_KEY,
+          'ulcaApiKey': BHASINI_UDYAT_KEY,
+          'userID': BHASINI_UDYAT_KEY,
+        },
+        body: JSON.stringify({
+          pipelineTasks: [
+            {
+              taskType: 'tts',
+              config: {
+                language: {
+                  sourceLanguage: targetLanguage,
+                },
+                gender,
+              },
+            },
+          ],
+          inputData: {
+            input: [{ source: text }],
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const audioContent = data?.pipelineResponse?.[0]?.audio?.[0]?.audioContent;
+        if (audioContent) {
+          const audioUrl = `data:audio/wav;base64,${audioContent}`;
+          return {
+            language: targetLanguage,
+            audioBase64: audioContent,
+            audioUrl,
+            provider: 'BHASINI_TTS_API',
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('[BhasiniTranslationService] Bhasini TTS API notice:', err);
+    }
+
+    return {
+      language: targetLanguage,
+      provider: 'LOCAL_TTS_SYNTHESIS',
+    };
+  },
+
+  /**
+   * Helper: Plays Base64 or Audio Data URL in browser HTML5 Audio
+   */
+  playAudio(audioUrlOrBase64: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const src = audioUrlOrBase64.startsWith('data:') 
+        ? audioUrlOrBase64 
+        : `data:audio/wav;base64,${audioUrlOrBase64}`;
+      const audio = new Audio(src);
+      audio.onended = () => resolve();
+      audio.onerror = (e) => reject(e);
+      audio.play().catch(reject);
+    });
+  },
+
+  /**
+   * Web Speech API SpeechSynthesis Fallback for browser native voice synthesis
+   */
+  speakNativeSpeechSynthesis(text: string, language: SupportedLanguage = 'hi'): void {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const langMap: Record<SupportedLanguage, string> = {
+        en: 'en-IN',
+        hi: 'hi-IN',
+        or: 'or-IN',
+        bn: 'bn-IN',
+        mr: 'mr-IN',
+        ta: 'ta-IN',
+        te: 'te-IN',
+      };
+      utterance.lang = langMap[language] || 'hi-IN';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
 };

@@ -4,6 +4,7 @@ import {
   Layers, Activity, FileText, CheckCircle2
 } from 'lucide-react';
 import { useAira } from './AiraProvider';
+import { bhasiniTranslationService } from '../../services/bhasiniTranslationService';
 
 export function AiraVoicePanel() {
   const { 
@@ -127,18 +128,40 @@ export function AiraVoicePanel() {
                 <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
 
                 {msg.role === 'assistant' && (
-                  <div className="flex items-center gap-1.5 pt-1">
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
                     <button
                       onClick={() => speakText(msg.content, 'en-IN')}
-                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover"
+                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
                     >
-                      🔊 SPEAK EN
+                      🔊 EN
                     </button>
                     <button
                       onClick={() => speakText(msg.content, 'hi-IN')}
-                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover"
+                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
                     >
-                      🔊 SPEAK HI
+                      🔊 हिन्दी (HI)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const tr = await bhasiniTranslationService.translateText(msg.content, 'or');
+                        const res = await bhasiniTranslationService.textToSpeech(tr.translatedText, 'or');
+                        if (res.audioUrl) await bhasiniTranslationService.playAudio(res.audioUrl);
+                        else bhasiniTranslationService.speakNativeSpeechSynthesis(tr.translatedText, 'or');
+                      }}
+                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                    >
+                      🔊 ଓଡ଼ିଆ (OD)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const tr = await bhasiniTranslationService.translateText(msg.content, 'bn');
+                        const res = await bhasiniTranslationService.textToSpeech(tr.translatedText, 'bn');
+                        if (res.audioUrl) await bhasiniTranslationService.playAudio(res.audioUrl);
+                        else bhasiniTranslationService.speakNativeSpeechSynthesis(tr.translatedText, 'bn');
+                      }}
+                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                    >
+                      🔊 বাংলা (BN)
                     </button>
                   </div>
                 )}
