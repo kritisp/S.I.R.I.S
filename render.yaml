@@ -5,6 +5,7 @@ services:
   - type: web
     name: siris-frontend
     runtime: static
+    plan: free
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
     routes:
@@ -27,6 +28,7 @@ services:
   - type: web
     name: siris-central-intel
     runtime: docker
+    plan: free
     dockerfilePath: ./ml/central-intelligence/Dockerfile
     dockerContext: ./ml/central-intelligence
     envVars:
@@ -55,6 +57,7 @@ services:
   - type: web
     name: siris-fir-bns-rag
     runtime: docker
+    plan: free
     dockerfilePath: ./ml/fir-bns-rag/Dockerfile
     dockerContext: ./ml/fir-bns-rag
     envVars:
@@ -73,6 +76,7 @@ services:
   - type: web
     name: siris-voice-gateway
     runtime: docker
+    plan: free
     dockerfilePath: ./server/Dockerfile
     dockerContext: ./server
     envVars:
