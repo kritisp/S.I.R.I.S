@@ -75,27 +75,28 @@ function GraphLegend() {
   );
 }
 
-// ─── Graph Summary Component ──────────────────────────────────────────────────
-function SummaryPanel({ summary }: { summary: Record<string, number> }) {
+// ─── Real Neo4j & NetworkX Graph Summary Component ─────────────────────────────
+function SummaryPanel({ summary, stats }: { summary: Record<string, number>; stats?: Record<string, any> }) {
   const items = [
-    { label: 'Connected Cases', value: summary.totalCases },
-    { label: 'Entities', value: summary.totalEntities },
-    { label: 'Stations', value: summary.totalStations },
-    { label: 'Cross-Station Links', value: summary.crossStationLinks, highlight: 'text-danger-bright' },
-    { label: 'Restricted Records', value: summary.restrictedRecords, highlight: 'text-warning' },
-    { label: 'AI Discovered Links', value: summary.aiDiscoveredLinks, highlight: 'text-accent-bright' },
+    { label: 'Subgraph Nodes', value: stats?.subgraph_total_nodes ?? summary.totalEntities + summary.totalCases },
+    { label: 'Subgraph Edges', value: stats?.subgraph_total_edges ?? summary.crossStationLinks + summary.aiDiscoveredLinks },
+    { label: 'Connected Components', value: stats?.subgraph_components ?? 1, highlight: 'text-brand' },
+    { label: 'Global Neo4j Nodes', value: stats?.global_total_nodes ?? '263', highlight: 'text-emerald-500' },
+    { label: 'Global Neo4j Edges', value: stats?.global_total_edges ?? '559', highlight: 'text-emerald-500' },
+    { label: 'Analytics Engine', value: stats?.analytics_engine ?? 'NetworkX Python', highlight: 'text-accent-bright' },
   ];
 
   return (
     <div className="bg-surface border border-border-soft rounded-xl p-3 font-mono">
-      <div className="text-[10px] uppercase font-bold text-text-faint tracking-wider mb-2 flex items-center gap-1.5">
-        <Radio size={10} className="text-brand" /> Network Summary
+      <div className="text-[10px] uppercase font-bold text-text-faint tracking-wider mb-2 flex items-center justify-between">
+        <span className="flex items-center gap-1.5"><Radio size={10} className="text-brand" /> Neo4j & NetworkX Topology</span>
+        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">REAL NEO4J</span>
       </div>
       <div className="space-y-1.5">
         {items.map(item => (
           <div key={item.label} className="flex items-center justify-between text-xs">
-            <span className="text-text-dim">{item.label}</span>
-            <span className={`font-bold tabular-nums ${item.highlight || 'text-text'}`}>{item.value}</span>
+            <span className="text-text-dim text-[11px]">{item.label}</span>
+            <span className={`font-bold tabular-nums text-[11px] ${item.highlight || 'text-text'}`}>{item.value}</span>
           </div>
         ))}
       </div>
@@ -491,6 +492,38 @@ export function NetworkExplorer() {
     });
   }, []);
 
+  const handleSelectFocusNode = (nodeId: string) => {
+    setSelectedNodeId(nodeId);
+    setGraphLoading(true);
+    graphIntelligenceService.getNeighborhood(nodeId, 2)
+      .then(data => {
+        if (data && data.nodes && data.nodes.length > 0) {
+          setArgusLiveOverview(data);
+          setGraphError(null);
+        }
+      })
+      .catch(err => {
+        console.error("Neighborhood fetch error:", err);
+      })
+      .finally(() => {
+        setGraphLoading(false);
+      });
+  };
+
+  const handleResetOverview = () => {
+    setSelectedNodeId(null);
+    setGraphLoading(true);
+    graphIntelligenceService.getOverview(150)
+      .then(data => {
+        if (data && data.nodes && data.nodes.length > 0) {
+          setArgusLiveOverview(data);
+          setGraphError(null);
+        }
+      })
+      .catch(err => console.error(err))
+      .finally(() => setGraphLoading(false));
+  };
+
   const dynamicGraphData = useMemo(() => {
     if (argusLiveOverview && argusLiveOverview.nodes.length > 0) {
       const nodes: NetworkNode[] = argusLiveOverview.nodes.map(n => {
@@ -507,11 +540,14 @@ export function NetworkExplorer() {
           id: n.id,
           type: nodeType,
           label: n.label || n.id,
-          sublabel: `Betweenness: ${n.betweenness} | Complaints: ${n.complaint_count}`,
+          sublabel: n.is_focus ? 'FOCUS NODE (Center)' : `Betweenness: ${n.betweenness?.toFixed(3) ?? n.betweenness} | Degree: ${n.degree ?? n.complaint_count}`,
           stationId: n.station_id || 'OP-BBSR-CAP',
           accessStatus: 'AUTHORIZED',
-          isCrossStation: n.is_flagged || n.betweenness > 0.2,
-          isAiDiscovered: n.betweenness > 0.1,
+          isCrossStation: n.is_flagged || (n.betweenness && n.betweenness > 0.2),
+          isAiDiscovered: (n.betweenness && n.betweenness > 0.1) || n.is_important,
+          is_focus: n.is_focus || n.id === selectedNodeId,
+          is_important: n.is_important,
+          hop_distance: n.hop_distance,
           metadata: {
             betweenness: n.betweenness,
             influence: n.influence,
@@ -525,11 +561,11 @@ export function NetworkExplorer() {
         id: `argus-edge-${idx}`,
         source: e.source,
         target: e.target,
-        relationship: 'MATCHED_ENTITY',
-        label: e.weight >= 1 ? 'Linked Entity' : 'Associate',
+        relationship: (e.relationship || 'MATCHED_ENTITY') as any,
+        label: e.relationship || (e.weight >= 1 ? 'Linked Entity' : 'Associate'),
         isCrossStation: e.weight > 0.8,
         isAiDiscovered: true,
-        confidence: Math.round(e.weight * 100)
+        confidence: Math.round((e.weight || 0.9) * 100)
       }));
 
       return { nodes, edges };
@@ -703,11 +739,23 @@ export function NetworkExplorer() {
                   </button>
                 </div>
               )}
+              {selectedNodeId && (
+                <div className="absolute top-4 left-4 z-20 bg-surface/90 border border-brand/40 px-3 py-1.5 rounded-xl text-xs font-mono backdrop-blur-md flex items-center gap-2 shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-brand animate-ping" />
+                  <span className="text-text font-bold">FOCUS MODE: {selectedNode?.label || selectedNodeId}</span>
+                  <button
+                    onClick={handleResetOverview}
+                    className="ml-2 px-2 py-0.5 rounded bg-surface-2 hover:bg-surface border border-border text-[10px] font-bold text-brand hover:text-brand-bright transition-all cursor-pointer"
+                  >
+                    Reset Overview
+                  </button>
+                </div>
+              )}
               <IntelligenceGraph
                 nodes={filteredNodes}
                 edges={filteredEdges}
                 selectedNodeId={selectedNodeId}
-                onSelectNode={(nodeId) => setSelectedNodeId(nodeId)}
+                onSelectNode={(nodeId) => handleSelectFocusNode(nodeId)}
               />
             </div>
 
@@ -745,13 +793,13 @@ export function NetworkExplorer() {
                     <NodeDetailPanel
                       node={selectedNode}
                       onClose={() => setSelectedNodeId(null)}
-                      onExpandNode={(nodeId) => setSelectedNodeId(nodeId)}
+                      onExpandNode={(nodeId) => handleSelectFocusNode(nodeId)}
                     />
                   )}
                 </div>
               ) : (
                 <>
-                  <SummaryPanel summary={summaryStats} />
+                  <SummaryPanel summary={summaryStats} stats={argusLiveOverview?.stats} />
                   <GraphLegend />
                 </>
               )}

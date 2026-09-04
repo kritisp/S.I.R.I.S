@@ -50,6 +50,9 @@ export interface NetworkNode {
   isLocal?: boolean;        // belongs to logged-in user's station
   isCrossStation?: boolean;
   isAiDiscovered?: boolean;
+  is_focus?: boolean;       // focus node selected by investigator
+  is_important?: boolean;   // structurally important connector node (high betweenness/degree)
+  hop_distance?: number;    // topological hop distance from focus node
   x?: number;               // layout position
   y?: number;
   metadata?: Record<string, string | number>;

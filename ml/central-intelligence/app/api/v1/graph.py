@@ -52,14 +52,43 @@ class ExtractRequest(BaseModel):
 )
 def graph_overview(
     limit: int = Query(default=150, ge=10, le=600),
+    focus_node_id: Optional[str] = Query(default=None),
 ):
     try:
-        return neo4j_graph_service.get_overview(limit=limit)
+        return neo4j_graph_service.get_overview(limit=limit, focus_node_id=focus_node_id)
     except Exception as exc:
         logger.error("graph_overview error: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Neo4j graph overview failed: {exc}",
+        )
+
+
+@router.get(
+    "/neighborhood/{node_id:path}",
+    summary="Get bounded focus-node neighborhood in Neo4j",
+    description="Returns a bounded subgraph centered on the selected focus node up to `depth` hops in Neo4j.",
+)
+def graph_neighborhood(
+    node_id: str,
+    depth: int = Query(default=2, ge=1, le=3),
+    limit: int = Query(default=80, ge=10, le=300),
+):
+    try:
+        result = neo4j_graph_service.get_neighborhood(node_id, depth=depth, limit=limit)
+        if not result.get("found"):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Focus node '{node_id}' not found in Neo4j graph.",
+            )
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("graph_neighborhood error for %s: %s", node_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Neo4j focus-node neighborhood query failed: {exc}",
         )
 
 

@@ -1,12 +1,16 @@
 """
-S.I.R.I.S. — Neo4j Graph Query Service
-======================================
+S.I.R.I.S. — Neo4j Graph Query Service & NetworkX Analytics Engine
+===================================================================
 
 Directly queries the live Neo4j Graph Database via Cypher queries
-to serve real-time investigation graph topology, node neighborhoods,
+to serve real-time investigation graph topology, bounded focus-node neighborhoods,
 shortest paths, and common neighbors to the frontend Network Explorer.
 
-Reuses the existing Neo4j connection service (`neo4j_connection_service`).
+Computes application-side graph analytics via NetworkX:
+- Exact degree, betweenness centrality, PageRank, connected components, Louvain modularity
+- Hop distances from user-selected FOCUS NODE
+- Identifies FOCUS NODE vs IMPORTANT CONNECTOR NODES
+- Distinguishes SUBGRAPH STATISTICS from GLOBAL GRAPH STATISTICS
 """
 
 import logging
@@ -18,6 +22,7 @@ from app.services.graph.connection import (
     _sanitize_error_message,
     neo4j_connection_service,
 )
+from app.services.graph.networkx_analytics_service import networkx_analytics_service
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +109,8 @@ def _map_rel_to_frontend(record_rel: dict) -> dict:
       target: string,
       weight: number,
       relationship: string,
-      label: string
+      label: string,
+      explanation: string
     }
     """
     src = str(record_rel.get("source"))
@@ -120,23 +126,36 @@ def _map_rel_to_frontend(record_rel: dict) -> dict:
         "target": tgt,
         "weight": weight,
         "relationship": rel_type,
-        "label": role_label
+        "label": role_label,
+        "explanation": props.get("explanation") or props.get("evidence_summary"),
+        "confidence_score": weight
     }
 
 
 class Neo4jGraphService:
-    """Read service executing Cypher queries directly against Neo4j."""
+    """Read service executing Cypher queries directly against Neo4j with NetworkX analytics."""
 
     def __init__(self, connection_service: Neo4jConnectionService = neo4j_connection_service):
         self.connection_service = connection_service
 
-    def get_overview(self, limit: int = 150) -> Dict[str, Any]:
+    def get_global_totals(self, session) -> Dict[str, int]:
+        """Fetches total node and relationship counts in Neo4j."""
+        try:
+            nodes = session.run("MATCH (n) RETURN count(n) AS c").single()["c"]
+            rels = session.run("MATCH ()-[r]->() RETURN count(r) AS c").single()["c"]
+            return {"nodes": nodes, "edges": rels}
+        except Exception:
+            return {"nodes": 0, "edges": 0}
+
+    def get_overview(self, limit: int = 150, focus_node_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Retrieves live Neo4j investigation graph topology (nodes + relationships).
-        Guarantees deterministic node ordering, unique nodes & edges, and clean contract formatting.
+        Applies NetworkX analytics to compute exact centrality, focus nodes, and important connectors.
         """
         driver = self.connection_service.get_driver()
         with driver.session(database=self.connection_service.database) as session:
+            global_totals = self.get_global_totals(session)
+
             # Step 1: Select top nodes up to limit
             nodes_cypher = """
             MATCH (n)
@@ -154,7 +173,14 @@ class Neo4jGraphService:
                     "total_edges": 0,
                     "components": 0,
                     "built_at": time.time(),
-                    "source": "neo4j-live"
+                    "source": "neo4j-live",
+                    "stats": {
+                        "global_total_nodes": global_totals["nodes"],
+                        "global_total_edges": global_totals["edges"],
+                        "subgraph_total_nodes": 0,
+                        "subgraph_total_edges": 0,
+                        "subgraph_components": 0
+                    }
                 }
 
             node_ids = {n["id"] for n in raw_nodes if n.get("id")}
@@ -171,21 +197,54 @@ class Neo4jGraphService:
             formatted_nodes = [_map_node_to_frontend(n) for n in raw_nodes if n.get("id")]
             formatted_edges = [_map_rel_to_frontend(e) for e in raw_edges if e.get("source") and e.get("target")]
 
+            # Apply NetworkX Analytics
+            analytics_result = networkx_analytics_service.compute_graph_analytics(
+                nodes=formatted_nodes,
+                edges=formatted_edges,
+                focus_node_id=focus_node_id,
+                global_totals=global_totals
+            )
+
             return {
-                "nodes": formatted_nodes,
-                "edges": formatted_edges,
-                "total_nodes": len(formatted_nodes),
-                "total_edges": len(formatted_edges),
-                "components": 1,
+                "nodes": analytics_result["nodes"],
+                "edges": analytics_result["edges"],
+                "total_nodes": len(analytics_result["nodes"]),
+                "total_edges": len(analytics_result["edges"]),
+                "components": analytics_result["stats"]["subgraph_components"],
                 "built_at": time.time(),
-                "source": "neo4j-live"
+                "source": "neo4j-live",
+                "stats": analytics_result["stats"]
             }
 
-    def get_neighbors(self, node_id: str, depth: int = 1, limit: int = 50) -> Dict[str, Any]:
-        """BFS graph expansion around a node in Neo4j up to `depth` hops."""
+    def get_neighborhood(self, node_id: str, depth: int = 2, limit: int = 80) -> Dict[str, Any]:
+        """
+        Retrieves a bounded neighborhood around a selected FOCUS NODE up to `depth` hops in Neo4j.
+        Computes hop distances, centrality scores, and focus vs important connector flags.
+        """
         driver = self.connection_service.get_driver()
         depth = max(1, min(3, depth))
         with driver.session(database=self.connection_service.database) as session:
+            global_totals = self.get_global_totals(session)
+
+            # Check if focus node exists
+            start_res = session.run(
+                "MATCH (start {node_id: $node_id}) RETURN start.node_id AS id, labels(start) AS labels, properties(start) AS props",
+                {"node_id": node_id}
+            ).single()
+
+            if not start_res:
+                return {
+                    "node_id": node_id,
+                    "found": False,
+                    "nodes": [],
+                    "edges": [],
+                    "source": "neo4j-live",
+                    "error": f"Focus node '{node_id}' not found in Neo4j."
+                }
+
+            start_node = dict(start_res)
+
+            # Fetch BFS neighborhood nodes up to depth
             cypher = f"""
             MATCH (start {{node_id: $node_id}})
             MATCH path = (start)-[*1..{depth}]-(n)
@@ -196,19 +255,10 @@ class Neo4jGraphService:
             res = session.run(cypher, {"node_id": node_id, "limit": limit})
             neighbor_nodes = [dict(r) for r in res]
 
-            # Include start node itself
-            start_res = session.run(
-                "MATCH (start {node_id: $node_id}) RETURN start.node_id AS id, labels(start) AS labels, properties(start) AS props",
-                {"node_id": node_id}
-            )
-            start_data = [dict(r) for r in start_res]
-
-            all_nodes_data = start_data + neighbor_nodes
+            all_nodes_data = [start_node] + neighbor_nodes
             all_node_ids = list({n["id"] for n in all_nodes_data if n.get("id")})
 
-            if not all_node_ids:
-                return {"node_id": node_id, "found": False, "nodes": [], "edges": [], "source": "neo4j-live"}
-
+            # Fetch all induced edges between these neighborhood nodes
             edges_cypher = """
             MATCH (a)-[r]->(b)
             WHERE a.node_id IN $ids AND b.node_id IN $ids
@@ -218,24 +268,37 @@ class Neo4jGraphService:
             raw_edges = [dict(r) for r in edges_res]
 
             formatted_nodes = [_map_node_to_frontend(n) for n in all_nodes_data if n.get("id")]
-            for fn in formatted_nodes:
-                if fn["id"] == node_id:
-                    fn["is_center"] = True
-
             formatted_edges = [_map_rel_to_frontend(e) for e in raw_edges]
+
+            # Apply NetworkX Analytics with focus_node_id
+            analytics_result = networkx_analytics_service.compute_graph_analytics(
+                nodes=formatted_nodes,
+                edges=formatted_edges,
+                focus_node_id=node_id,
+                global_totals=global_totals
+            )
 
             return {
                 "node_id": node_id,
                 "found": True,
-                "nodes": formatted_nodes,
-                "edges": formatted_edges,
-                "source": "neo4j-live"
+                "nodes": analytics_result["nodes"],
+                "edges": analytics_result["edges"],
+                "total_nodes": len(analytics_result["nodes"]),
+                "total_edges": len(analytics_result["edges"]),
+                "source": "neo4j-live",
+                "stats": analytics_result["stats"]
             }
+
+    def get_neighbors(self, node_id: str, depth: int = 1, limit: int = 50) -> Dict[str, Any]:
+        """Wrapper around get_neighborhood for API compatibility."""
+        return self.get_neighborhood(node_id=node_id, depth=depth, limit=limit)
 
     def get_path(self, from_id: str, to_id: str) -> Dict[str, Any]:
         """Cypher shortest path between two nodes in Neo4j."""
         driver = self.connection_service.get_driver()
         with driver.session(database=self.connection_service.database) as session:
+            global_totals = self.get_global_totals(session)
+
             cypher = """
             MATCH (start {node_id: $from_id}), (target {node_id: $to_id})
             MATCH p = shortestPath((start)-[*]-(target))
@@ -257,14 +320,22 @@ class Neo4jGraphService:
             path_nodes = [_map_node_to_frontend(n) for n in result["nodes"]]
             path_edges = [_map_rel_to_frontend(r) for r in result["edges"]]
 
+            analytics_result = networkx_analytics_service.compute_graph_analytics(
+                nodes=path_nodes,
+                edges=path_edges,
+                focus_node_id=from_id,
+                global_totals=global_totals
+            )
+
             return {
                 "found": True,
                 "from": from_id,
                 "to": to_id,
-                "path": path_nodes,
-                "edges": path_edges,
+                "path": analytics_result["nodes"],
+                "edges": analytics_result["edges"],
                 "hop_count": len(path_nodes) - 1,
-                "source": "neo4j-live"
+                "source": "neo4j-live",
+                "stats": analytics_result["stats"]
             }
 
     def get_common(self, a: str, b: str) -> Dict[str, Any]:

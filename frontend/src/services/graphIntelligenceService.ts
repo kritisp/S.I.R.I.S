@@ -18,7 +18,7 @@ const TIMEOUT_MS = 5000;
 export interface GraphNode {
   id: string;
   label: string;
-  entity_type: 'PHONE' | 'PERSON' | 'VEHICLE' | 'CASE' | 'UPI' | 'WALLET' | 'EMAIL' | 'BANK_ACCOUNT' | 'IP' | 'TELEGRAM' | 'UNKNOWN';
+  entity_type: 'PHONE' | 'PERSON' | 'VEHICLE' | 'CASE' | 'UPI' | 'WALLET' | 'EMAIL' | 'BANK_ACCOUNT' | 'IP' | 'TELEGRAM' | 'LOCATION' | 'EVIDENCE' | 'LEGAL_SECTION' | 'UNKNOWN';
   node_type: 'entity' | 'case';
   betweenness: number;
   influence: number;
@@ -28,12 +28,18 @@ export interface GraphNode {
   district?: string;
   station_id?: string;
   is_center?: boolean;
+  is_focus?: boolean;
+  is_important?: boolean;
+  hop_distance?: number;
+  degree?: number;
+  community_id?: number;
 }
 
 export interface GraphEdge {
   source: string;
   target: string;
   weight: number;
+  relationship?: string;
 }
 
 export interface GraphOverview {
@@ -43,6 +49,8 @@ export interface GraphOverview {
   total_edges: number;
   components: number;
   built_at: number;
+  found?: boolean;
+  stats?: Record<string, any>;
 }
 
 export interface WhyResult {
@@ -225,6 +233,16 @@ export const graphIntelligenceService = {
     const enc = encodeURIComponent(nodeId);
     return fetchWithTimeout<GraphOverview>(
       `${BASE_URL}/neighbors/${enc}?depth=${depth}&limit=${limit}`
+    );
+  },
+
+  /**
+   * Fetches a bounded focus-node neighborhood (depth 2) for Case-centric or Entity-centric views.
+   */
+  async getNeighborhood(nodeId: string, depth = 2, limit = 80): Promise<GraphOverview | null> {
+    const enc = encodeURIComponent(nodeId);
+    return fetchWithTimeout<GraphOverview>(
+      `${BASE_URL}/neighborhood/${enc}?depth=${depth}&limit=${limit}`
     );
   },
 

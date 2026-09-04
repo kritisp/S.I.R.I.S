@@ -57,6 +57,10 @@ interface SimNode extends d3.SimulationNodeDatum, NetworkNode {
   fy?: number | null;
   degree: number;
   radius: number;
+  is_focus?: boolean;
+  is_important?: boolean;
+  hop_distance?: number;
+  betweenness?: number;
 }
 
 // Simulation Link interface extending d3.SimulationLinkDatum
@@ -77,7 +81,8 @@ export interface IntelligenceGraphProps {
   edges: NetworkEdge[];
   selectedNodeId: string | null;
   highlightedNodeIds?: Set<string>;
-  onNodeClick: (node: NetworkNode) => void;
+  onNodeClick?: (node: NetworkNode) => void;
+  onSelectNode?: (nodeId: string) => void;
   width?: number;
   height?: number;
 }
@@ -111,6 +116,7 @@ export function IntelligenceGraph({
   selectedNodeId,
   highlightedNodeIds,
   onNodeClick,
+  onSelectNode,
   width: initialWidth,
   height: initialHeight,
 }: IntelligenceGraphProps) {
@@ -282,7 +288,7 @@ export function IntelligenceGraph({
 
     const simulation = d3.forceSimulation<SimNode, SimLink>(newSimNodes)
       .force('charge', d3.forceManyBody<SimNode>()
-        .strength(d => (d.type === 'STATION' ? -800 : d.type === 'CASE' ? -500 : -320))
+        .strength(d => (d.id === selectedNodeId ? -1200 : d.type === 'STATION' ? -800 : d.type === 'CASE' ? -500 : -320))
         .distanceMin(30)
         .distanceMax(650)
       )
@@ -296,21 +302,15 @@ export function IntelligenceGraph({
         .strength(0.85)
         .iterations(3)
       )
-      .force('center', d3.forceCenter(cx, cy).strength(0.06))
-      .force('clusterX', d3.forceX<SimNode>(d => {
-        if (d.stationId && STATION_CENTROIDS[d.stationId]) {
-          return cx + STATION_CENTROIDS[d.stationId].x;
-        }
-        return cx;
-      }).strength(d => (d.stationId ? 0.08 : 0.02)))
-      .force('clusterY', d3.forceY<SimNode>(d => {
-        if (d.stationId && STATION_CENTROIDS[d.stationId]) {
-          return cy + STATION_CENTROIDS[d.stationId].y;
-        }
-        return cy;
-      }).strength(d => (d.stationId ? 0.08 : 0.02)))
-      .velocityDecay(0.38)
-      .alphaDecay(0.028);
+      .force('center', d3.forceCenter(cx, cy).strength(0.06));
+
+    if (selectedNodeId) {
+      simulation.force('radialFocus', d3.forceRadial<SimNode>(
+        d => (d.id === selectedNodeId ? 0 : d.hop_distance === 1 ? 170 : 320),
+        cx,
+        cy
+      ).strength(d => (d.id === selectedNodeId ? 0.95 : 0.45)));
+    }
 
     simulation.on('tick', () => {
       const pad = 40;
@@ -890,7 +890,10 @@ export function IntelligenceGraph({
                   className="transition-opacity duration-200"
                   style={{ cursor: 'pointer' }}
                   onMouseDown={(e) => handleNodeDragStart(e, node)}
-                  onClick={() => onNodeClick(node)}
+                  onClick={() => {
+                    onNodeClick?.(node);
+                    onSelectNode?.(node.id);
+                  }}
                   onMouseEnter={(e) => handleNodeMouseEnter(e, node)}
                   onMouseLeave={handleNodeMouseLeave}
                 >
