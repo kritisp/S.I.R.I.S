@@ -34,16 +34,38 @@ services:
     restart: always
 
   # ---------------------------------------------------------------------------
-  # 3. Frontend Web Application (React + Vite SPA)
+  # 3. Gemini Live WebSocket Voice Gateway
+  # ---------------------------------------------------------------------------
+  voice-gateway:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: siris-voice-gateway
+    ports:
+      - "10000:10000"
+    env_file:
+      - .env
+    environment:
+      - PORT=10000
+    restart: always
+
+  # ---------------------------------------------------------------------------
+  # 4. Frontend Web Application (React + Vite SPA)
   # ---------------------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8000/api/v1
+        VITE_INTEL_SERVICE_URL: http://localhost:8000/api/v1/graph
+        VITE_RAG_API_URL: http://localhost:8001
     container_name: siris-frontend
     ports:
       - "80:80"
     depends_on:
       - central-intelligence
       - fir-bns-rag
+      - voice-gateway
     restart: always
+

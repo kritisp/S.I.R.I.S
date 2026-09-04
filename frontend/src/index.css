@@ -124,19 +124,20 @@
 
   * {
     @apply border-border-soft;
-    font-family: Calibri, "Gill Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
   body {
-    font-family: Calibri, "Gill Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif !important;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     background-color: var(--bg);
     color: var(--text);
     @apply antialiased transition-colors duration-200;
     min-height: 100vh;
   }
 
-  h1, h2, h3, h4, .font-serif, .official-title, .font-display {
-    font-family: "Times New Roman", Times, Garamond, Georgia, serif !important;
+  h1, h2, h3, h4, .official-title, .font-display {
+    font-family: "Inter", system-ui, -apple-system, sans-serif !important;
+    @apply font-semibold;
   }
 
   ::-webkit-scrollbar {
