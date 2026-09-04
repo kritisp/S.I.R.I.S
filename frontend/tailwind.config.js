@@ -28,7 +28,7 @@ export default {
         sans: ["Calibri", "Gill Sans", "Trebuchet MS", "Segoe UI", "system-ui", "sans-serif"],
         display: ["Times New Roman", "Times", "Garamond", "Georgia", "serif"],
         serif: ["Times New Roman", "Times", "Garamond", "Georgia", "serif"],
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+        mono: ["Calibri", "Gill Sans", "Segoe UI", "sans-serif"],
       },
       boxShadow: {
         glass: "0 8px 32px rgba(0, 0, 0, 0.37)",

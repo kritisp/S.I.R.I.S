@@ -207,33 +207,18 @@ export function AiraOrb() {
 
       {/* Floating Controls Bar */}
       <div className="mt-2.5 flex items-center gap-2 glass px-3 py-1.5 rounded-full bg-surface border border-border-soft shadow-xl text-xs font-mono">
-        {/* PTT Hold-to-Talk Button (DRISHTI Exact Pattern) */}
-        <button
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
-          onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
-          onMouseLeave={isListening ? (e) => { e.preventDefault(); e.stopPropagation(); stopListening(); } : undefined}
-          onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startListening(); }}
-          onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); stopListening(); }}
-          className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
-            isListening
-              ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30 scale-105 animate-pulse'
-              : 'bg-surface-2 text-text hover:text-brand border border-border-soft'
-          }`}
-          title="Press and hold to speak"
-        >
-          <Mic size={12} className={isListening ? 'animate-bounce' : ''} />
-          <span>{isListening ? 'LISTENING…' : 'HOLD TO TALK'}</span>
-        </button>
-
-        {/* Tap Mic Toggle */}
+        {/* Click-to-Talk Mic Toggle Button */}
         <button
           onClick={(e) => { e.stopPropagation(); toggleListening(); }}
-          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-            isListening ? 'bg-emerald-500/20 text-emerald-400' : 'text-text-dim hover:text-brand hover:bg-surface-hover'
+          className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+            isListening
+              ? 'bg-rose-600 text-white shadow-md shadow-rose-500/30 scale-105 animate-pulse'
+              : 'bg-surface-2 text-text hover:text-brand border border-border-soft'
           }`}
-          title="Tap to toggle mic on/off"
+          title="Click to toggle mic recording"
         >
-          <Mic size={14} />
+          <Mic size={12} className={isListening ? 'animate-bounce' : ''} />
+          <span>{isListening ? 'LISTENING (CLICK TO STOP)' : 'CLICK TO TALK'}</span>
         </button>
 
         {/* Keyboard Input Toggle */}

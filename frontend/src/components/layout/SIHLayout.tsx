@@ -102,7 +102,9 @@ export function SIHLayout() {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> LIVE
                 </span>
               </div>
-              <p className="text-[10px] text-text-dim font-medium truncate mt-0.5">STATE CRIME COMMAND</p>
+              <p className="text-[10px] text-text-dim font-medium truncate mt-0.5 uppercase">
+                {isSuperAdmin ? 'STATE CRIME COMMAND' : role === 'STATION_ADMIN' ? 'STATION COMMAND' : 'INVESTIGATOR WORKSTATION'}
+              </p>
             </div>
           </div>
         </div>
