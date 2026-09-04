@@ -16,7 +16,8 @@ class Neo4jClient:
             try:
                 self._driver = GraphDatabase.driver(
                     settings.NEO4J_URI,
-                    auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD)
+                    auth=(settings.effective_neo4j_user, settings.NEO4J_PASSWORD),
+                    connection_timeout=5.0
                 )
                 logger.info("Neo4j driver initialized successfully.")
             except Exception as e:
