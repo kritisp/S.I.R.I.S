@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Central Intelligence Graph & Case Workspace Backend
+  # ---------------------------------------------------------------------------
+  central-intelligence:
+    build:
+      context: ./ml/central-intelligence
+      dockerfile: Dockerfile
+    container_name: siris-central-intel
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+    restart: always
+
+  # ---------------------------------------------------------------------------
+  # 2. FIR / BNS Statutory RAG Intelligence Engine
+  # ---------------------------------------------------------------------------
+  fir-bns-rag:
+    build:
+      context: ./ml/fir-bns-rag
+      dockerfile: Dockerfile
+    container_name: siris-fir-bns-rag
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - PORT=8001
+    restart: always
+
+  # ---------------------------------------------------------------------------
+  # 3. Frontend Web Application (React + Vite SPA)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: siris-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - central-intelligence
+      - fir-bns-rag
+    restart: always
