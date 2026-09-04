@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { 
   Bot, ShieldAlert, Sparkles, Languages, CheckCircle2, AlertTriangle, 
   CreditCard, PhoneCall, Scale, ArrowRight, X, Play, RefreshCw, FileText, Volume2, VolumeX
