@@ -3,6 +3,7 @@ import type {
   ChatApiRequest,
   ChatApiResponse,
 } from "./types";
+import { getAuthToken } from "./client";
 
 const API_BASE = "/api/v1";
 
@@ -64,9 +65,17 @@ export async function sendChatMessage(
     language: language ?? detectLanguage(),
   };
 
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE}/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(payload),
   });
 

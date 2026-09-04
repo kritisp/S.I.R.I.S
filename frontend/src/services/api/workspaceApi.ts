@@ -59,6 +59,10 @@ export const workspaceApi = {
     return apiClient.get<WorkspaceDTO>(`/workspaces/${encodeURIComponent(id)}`);
   },
 
+  getWorkspace: async (id: string): Promise<WorkspaceDTO> => {
+    return apiClient.get<WorkspaceDTO>(`/workspaces/${encodeURIComponent(id)}`);
+  },
+
   updateWorkspace: async (
     id: string,
     payload: { title?: string; description?: string; analyticalScopes?: string[] }

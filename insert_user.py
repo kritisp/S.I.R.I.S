@@ -17,7 +17,7 @@ ON CONFLICT (id) DO NOTHING;
 # Insert User
 cur.execute("""
 INSERT INTO users (id, name, role, station_id, rank_title, email, password_hash, status, created_at, updated_at) 
-VALUES ('admin', 'Admin Officer', 'ADMIN', 'STA-BBSR', 'Inspector', 'admin@odishapolice.gov.in', %s, 'ACTIVE', NOW(), NOW())
+VALUES ('admin', 'Admin Officer', 'SUPER_ADMIN', 'STA-BBSR', 'Inspector', 'admin@odishapolice.gov.in', %s, 'ACTIVE', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 """, (password_hash,))
 

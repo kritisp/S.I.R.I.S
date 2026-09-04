@@ -1,6 +1,7 @@
 import type { ApiChatMessage, ApiErrorBody } from "./types";
 import type { FIRDraftPayload } from "../../types/chat";
 import { ChatApiError } from "./chat";
+import { getAuthToken } from "./client";
 
 const API_BASE = "/api/v1";
 
@@ -20,14 +21,26 @@ function normalizeDetail(detail: unknown): string {
 }
 
 export async function generateFirDraft(
-  messages: ApiChatMessage[],
+  messages: ApiChatMessage[] | string,
   language?: string
 ): Promise<FIRDraftPayload> {
+  const normalizedMessages = typeof messages === "string"
+    ? [{ role: "user", content: messages }]
+    : messages;
+
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE}/chat/generate-draft`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
-      messages,
+      messages: normalizedMessages,
       language: language ?? navigator.language?.split("-")[0]?.toLowerCase() ?? "en",
     }),
   });

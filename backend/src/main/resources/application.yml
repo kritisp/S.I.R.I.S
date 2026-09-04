@@ -28,6 +28,7 @@ app:
     allowed-headers: "*"
     allow-credentials: true
   ml:
-    fir-bns-url: ${ML_GATEWAY_URL:http://localhost:8000}
+    central-intelligence-url: ${ML_CENTRAL_INTEL_URL:http://localhost:8000}
+    fir-bns-url: ${ML_FIR_BNS_URL:http://localhost:8001}
     internal-api-key: ${INTERNAL_API_KEY:crimelens-internal-secret-key-2026}
     read-timeout-ms: 40000

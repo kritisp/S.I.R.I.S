@@ -48,6 +48,7 @@ export function Investigators() {
         stationId: myStationId,
         status: newOfficerStatus,
         rank: newOfficerRank,
+        password: 'Demo@123',
       });
     } catch (err) {
       console.warn('User creation API notice:', err);

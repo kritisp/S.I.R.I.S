@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   History, Shield, Download, Search, Filter, CheckCircle2, 
   AlertTriangle, FileSpreadsheet, Building2, Clock, User, Bot, Terminal 
 } from 'lucide-react';
+import { auditApi } from '../services/api';
+import { useMockState } from '../mockServices/MockStateContext';
 
 interface AuditLogEntry {
   id: string;
@@ -86,11 +88,35 @@ const AUDIT_LOGS: AuditLogEntry[] = [
 ];
 
 export function SupervisorAuditPage() {
+  const { state } = useMockState();
+  const [logs, setLogs] = useState<AuditLogEntry[]>(AUDIT_LOGS);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [toastMessage, setToastMessage] = useState('');
 
-  const filteredLogs = AUDIT_LOGS.filter((log) => {
+  useEffect(() => {
+    const stationId = state.currentUser?.stationId || 'OP-BBSR-CAP';
+    auditApi.getStationLogs(stationId)
+      .then((backendLogs) => {
+        if (backendLogs && backendLogs.length > 0) {
+          const mapped: AuditLogEntry[] = backendLogs.map((l) => ({
+            id: l.id || `LOG-${Math.floor(1000 + Math.random() * 9000)}`,
+            timestamp: l.timestamp ? new Date(l.timestamp).toLocaleString('en-IN') : 'Just now',
+            type: (l.action?.includes('AI') ? 'AI_QUERY' : l.action?.includes('DISPATCH') ? 'OFFICER_DISPATCH' : 'SANCTION_APPROVAL') as any,
+            user: l.userId || 'Officer',
+            role: l.userRole || 'Investigator',
+            station: l.stationId || stationId,
+            action: l.details || l.action || 'System action logged',
+            ip_address: l.ipAddress || '10.42.100.12',
+            status: 'SUCCESS',
+          }));
+          setLogs(mapped);
+        }
+      })
+      .catch((err) => console.warn('Audit API connection notice:', err));
+  }, [state.currentUser?.stationId]);
+
+  const filteredLogs = logs.filter((log) => {
     const matchSearch =
       log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||

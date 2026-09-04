@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Upload, FileText, Bot, AlertTriangle, Sparkles, CheckCircle2, 
   PhoneCall, Video, Truck, CreditCard, Layers, Plus, ArrowRight, Download, Edit3, FolderCheck, RefreshCw
 } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
+import { evidenceApi } from '../services/api';
 import { PRIMARY_DEMO_CASE } from '../data/round3DemoData';
 import { GraphConstructionOverlay } from '../components/intelligence/GraphConstructionOverlay';
 import { WorkspaceInitModal } from '../components/workspace/WorkspaceInitModal';
@@ -80,6 +81,33 @@ export function EvidenceVault() {
   // State for ingested evidence items
   const [evidenceItems, setEvidenceItems] = useState<IngestionEvidenceItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    evidenceApi.getEvidence()
+      .then((backendItems) => {
+        if (backendItems && backendItems.length > 0) {
+          const mapped: IngestionEvidenceItem[] = backendItems.map((b) => ({
+            id: b.id,
+            type: b.type || 'EVIDENCE RECORD',
+            source: b.caseId ? `Case #${b.caseId}` : 'Station Registry',
+            timestamp: b.uploadedAt ? new Date(b.uploadedAt).toLocaleString('en-IN') : '2026-09-01 18:30 IST',
+            status: 'READY',
+            iconName: b.type?.includes('PHONE') || b.type?.includes('CDR') ? 'PhoneCall' : b.type?.includes('VIDEO') || b.type?.includes('CCTV') ? 'Video' : 'FileText',
+            details: b.description || 'Uploaded investigative material'
+          }));
+          setEvidenceItems(mapped);
+          setSelectedIds(mapped.map(m => m.id));
+        } else {
+          setEvidenceItems(DEMO_EVIDENCE_PRESETS);
+          setSelectedIds(DEMO_EVIDENCE_PRESETS.map(e => e.id));
+        }
+      })
+      .catch((err) => {
+        console.warn('Evidence API fetch notice:', err);
+        setEvidenceItems(DEMO_EVIDENCE_PRESETS);
+        setSelectedIds(DEMO_EVIDENCE_PRESETS.map(e => e.id));
+      });
+  }, []);
 
   const [customEvidenceText, setCustomEvidenceText] = useState<string>(
     "FIR #2026-0817 (Khandagiri PS): Vehicle theft reported at Khandagiri Square. Flagged vehicle OD-02-MJ-8821 (Mahindra Thar) and suspect phone +91-9199370000. CCTV KDG-04 registered visual match at 19:42 IST. FIU flag on Mule Account M-204."

@@ -18,7 +18,7 @@ export const usersApi = {
     return apiClient.get<User[]>(url);
   },
 
-  createUser: async (payload: Partial<User>): Promise<User> => {
+  createUser: async (payload: Partial<User> & { password?: string; email?: string }): Promise<User> => {
     return apiClient.post<User>('/users', payload);
   },
 

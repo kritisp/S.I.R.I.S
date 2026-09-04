@@ -94,7 +94,12 @@ export function CaseWorkspace() {
     if (!workspaceData) return;
     setIsGenerating(true);
     try {
-      await generateFirDraft(`Generate FIR draft report for ${workspaceData.fir_number}: ${workspaceData.metadata.description}`, 'en');
+      await generateFirDraft([
+        {
+          role: 'user',
+          content: `Generate FIR draft report for ${workspaceData.fir_number}: ${workspaceData.metadata?.description || ''}`,
+        },
+      ], 'en');
     } catch (err) {
       console.warn('Draft API notice:', err);
     } finally {
