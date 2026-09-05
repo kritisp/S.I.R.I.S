@@ -45,9 +45,17 @@ class CaseVehicle(Base):
         primary_key=True,
         index=True
     )
+    vehicle_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        GUID,
+        nullable=True
+    )
     vehicle: Mapped[str] = mapped_column(
         String(100),
         primary_key=True
+    )
+    role: Mapped[Optional[VehicleRole]] = mapped_column(
+        Enum(VehicleRole),
+        nullable=True
     )
 
     # Relationships

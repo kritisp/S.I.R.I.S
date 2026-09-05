@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   History, Shield, Download, Search, Filter, CheckCircle2, 
-  AlertTriangle, FileSpreadsheet, Building2, Clock, User, Bot, Terminal 
+  AlertTriangle, FileSpreadsheet, Building2, Clock, User, Bot, Terminal, Lock
 } from 'lucide-react';
 import { auditApi } from '../services/api';
 import { useMockState } from '../mockServices/MockStateContext';
+import { AuditChainViewer } from '../components/audit/AuditChainViewer';
 
 interface AuditLogEntry {
   id: string;
@@ -81,7 +82,7 @@ const AUDIT_LOGS: AuditLogEntry[] = [
     user: 'Ins. M. Mohanty',
     role: 'Inspector (IO)',
     station: 'Cuttack Badambadi PS',
-    action: 'askSirisAI: "Analyze pass-through money trail dead-drop account coordinates"',
+    action: 'Analyze pass-through money trail dead-drop account coordinates',
     ip_address: '10.42.104.18',
     status: 'SUCCESS',
   },
@@ -89,6 +90,7 @@ const AUDIT_LOGS: AuditLogEntry[] = [
 
 export function SupervisorAuditPage() {
   const { state } = useMockState();
+  const [activeTab, setActiveTab] = useState<'stream' | 'chain'>('stream');
   const [logs, setLogs] = useState<AuditLogEntry[]>(AUDIT_LOGS);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
@@ -149,24 +151,38 @@ export function SupervisorAuditPage() {
             </span>
           </div>
           <p className="text-xs text-text-dim">
-            Odisha State Police · Cryptographically Verified Officer Activity Trail & AI Co-Pilot Queries
+            Odisha State Police · Cryptographically Verified Officer Activity Trail &amp; Evidence Custody Ledger
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Tab Switcher */}
+          <div className="flex rounded-xl p-1 bg-surface-2 border border-border-soft font-mono text-xs font-bold mr-2">
+            <button
+              onClick={() => setActiveTab('stream')}
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                activeTab === 'stream' ? 'bg-brand text-bg shadow' : 'text-text-dim hover:text-text'
+              }`}
+            >
+              EVENT STREAM
+            </button>
+            <button
+              onClick={() => setActiveTab('chain')}
+              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+                activeTab === 'chain' ? 'bg-emerald-600 text-white shadow' : 'text-emerald-400 hover:text-emerald-300'
+              }`}
+            >
+              <Lock size={12} />
+              <span>HASH CHAIN AUDITOR</span>
+            </button>
+          </div>
+
           <button
             onClick={() => handleExport('csv')}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-2 hover:bg-surface-hover text-text text-xs font-mono font-bold border border-border-soft transition-colors cursor-pointer"
           >
             <Download size={14} />
             <span>EXPORT CSV</span>
-          </button>
-          <button
-            onClick={() => handleExport('json')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand text-bg text-xs font-mono font-bold hover:bg-brand-bright transition-all shadow-md cursor-pointer"
-          >
-            <FileSpreadsheet size={14} />
-            <span>AUDIT REPORT</span>
           </button>
         </div>
       </div>
@@ -179,96 +195,105 @@ export function SupervisorAuditPage() {
         </div>
       )}
 
-      {/* SEARCH & FILTER CONTROLS */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 font-mono">
-        <div className="relative flex-1 w-full">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Filter audit logs by officer, station, action keyword, or Log ID..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs text-text placeholder:text-text-faint outline-none focus:border-brand"
-          />
+      {/* TAB CONTENT */}
+      {activeTab === 'chain' ? (
+        <div className="animate-fade-in">
+          <AuditChainViewer scope="GLOBAL" />
         </div>
+      ) : (
+        <div className="space-y-6 animate-fade-in">
+          {/* SEARCH & FILTER CONTROLS */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 font-mono">
+            <div className="relative flex-1 w-full">
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Filter audit logs by officer, station, action keyword, or Log ID..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs text-text placeholder:text-text-faint outline-none focus:border-brand"
+              />
+            </div>
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono text-text outline-none"
-        >
-          <option value="ALL">All Event Types ({AUDIT_LOGS.length})</option>
-          <option value="AI_QUERY">AI Co-Pilot Queries</option>
-          <option value="SANCTION_APPROVAL">Sanction Approvals</option>
-          <option value="OFFICER_DISPATCH">Fleet Dispatches</option>
-          <option value="REASSIGNMENT">Case Reassignments</option>
-          <option value="STATUTORY_DIRECTIVE">Statutory Directives</option>
-        </select>
-      </div>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="px-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono text-text outline-none"
+            >
+              <option value="ALL">All Event Types ({AUDIT_LOGS.length})</option>
+              <option value="AI_QUERY">AI Co-Pilot Queries</option>
+              <option value="SANCTION_APPROVAL">Sanction Approvals</option>
+              <option value="OFFICER_DISPATCH">Fleet Dispatches</option>
+              <option value="REASSIGNMENT">Case Reassignments</option>
+              <option value="STATUTORY_DIRECTIVE">Statutory Directives</option>
+            </select>
+          </div>
 
-      {/* AUDIT LOGS TABLE CONSOLE */}
-      <div className="glass p-5 sm:p-6 rounded-2xl bg-surface/90 border border-border-soft space-y-4 shadow-xl font-mono text-xs">
-        <div className="flex items-center justify-between border-b border-border-soft pb-2.5">
-          <h3 className="text-xs font-bold text-brand uppercase tracking-wider flex items-center gap-2">
-            <History size={14} /> VERIFIED EVENT LOG ({filteredLogs.length} RECORDS)
-          </h3>
-          <span className="text-[10px] text-text-faint">SHA-256 Hash Chained</span>
+          {/* AUDIT LOGS TABLE CONSOLE */}
+          <div className="glass p-5 sm:p-6 rounded-2xl bg-surface/90 border border-border-soft space-y-4 shadow-xl font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-border-soft pb-2.5">
+              <h3 className="text-xs font-bold text-brand uppercase tracking-wider flex items-center gap-2">
+                <History size={14} /> VERIFIED EVENT LOG ({filteredLogs.length} RECORDS)
+              </h3>
+              <span className="text-[10px] text-text-faint">SHA-256 Hash Chained</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border-soft text-text-dim font-bold text-[10px]">
+                    <th className="pb-3">TIMESTAMP / LOG ID</th>
+                    <th className="pb-3">EVENT TYPE</th>
+                    <th className="pb-3">USER &amp; STATION</th>
+                    <th className="pb-3">ACTION DESCRIPTION</th>
+                    <th className="pb-3">IP ADDRESS</th>
+                    <th className="pb-3">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-soft/60">
+                  {filteredLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-surface-hover/50 transition-colors">
+                      <td className="py-3">
+                        <span className="text-text font-bold block">{log.timestamp}</span>
+                        <span className="text-[10px] text-text-faint">{log.id}</span>
+                      </td>
+
+                      <td className="py-3">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                          log.type === 'AI_QUERY' ? 'bg-brand/20 text-brand' :
+                          log.type === 'SANCTION_APPROVAL' ? 'bg-emerald-500/20 text-emerald-400' :
+                          log.type === 'STATUTORY_DIRECTIVE' ? 'bg-warning/20 text-warning' : 'bg-purple-500/20 text-purple-400'
+                        }`}>
+                          {log.type}
+                        </span>
+                      </td>
+
+                      <td className="py-3">
+                        <span className="text-text font-bold block">{log.user}</span>
+                        <span className="text-[10px] text-text-dim">{log.station}</span>
+                      </td>
+
+                      <td className="py-3 max-w-md">
+                        <p className="text-text text-[11px] leading-snug">{log.action}</p>
+                      </td>
+
+                      <td className="py-3 text-text-faint text-[10px]">{log.ip_address}</td>
+
+                      <td className="py-3">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                          log.status === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-warning/20 text-warning'
+                        }`}>
+                          {log.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border-soft text-text-dim font-bold text-[10px]">
-                <th className="pb-3">TIMESTAMP / LOG ID</th>
-                <th className="pb-3">EVENT TYPE</th>
-                <th className="pb-3">USER & STATION</th>
-                <th className="pb-3">ACTION DESCRIPTION</th>
-                <th className="pb-3">IP ADDRESS</th>
-                <th className="pb-3">STATUS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-soft/60">
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-surface-hover/50 transition-colors">
-                  <td className="py-3">
-                    <span className="text-text font-bold block">{log.timestamp}</span>
-                    <span className="text-[10px] text-text-faint">{log.id}</span>
-                  </td>
-
-                  <td className="py-3">
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                      log.type === 'AI_QUERY' ? 'bg-brand/20 text-brand' :
-                      log.type === 'SANCTION_APPROVAL' ? 'bg-emerald-500/20 text-emerald-400' :
-                      log.type === 'STATUTORY_DIRECTIVE' ? 'bg-warning/20 text-warning' : 'bg-purple-500/20 text-purple-400'
-                    }`}>
-                      {log.type}
-                    </span>
-                  </td>
-
-                  <td className="py-3">
-                    <span className="text-text font-bold block">{log.user}</span>
-                    <span className="text-[10px] text-text-dim">{log.station}</span>
-                  </td>
-
-                  <td className="py-3 max-w-md">
-                    <p className="text-text text-[11px] leading-snug">{log.action}</p>
-                  </td>
-
-                  <td className="py-3 text-text-faint text-[10px]">{log.ip_address}</td>
-
-                  <td className="py-3">
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                      log.status === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-warning/20 text-warning'
-                    }`}>
-                      {log.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

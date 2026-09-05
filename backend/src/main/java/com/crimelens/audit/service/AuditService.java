@@ -24,10 +24,12 @@ public class AuditService {
     private static final Logger logger = LoggerFactory.getLogger(AuditService.class);
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
+    private final AuditChainService auditChainService;
 
-    public AuditService(AuditLogRepository auditLogRepository, UserRepository userRepository) {
+    public AuditService(AuditLogRepository auditLogRepository, UserRepository userRepository, AuditChainService auditChainService) {
         this.auditLogRepository = auditLogRepository;
         this.userRepository = userRepository;
+        this.auditChainService = auditChainService;
     }
 
     @Transactional
@@ -43,6 +45,38 @@ public class AuditService {
             auditLogRepository.saveAndFlush(log);
             logger.info("AUDIT: User [{}] Role [{}] Station [{}] Action [{}] Resource [{}:{}]",
                     userId, userRole, stationId, action, resourceType, resourceId);
+
+            // Cryptographically link event into Tamper-Evident Hash Chain
+            String caseId = "CASE".equalsIgnoreCase(resourceType) ? resourceId : null;
+            String evidenceId = "EVIDENCE".equalsIgnoreCase(resourceType) ? resourceId : null;
+
+            auditChainService.appendToChain(
+                    "GLOBAL",
+                    action,
+                    caseId,
+                    evidenceId,
+                    userId,
+                    userName,
+                    userRole,
+                    stationId,
+                    null,
+                    details
+            );
+
+            if (caseId != null) {
+                auditChainService.appendToChain(
+                        "CASE:" + caseId,
+                        action,
+                        caseId,
+                        evidenceId,
+                        userId,
+                        userName,
+                        userRole,
+                        stationId,
+                        null,
+                        details
+                );
+            }
         } catch (Exception e) {
             logger.error("Failed to write audit log for action: {}", action, e);
         }
