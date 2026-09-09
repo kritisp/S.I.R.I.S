@@ -5,7 +5,7 @@ import { IntelligenceGraph } from '../components/graph/IntelligenceGraph';
 import {
   Shield, FileText, Share2, AlertTriangle, FileBarChart, Scale, Bot, Lock, CheckCircle,
   Clock, Network, AlertCircle, ChevronRight, HelpCircle, Eye, Car, Navigation, Sparkles,
-  RefreshCw, Activity, Cpu, Layers, Info, CheckCircle2, User, Phone, MapPin, Database, Award
+  RefreshCw, Activity, Cpu, Layers, Info, CheckCircle2, User, Phone, MapPin, Database, Award, Radio
 } from 'lucide-react';
 
 import { HERO_CASE_PROVISIONS, ROBBERY_CASE_PROVISIONS, FIR_ANALYSIS_PROVISIONS } from '../mockServices/legalProvisionMockData';
@@ -17,6 +17,9 @@ import { InvestigationActionQueue } from '../components/intelligence/Investigati
 import { RiskIntelligenceCard } from '../components/intelligence/RiskIntelligenceCard';
 import { ExplainableLeadCard } from '../components/intelligence/ExplainableLeadCard';
 import { graphIntelligenceService, CaseWorkspaceData } from '../services/graphIntelligenceService';
+import type { NodeType, NetworkNode, NetworkEdge } from '../mockServices/networkGraphData';
+import { NodeDetailPanel } from '../components/graph/NodeDetailPanel';
+import { IntelligenceExplainabilityPanel } from '../components/graph/IntelligenceExplainabilityPanel';
 
 export function CaseWorkspace() {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +49,78 @@ export function CaseWorkspace() {
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [showTrailModal, setShowTrailModal] = useState(false);
   const [selectedPlate, setSelectedPlate] = useState("OD-02-AB-1234");
+
+  // Selected Node State for Knowledge Graph Focus & Dossier Panel
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [showWhyPanel, setShowWhyPanel] = useState<boolean>(false);
+
+  // Map graphNeighborhood nodes and edges to rich NetworkNode & NetworkEdge objects matching NetworkExplorer styling
+  const formattedGraphNodes = useMemo(() => {
+    if (!workspaceData?.graph_neighborhood?.nodes) return [];
+    const gn = workspaceData.graph_neighborhood;
+    const meta = workspaceData.metadata;
+    return gn.nodes.map(n => {
+      let rawType = (n.entity_type || (n.node_type === 'case' ? 'CASE' : 'PERSON')).toUpperCase();
+      if (n.id.startsWith('case:')) rawType = 'CASE';
+      else if (n.id.startsWith('phone:')) rawType = 'PHONE';
+      else if (n.id.startsWith('veh:') || n.id.startsWith('vehicle:')) rawType = 'VEHICLE';
+      else if (n.id.startsWith('loc:') || n.id.startsWith('location:')) rawType = 'LOCATION';
+      else if (n.id.startsWith('person:')) rawType = 'PERSON';
+      else if (n.id.startsWith('station:')) rawType = 'STATION';
+
+      let nodeType: NodeType = 'PERSON';
+      if (rawType === 'CASE') nodeType = 'CASE';
+      else if (rawType === 'PHONE') nodeType = 'PHONE';
+      else if (rawType === 'VEHICLE') nodeType = 'VEHICLE';
+      else if (rawType === 'LOCATION') nodeType = 'LOCATION';
+      else if (rawType === 'STATION') nodeType = 'STATION';
+      else if (rawType === 'EVIDENCE') nodeType = 'EVIDENCE';
+      else if (['BANK_ACCOUNT', 'UPI', 'WALLET', 'EMAIL', 'IP', 'LEGAL_SECTION'].includes(rawType)) {
+        nodeType = rawType as NodeType;
+      }
+
+      return {
+        id: n.id,
+        type: nodeType,
+        label: n.label || n.id,
+        sublabel: n.is_focus
+          ? 'FOCUS NODE (Center)'
+          : (n.district || n.station_id || `Betweenness: ${n.betweenness?.toFixed(3) ?? 0}`),
+        stationId: n.station_id || meta?.station_id || 'OP-BBSR-CAP',
+        accessStatus: n.is_flagged ? 'RESTRICTED' : 'AUTHORIZED',
+        isCrossStation: Boolean(n.is_flagged || (n.betweenness && n.betweenness > 0.2)),
+        isAiDiscovered: Boolean((n.betweenness && n.betweenness > 0.1) || n.is_important),
+        is_focus: Boolean(n.is_focus || n.id === gn.focus_node_id || n.id === selectedNodeId),
+        is_important: Boolean(n.is_important),
+        hop_distance: n.hop_distance,
+        metadata: {
+          betweenness: n.betweenness,
+          influence: n.influence,
+          complaintCount: n.complaint_count,
+          district: n.district || meta?.district || 'Khordha (Bhubaneswar)'
+        }
+      } as NetworkNode;
+    });
+  }, [workspaceData, selectedNodeId]);
+
+  const formattedGraphEdges = useMemo(() => {
+    if (!workspaceData?.graph_neighborhood?.edges) return [];
+    return workspaceData.graph_neighborhood.edges.map((e, idx) => ({
+      id: `edge-${idx}`,
+      source: e.source,
+      target: e.target,
+      relationship: (e.relationship || 'MATCHED_ENTITY') as any,
+      label: e.relationship ? e.relationship.replace(/_/g, ' ') : (e.weight >= 1 ? 'Linked Entity' : 'Associate'),
+      isCrossStation: Boolean(e.weight > 0.8 || e.relationship === 'CROSS_STATION_LINK'),
+      isAiDiscovered: true,
+      confidence: Math.round((e.weight || 0.9) * 100)
+    } as NetworkEdge));
+  }, [workspaceData]);
+
+  const selectedNode = useMemo(() => {
+    if (!selectedNodeId) return null;
+    return formattedGraphNodes.find(n => n.id === selectedNodeId) || null;
+  }, [formattedGraphNodes, selectedNodeId]);
 
   // Load Real Case Workspace Data dynamically whenever `id` changes
   const loadWorkspace = () => {
@@ -266,9 +341,9 @@ export function CaseWorkspace() {
               <h3 className="text-xs font-bold uppercase tracking-wider text-brand font-mono flex items-center gap-1.5">
                 <Sparkles size={14} /> S.I.R.I.S. Explainable Intelligence Leads
               </h3>
-              {workspaceData.explainability.length > 0 ? (
+              {Array.isArray(workspaceData.explainability) && workspaceData.explainability.length > 0 ? (
                 <div className="grid md:grid-cols-2 gap-3">
-                  {workspaceData.explainability.map((exp, idx) => (
+                  {(workspaceData.explainability as any[]).map((exp: any, idx: number) => (
                     <div key={idx} className="glass p-4 rounded-xl border border-brand/20 bg-surface/90 space-y-1">
                       <div className="flex items-center justify-between text-xs font-mono font-bold">
                         <span className="text-brand uppercase">{exp.feature}</span>
@@ -307,26 +382,26 @@ export function CaseWorkspace() {
                 {/* Cross-Case Intelligence Section */}
                 <div className="glass p-6 rounded-xl bg-surface border border-border-soft space-y-4">
                   <h3 className="text-xs font-bold text-text uppercase tracking-wider border-b border-border-soft pb-2 flex items-center justify-between">
-                    <span>Cross-Case Intelligence ({crossIntel.counts.related_cases_count} Related Cases)</span>
+                    <span>Cross-Case Intelligence ({crossIntel.related_cases.length} Related Cases)</span>
                     <span className="text-[10px] font-mono text-brand font-bold">LIVE NEO4J OVERLAP</span>
                   </h3>
 
                   <div className="grid grid-cols-4 gap-2 text-center text-xs">
                     <div className="p-2.5 bg-surface-2 border border-border-soft rounded-lg">
                       <div className="text-[9px] text-text-dim uppercase font-mono">Shared Persons</div>
-                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.counts.shared_persons}</div>
+                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.shared_counts?.persons ?? 0}</div>
                     </div>
                     <div className="p-2.5 bg-surface-2 border border-border-soft rounded-lg">
                       <div className="text-[9px] text-text-dim uppercase font-mono">Shared Phones</div>
-                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.counts.shared_phones}</div>
+                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.shared_counts?.phones ?? 0}</div>
                     </div>
                     <div className="p-2.5 bg-surface-2 border border-border-soft rounded-lg">
                       <div className="text-[9px] text-text-dim uppercase font-mono">Shared Vehicles</div>
-                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.counts.shared_vehicles}</div>
+                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.shared_counts?.vehicles ?? 0}</div>
                     </div>
                     <div className="p-2.5 bg-surface-2 border border-border-soft rounded-lg">
                       <div className="text-[9px] text-text-dim uppercase font-mono">Shared Locations</div>
-                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.counts.shared_locations}</div>
+                      <div className="text-base font-bold text-text mt-0.5">{crossIntel.shared_counts?.locations ?? 0}</div>
                     </div>
                   </div>
 
@@ -364,20 +439,20 @@ export function CaseWorkspace() {
                   <h3 className="text-xs font-bold text-text uppercase tracking-wider border-b border-border-soft pb-2">
                     Pattern & Modus Operandi (M.O.) Findings
                   </h3>
-                  {workspaceData.pattern_findings.length > 0 ? (
+                  {(workspaceData.patterns ?? []).length > 0 ? (
                     <div className="space-y-3">
-                      {workspaceData.pattern_findings.map((pat, idx) => (
+                      {(workspaceData.patterns ?? []).map((pat, idx) => (
                         <div key={idx} className="p-3.5 bg-surface-2 border border-border-soft rounded-xl text-xs space-y-1.5">
                           <div className="flex items-center justify-between font-mono font-bold">
                             <span className="text-brand uppercase">{pat.pattern_name}</span>
-                            <span className="text-accent-bright">{Math.round(pat.confidence * 100)}% Confidence</span>
+                            <span className="text-accent-bright">{Math.round((pat.confidence_score ?? 0) * 100)}% Confidence</span>
                           </div>
-                          {pat.supporting_signals?.map((sig, sidx) => (
-                            <div key={sidx} className="text-text-dim text-[11px] flex items-center gap-1.5">
+                          {pat.supporting_evidence && (
+                            <div className="text-text-dim text-[11px] flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 bg-brand rounded-full shrink-0" />
-                              <span>{sig}</span>
+                              <span>{pat.supporting_evidence}</span>
                             </div>
-                          ))}
+                          )}
                         </div>
                       ))}
                     </div>
@@ -394,7 +469,7 @@ export function CaseWorkspace() {
                 {/* Risk Intelligence Card */}
                 <RiskIntelligenceCard
                   accusedName={entities.persons?.[0]?.name || 'Unidentified Suspect'}
-                  firCount={crossIntel.counts.related_cases_count + 1}
+                  firCount={crossIntel.related_cases.length + 1}
                   crimeTypes={[meta.crime_type, meta.crime_category].filter(Boolean)}
                   priorConvictions={analytics.is_important_connector ? 2 : 0}
                 />
@@ -506,17 +581,97 @@ export function CaseWorkspace() {
 
         {/* KNOWLEDGE GRAPH TAB */}
         {activeTab === 'graph' && (
-          <div className="animate-fade-in space-y-4">
-            <div className="p-3.5 bg-surface-2 border border-border-soft text-text-dim text-xs font-mono rounded-xl flex items-center justify-between">
-              <span>BOUNDED NEO4J NEIGHBORHOOD: {graphNeighborhood.total_nodes} Nodes · {graphNeighborhood.total_edges} Relationships</span>
-              <span className="text-brand font-bold">FOCUS NODE: {graphNeighborhood.focus_node_id}</span>
+          <div className="animate-fade-in space-y-4 font-sans">
+            <div className="p-3.5 bg-surface-2 border border-border-soft text-text-dim text-xs font-mono rounded-xl flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-brand animate-ping" />
+                <span>BOUNDED NEO4J NEIGHBORHOOD: {graphNeighborhood.total_nodes} Nodes · {graphNeighborhood.total_edges} Relationships</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-dim">FOCUS NODE:</span>
+                <span className="text-brand font-bold bg-brand/10 px-2 py-0.5 rounded border border-brand/20">
+                  {selectedNodeId || graphNeighborhood.focus_node_id}
+                </span>
+              </div>
             </div>
-            <div className="h-[600px] rounded-2xl overflow-hidden border border-border-soft">
-              <IntelligenceGraph
-                nodes={graphNeighborhood.nodes as any[]}
-                edges={graphNeighborhood.edges as any[]}
-                selectedNodeId={graphNeighborhood.focus_node_id}
-              />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="lg:col-span-8 h-[640px] rounded-2xl overflow-hidden border border-border-soft relative bg-surface shadow-xs">
+                <IntelligenceGraph
+                  nodes={formattedGraphNodes}
+                  edges={formattedGraphEdges}
+                  selectedNodeId={selectedNodeId || graphNeighborhood.focus_node_id}
+                  onSelectNode={(nodeId) => setSelectedNodeId(nodeId)}
+                />
+              </div>
+
+              <div className="lg:col-span-4 space-y-4">
+                {selectedNode ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-surface-2 p-1.5 rounded-xl border border-border-soft text-xs font-mono">
+                      <button
+                        onClick={() => setShowWhyPanel(false)}
+                        className={`flex-1 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                          !showWhyPanel ? 'bg-brand text-white shadow-xs' : 'text-text-dim hover:text-text'
+                        }`}
+                      >
+                        Node Dossier
+                      </button>
+                      <button
+                        onClick={() => setShowWhyPanel(true)}
+                        className={`flex-1 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                          showWhyPanel ? 'bg-brand text-white shadow-xs' : 'text-text-dim hover:text-text'
+                        }`}
+                      >
+                        <Cpu size={13} />
+                        <span>S.I.R.I.S. Why?</span>
+                      </button>
+                    </div>
+
+                    {showWhyPanel ? (
+                      <IntelligenceExplainabilityPanel
+                        nodeId={selectedNode.id}
+                        label={selectedNode.label}
+                        entityType={selectedNode.type}
+                        onClose={() => setSelectedNodeId(null)}
+                      />
+                    ) : (
+                      <NodeDetailPanel
+                        node={selectedNode}
+                        onClose={() => setSelectedNodeId(null)}
+                        onExpandNode={(nodeId) => setSelectedNodeId(nodeId)}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-surface border border-border-soft rounded-2xl p-4 font-mono text-xs space-y-4 shadow-xs">
+                    <div className="text-[10px] uppercase font-bold text-brand tracking-wider flex items-center justify-between border-b border-border-soft pb-2">
+                      <span className="flex items-center gap-1.5">
+                        <Radio size={12} className="text-brand animate-pulse" /> Neo4j & NetworkX Topology
+                      </span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">
+                        LIVE CASE SUBGRAPH
+                      </span>
+                    </div>
+
+                    <p className="text-text-dim text-[11px] leading-relaxed">
+                      Click any entity or case node on the interactive topology canvas to inspect police dossiers, degree centrality metrics, and S.I.R.I.S explainability paths.
+                    </p>
+
+                    <div className="border-t border-border-soft pt-3 space-y-2">
+                      <div className="text-[10px] text-text-faint uppercase font-bold tracking-wider">Entity Legend</div>
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#2563EB]" /><span className="text-text-dim">Case</span></div>
+                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#DB2777]" /><span className="text-text-dim">Person</span></div>
+                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#059669]" /><span className="text-text-dim">Phone</span></div>
+                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#7C3AED]" /><span className="text-text-dim">Vehicle</span></div>
+                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#EA580C]" /><span className="text-text-dim">Location</span></div>
+                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#C08A18]" /><span className="text-text-dim">Station</span></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -551,7 +706,7 @@ export function CaseWorkspace() {
                   <div className="text-text-dim font-bold">COMMUNITY CLUSTER</div>
                   <div className="text-lg font-bold text-text">Community #{analytics.community_id}</div>
                   <div className="text-text-dim text-[11px]">
-                    Part of network cluster containing {workspaceData.community.total_cases} cases and {workspaceData.community.total_entities} entities.
+                    Part of network cluster containing {graphNeighborhood.total_nodes} graph nodes and {graphNeighborhood.total_edges} entity connections.
                   </div>
                 </div>
 

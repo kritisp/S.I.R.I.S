@@ -11,7 +11,7 @@ import {
 import { useMockState } from '../../mockServices/MockStateContext';
 import { Entity, CaseRecord } from '../../mockServices/types';
 import { useNavigate } from 'react-router-dom';
-import { LIGHT_NODE_COLORS, DARK_NODE_COLORS, NODE_ICONS } from './IntelligenceGraph';
+import { LIGHT_NODE_COLORS, DARK_NODE_COLORS, NODE_ICONS, getNodeColors } from './IntelligenceGraph';
 
 export function CaseKnowledgeGraph({ caseId }: { caseId: string }) {
   const { state, dispatch } = useMockState();
@@ -49,7 +49,8 @@ export function CaseKnowledgeGraph({ caseId }: { caseId: string }) {
   );
 
   const getEntityIconSvg = (type: string) => {
-    switch (type) {
+    const key = (type || '').toUpperCase();
+    switch (key) {
       case 'PHONE': return NODE_ICONS.PHONE;
       case 'VEHICLE': return NODE_ICONS.VEHICLE;
       case 'LOCATION': return NODE_ICONS.LOCATION;
@@ -148,7 +149,7 @@ export function CaseKnowledgeGraph({ caseId }: { caseId: string }) {
         {/* Extracted Entities Row */}
         <div className="w-full flex justify-center gap-6 md:gap-12 flex-wrap items-start">
           {currentCase.entities.map(ent => {
-            const colors = colorPalette[ent.type as keyof typeof colorPalette] || colorPalette.EVIDENCE;
+            const colors = getNodeColors(colorPalette, ent.type);
             const isSelected = selectedEntityId === ent.id;
 
             const linkedCase = relatedCases.find(rc => rc.entities.some(re => re.value === ent.value));

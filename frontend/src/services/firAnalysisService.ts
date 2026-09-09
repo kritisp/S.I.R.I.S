@@ -126,6 +126,57 @@ function generateFallbackFirAnalysis(firText?: string, fileName?: string): Proce
   const hasRobbery = /robbery|looted|dacoit|gunpoint|extort|threat/i.test(lower);
   const hasAssault = /assault|beaten|hit|injured|hospital|fracture|attack/i.test(lower);
   const hasBurglary = /burglary|broken lock|house trespass|broke in|window broken/i.test(lower);
+  const hasGeneralCrime = /stolen|theft|stole|snatched|missing|loss|cash|gold|jewelry|jewel|wallet|vehicle|car|bike|laptop|phone|bribe|crime|complainant|accused|police|fir|incident|break|damage|fire|threat|assault|robbery|loot/i.test(lower);
+
+  // Check if narrative has zero crime relevance
+  if (!hasCyber && !hasViolent && !hasRobbery && !hasBurglary && !hasAssault && !hasGeneralCrime) {
+    const firNumber = `FIR-KHD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    return {
+      fir_metadata: {
+        fir_number: firNumber,
+        police_station: 'Capital Police Station, Bhubaneswar UPD',
+        district: 'Khurda',
+        date: dateStr,
+        sections_cited: [],
+      },
+      summary: 'Statement lacks cognizable criminal allegations or statutory offence elements. No actionable crime detected.',
+      crime_type: 'No Cognizable Crime Detected',
+      crime_category: 'INSUFFICIENT RELEVANCE',
+      incident: {
+        incident_location: 'Unspecified',
+        occurrence_timeline: 'Unspecified',
+        alleged_acts: [],
+      },
+      entities: {
+        people: {},
+        weapons: [],
+        property: [],
+        evidence: [],
+        phones: uniquePhones,
+        vehicles: uniqueVehicles,
+        locations: [],
+      },
+      timeline: [],
+      modus_operandi: [],
+      bns_sections: [],
+      bnss_procedural_actions: [
+        { law: 'BNSS', section: 'Section 173(3)', action: 'Conduct preliminary inquiry before registering FIR as narrative lacks cognizable crime particulars.' }
+      ],
+      investigation_actions: [],
+      missing_information: [
+        'Clear statement of cognizable offence (what criminal act occurred)',
+        'Date, time, and specific location of occurrence',
+        'Details of loss, harm, injury, or unlawful act',
+        'Identity or description of suspect / accused (if known)'
+      ],
+      execution_metadata: {
+        source: 'statutory_engine_fallback',
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
 
   if (hasCyber) {
     crimeCategory = 'CYBERCRIME / FINANCIAL FRAUD';

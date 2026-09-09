@@ -17,27 +17,61 @@ import {
 
 // ─── Semantic Node Configuration (Light & Dark) ───────────────────────────────
 
-export const LIGHT_NODE_COLORS: Record<NodeType, { base: string; light: string; border: string; bg: string }> = {
-  STATION:  { base: '#C08A18', light: '#936608', border: '#C08A18', bg: '#FEF9C3' },
-  CASE:     { base: '#2563EB', light: '#1D4ED8', border: '#2563EB', bg: '#EFF6FF' },
-  PERSON:   { base: '#DB2777', light: '#BE185D', border: '#DB2777', bg: '#FDF2F8' },
-  PHONE:    { base: '#059669', light: '#047857', border: '#059669', bg: '#ECFDF5' },
-  VEHICLE:  { base: '#7C3AED', light: '#6D28D9', border: '#7C3AED', bg: '#F5F3FF' },
-  LOCATION: { base: '#EA580C', light: '#C2410C', border: '#EA580C', bg: '#FFF7ED' },
-  EVIDENCE: { base: '#64748B', light: '#475569', border: '#64748B', bg: '#F8FAFC' },
+export const LIGHT_NODE_COLORS: Record<string, { base: string; light: string; border: string; bg: string }> = {
+  STATION:      { base: '#C08A18', light: '#936608', border: '#C08A18', bg: '#FEF9C3' },
+  CASE:         { base: '#2563EB', light: '#1D4ED8', border: '#2563EB', bg: '#EFF6FF' },
+  PERSON:       { base: '#DB2777', light: '#BE185D', border: '#DB2777', bg: '#FDF2F8' },
+  PHONE:        { base: '#059669', light: '#047857', border: '#059669', bg: '#ECFDF5' },
+  VEHICLE:      { base: '#7C3AED', light: '#6D28D9', border: '#7C3AED', bg: '#F5F3FF' },
+  LOCATION:     { base: '#EA580C', light: '#C2410C', border: '#EA580C', bg: '#FFF7ED' },
+  EVIDENCE:     { base: '#64748B', light: '#475569', border: '#64748B', bg: '#F8FAFC' },
+  BANK_ACCOUNT: { base: '#0284C7', light: '#0369A1', border: '#0284C7', bg: '#E0F2FE' },
+  UPI:          { base: '#0D9488', light: '#0F766E', border: '#0D9488', bg: '#CCFBF1' },
+  WALLET:       { base: '#D97706', light: '#B45309', border: '#D97706', bg: '#FEF3C7' },
+  EMAIL:        { base: '#4F46E5', light: '#4338CA', border: '#4F46E5', bg: '#EEF2FF' },
+  IP:           { base: '#9333EA', light: '#7E22CE', border: '#9333EA', bg: '#F3E8FF' },
+  LEGAL_SECTION:{ base: '#B91C1C', light: '#991B1B', border: '#B91C1C', bg: '#FEE2E2' },
 };
 
-export const DARK_NODE_COLORS: Record<NodeType, { base: string; light: string; border: string; bg: string }> = {
-  STATION:  { base: '#2563eb', light: '#60a5fa', border: '#3b82f6', bg: '#1e3a8a' },
-  CASE:     { base: '#0284c7', light: '#38bdf8', border: '#0ea5e9', bg: '#0c4a6e' },
-  PERSON:   { base: '#d97706', light: '#fbbf24', border: '#f59e0b', bg: '#78350f' },
-  PHONE:    { base: '#059669', light: '#34d399', border: '#10b981', bg: '#064e3b' },
-  VEHICLE:  { base: '#7c3aed', light: '#a78bfa', border: '#8b5cf6', bg: '#4c1d95' },
-  LOCATION: { base: '#ea580c', light: '#fb923c', border: '#f97316', bg: '#7c2d12' },
-  EVIDENCE: { base: '#475569', light: '#94a3b8', border: '#64748b', bg: '#1e293b' },
+export const DARK_NODE_COLORS: Record<string, { base: string; light: string; border: string; bg: string }> = {
+  STATION:      { base: '#2563eb', light: '#60a5fa', border: '#3b82f6', bg: '#1e3a8a' },
+  CASE:         { base: '#0284c7', light: '#38bdf8', border: '#0ea5e9', bg: '#0c4a6e' },
+  PERSON:       { base: '#d97706', light: '#fbbf24', border: '#f59e0b', bg: '#78350f' },
+  PHONE:        { base: '#059669', light: '#34d399', border: '#10b981', bg: '#064e3b' },
+  VEHICLE:      { base: '#7c3aed', light: '#a78bfa', border: '#8b5cf6', bg: '#4c1d95' },
+  LOCATION:     { base: '#ea580c', light: '#fb923c', border: '#f97316', bg: '#7c2d12' },
+  EVIDENCE:     { base: '#475569', light: '#94a3b8', border: '#64748b', bg: '#1e293b' },
+  BANK_ACCOUNT: { base: '#0284c7', light: '#38bdf8', border: '#0ea5e9', bg: '#0c4a6e' },
+  UPI:          { base: '#0d9488', light: '#2dd4bf', border: '#14b8a6', bg: '#134e4a' },
+  WALLET:       { base: '#d97706', light: '#fbbf24', border: '#f59e0b', bg: '#78350f' },
+  EMAIL:        { base: '#4f46e5', light: '#818cf8', border: '#6366f1', bg: '#312e81' },
+  IP:           { base: '#9333ea', light: '#c084fc', border: '#a855f7', bg: '#581c87' },
+  LEGAL_SECTION:{ base: '#b91c1c', light: '#f87171', border: '#ef4444', bg: '#7f1d1d' },
 };
 
-export const NODE_ICONS: Record<NodeType, string> = {
+export function getNodeColors(palette: any, type?: string, node?: any) {
+  const fallback = { base: '#64748B', light: '#475569', border: '#64748B', bg: '#F8FAFC' };
+  if (!palette) return fallback;
+
+  let key = (type || '').toUpperCase();
+
+  if (!key || key === 'EVIDENCE' || key === 'UNDEFINED') {
+    if (node) {
+      const et = (node.type || node.entity_type || node.node_type || '').toUpperCase();
+      if (et && et !== 'UNDEFINED') key = et;
+      else if (node.id?.startsWith('case:')) key = 'CASE';
+      else if (node.id?.startsWith('phone:')) key = 'PHONE';
+      else if (node.id?.startsWith('person:')) key = 'PERSON';
+      else if (node.id?.startsWith('veh:') || node.id?.startsWith('vehicle:')) key = 'VEHICLE';
+      else if (node.id?.startsWith('loc:') || node.id?.startsWith('location:')) key = 'LOCATION';
+      else if (node.id?.startsWith('station:')) key = 'STATION';
+    }
+  }
+
+  return palette[key] || palette[type || ''] || palette.EVIDENCE || fallback;
+}
+
+export const NODE_ICONS: Record<string, string> = {
   STATION: 'M3 21h18M6 21V7l6-4 6 4v14M9 21V11h6v10',
   CASE: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
   PERSON: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8',
@@ -513,16 +547,17 @@ export function IntelligenceGraph({
   };
 
   const formatNodeLabel = (node: SimNode) => {
+    const lbl = node.label || node.id || '';
     if (node.accessStatus === 'RESTRICTED') {
-      return node.id;
+      return node.id || 'RESTRICTED';
     }
     if (node.type === 'STATION') {
-      return node.label.replace(' Police Station', ' PS');
+      return lbl.replace(' Police Station', ' PS');
     }
-    if (node.label.length > 18) {
-      return node.label.slice(0, 16) + '…';
+    if (lbl.length > 18) {
+      return lbl.slice(0, 16) + '…';
     }
-    return node.label;
+    return lbl;
   };
 
   const isHighlighted = (nodeId: string) => {
@@ -762,11 +797,11 @@ export function IntelligenceGraph({
               const isHovered = hoveredEdge?.id === edge.id;
               const isEdgeHighlighted = isHighlighted(src.id) && isHighlighted(tgt.id);
 
-              let opacity = isLight ? 0.55 : 0.45;
+              let opacity = isLight ? 0.85 : 0.75;
               if (focusContext.isFocused) {
-                opacity = isIncidentToFocus ? 0.95 : 0.08;
+                opacity = isIncidentToFocus ? 1.0 : 0.15;
               } else if (!isEdgeHighlighted) {
-                opacity = 0.12;
+                opacity = 0.18;
               }
 
               const strokeColor = isIncidentToFocus
@@ -774,10 +809,10 @@ export function IntelligenceGraph({
                 : isCS
                 ? (isLight ? '#DC2626' : '#ef4444')
                 : isAI
-                ? (isLight ? '#0891B2' : '#06b6d4')
-                : (isLight ? '#98A2B3' : '#64748b');
+                ? (isLight ? '#0284C7' : '#06b6d4')
+                : (isLight ? '#475569' : '#64748b');
 
-              const strokeWidth = (isIncidentToFocus || isHovered) ? 2.5 : isCS ? 2.0 : isAI ? 1.8 : 1.2;
+              const strokeWidth = (isIncidentToFocus || isHovered) ? 3.0 : isCS ? 2.5 : isAI ? 2.2 : 1.8;
               const dashArray = isCS ? '6 4' : isAI ? '4 3' : undefined;
               const marker = isCS ? 'url(#marker-arrow-cross)' : isAI ? 'url(#marker-arrow-ai)' : 'url(#marker-arrow-default)';
 
@@ -796,7 +831,7 @@ export function IntelligenceGraph({
               const mx = (sx + tx) / 2;
               const my = (sy + ty) / 2;
 
-              const showEdgeLabel = isIncidentToFocus || isHovered || (zoomLevel > 1.4 && (isCS || isAI));
+              const showEdgeLabel = isIncidentToFocus || isHovered || zoomLevel > 0.8;
 
               return (
                 <g
@@ -827,31 +862,35 @@ export function IntelligenceGraph({
                     markerEnd={marker}
                   />
 
-                  {showEdgeLabel && (
-                    <g transform={`translate(${mx}, ${my})`} className="pointer-events-none">
-                      <rect
-                        x={-Math.max(38, (edge.label.length * 5.5 + 16) / 2)}
-                        y="-9"
-                        width={Math.max(76, edge.label.length * 5.5 + 16)}
-                        height="18"
-                        rx="9"
-                        fill={isLight ? '#FFFFFF' : '#0b1222'}
-                        stroke={strokeColor}
-                        strokeWidth="1"
-                        opacity="0.96"
-                      />
-                      <text
-                        y="3"
-                        textAnchor="middle"
-                        fontSize="8.5"
-                        fontWeight="bold"
-                        fontFamily="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        fill={isLight ? (isCS ? '#B91C1C' : isAI ? '#0369A1' : '#334155') : (isCS ? '#fca5a5' : isAI ? '#67e8f9' : '#cbd5e1')}
-                      >
-                        {isCS ? `⚡ ${edge.label}` : isAI ? `✦ ${edge.label}` : edge.label}
-                      </text>
-                    </g>
-                  )}
+                  {showEdgeLabel && (() => {
+                    const edgeTxt = edge.label || edge.relationship || 'LINK';
+                    const edgeLen = edgeTxt.length;
+                    return (
+                      <g transform={`translate(${mx}, ${my})`} className="pointer-events-none">
+                        <rect
+                          x={-Math.max(38, (edgeLen * 5.5 + 16) / 2)}
+                          y="-9"
+                          width={Math.max(76, edgeLen * 5.5 + 16)}
+                          height="18"
+                          rx="9"
+                          fill={isLight ? '#FFFFFF' : '#0b1222'}
+                          stroke={strokeColor}
+                          strokeWidth="1"
+                          opacity="0.96"
+                        />
+                        <text
+                          y="3"
+                          textAnchor="middle"
+                          fontSize="8.5"
+                          fontWeight="bold"
+                          fontFamily="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                          fill={isLight ? (isCS ? '#B91C1C' : isAI ? '#0369A1' : '#334155') : (isCS ? '#fca5a5' : isAI ? '#67e8f9' : '#cbd5e1')}
+                        >
+                          {isCS ? `⚡ ${edgeTxt}` : isAI ? `✦ ${edgeTxt}` : edgeTxt}
+                        </text>
+                      </g>
+                    );
+                  })()}
                 </g>
               );
             })}
@@ -862,7 +901,7 @@ export function IntelligenceGraph({
              ════════════════════════════════════════════════════════════════ */}
           <g className="nodes-layer">
             {simNodes.map(node => {
-              const colors = colorPalette[node.type] || colorPalette.EVIDENCE;
+              const colors = getNodeColors(colorPalette, node.type);
               const isSelected = node.id === selectedNodeId;
               const isHovered = hoveredNode?.id === node.id;
               const isRestricted = node.accessStatus === 'RESTRICTED';
@@ -977,10 +1016,10 @@ export function IntelligenceGraph({
                     r={r}
                     fill={
                       isRestricted
-                        ? (isLight ? '#FEF2F2' : '#1a1016')
+                        ? (isLight ? '#FEE2E2' : '#2a1215')
                         : isSelected
-                        ? (isLight ? '#EFF6FF' : colors.base)
-                        : (isLight ? '#FFFFFF' : '#0f172a')
+                        ? (isLight ? '#DBEAFE' : colors.base)
+                        : (isLight ? colors.bg : '#0b1329')
                     }
                     stroke={
                       isRestricted
@@ -989,17 +1028,17 @@ export function IntelligenceGraph({
                         ? (isLight ? '#1D4ED8' : '#ffffff')
                         : colors.border
                     }
-                    strokeWidth={isSelected ? 2.5 : isRestricted ? 2.0 : 1.75}
-                    className="transition-transform duration-150"
-                    style={{ transform: isHovered ? 'scale(1.1)' : 'scale(1)' }}
+                    strokeWidth={isSelected ? 3.0 : isRestricted ? 2.5 : 2.25}
+                    className="transition-transform duration-150 shadow-md"
+                    style={{ transform: isHovered ? 'scale(1.15)' : 'scale(1)' }}
                   />
 
-                  {/* Inner Tint for Non-Restricted Nodes */}
+                  {/* Solid Vibrant Inner Badge for Non-Restricted Nodes */}
                   {!isRestricted && (
                     <circle
-                      r={r - 3}
+                      r={Math.max(10, r - 5)}
                       fill={colors.base}
-                      opacity={isLight ? '0.12' : '0.22'}
+                      opacity={isLight ? '0.92' : '0.85'}
                       className="pointer-events-none"
                     />
                   )}
@@ -1020,8 +1059,8 @@ export function IntelligenceGraph({
                         height="16"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke={isLight ? (isSelected ? '#1D4ED8' : colors.light) : (isSelected ? '#ffffff' : colors.light)}
-                        strokeWidth="2.2"
+                        stroke="#FFFFFF"
+                        strokeWidth="2.4"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -1122,9 +1161,9 @@ export function IntelligenceGraph({
               <span
                 className="text-[9px] font-bold font-mono uppercase tracking-wider px-2 py-0.5 rounded border"
                 style={{
-                  color: colorPalette[hoveredNode.type].light,
-                  borderColor: colorPalette[hoveredNode.type].border,
-                  backgroundColor: colorPalette[hoveredNode.type].bg,
+                  color: getNodeColors(colorPalette, hoveredNode.type).light,
+                  borderColor: getNodeColors(colorPalette, hoveredNode.type).border,
+                  backgroundColor: getNodeColors(colorPalette, hoveredNode.type).bg,
                 }}
               >
                 {hoveredNode.type}

@@ -581,7 +581,10 @@ export function NetworkExplorer() {
       if (entityFilter !== 'ALL' && n.type !== entityFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        return n.name.toLowerCase().includes(q) || n.subtitle.toLowerCase().includes(q) || n.id.toLowerCase().includes(q);
+        const nodeLabel = (n.label || (n as any).name || '').toLowerCase();
+        const nodeSub = (n.sublabel || (n as any).subtitle || '').toLowerCase();
+        const nodeId = (n.id || '').toLowerCase();
+        return nodeLabel.includes(q) || nodeSub.includes(q) || nodeId.includes(q);
       }
       return true;
     });
@@ -592,11 +595,11 @@ export function NetworkExplorer() {
   const filteredEdges = useMemo(() => {
     return dynamicGraphData.edges.filter(e => {
       if (!filteredNodeIds.has(e.source) || !filteredNodeIds.has(e.target)) return false;
-      if (relFilter === 'CROSS_STATION' && !e.crossStation) return false;
-      if (relFilter === 'AI_DISCOVERED' && !e.aiDiscovered) return false;
-      if (relFilter === 'SHARED_PHONE' && e.type !== 'PHONE') return false;
-      if (relFilter === 'SHARED_VEHICLE' && e.type !== 'VEHICLE') return false;
-      if (relFilter === 'LINKED_CASE' && e.type !== 'CASE') return false;
+      if (relFilter === 'CROSS_STATION' && !e.isCrossStation && !(e as any).crossStation) return false;
+      if (relFilter === 'AI_DISCOVERED' && !e.isAiDiscovered && !(e as any).aiDiscovered) return false;
+      if (relFilter === 'SHARED_PHONE' && e.relationship !== 'SHARED_PHONE' && (e as any).type !== 'PHONE') return false;
+      if (relFilter === 'SHARED_VEHICLE' && e.relationship !== 'SHARED_VEHICLE' && (e as any).type !== 'VEHICLE') return false;
+      if (relFilter === 'LINKED_CASE' && e.relationship !== 'LINKED_CASE' && (e as any).type !== 'CASE') return false;
       return true;
     });
   }, [dynamicGraphData.edges, filteredNodeIds, relFilter]);
@@ -609,9 +612,9 @@ export function NetworkExplorer() {
     const totalCases = filteredNodes.filter(n => n.type === 'CASE').length;
     const totalEntities = filteredNodes.filter(n => n.type !== 'CASE' && n.type !== 'STATION').length;
     const totalStations = filteredNodes.filter(n => n.type === 'STATION').length;
-    const crossStationLinks = filteredEdges.filter(e => e.crossStation).length;
-    const restrictedRecords = filteredNodes.filter(n => n.restricted).length;
-    const aiDiscoveredLinks = filteredEdges.filter(e => e.aiDiscovered).length;
+    const crossStationLinks = filteredEdges.filter(e => e.isCrossStation || (e as any).crossStation).length;
+    const restrictedRecords = filteredNodes.filter(n => n.accessStatus === 'RESTRICTED' || (n as any).restricted).length;
+    const aiDiscoveredLinks = filteredEdges.filter(e => e.isAiDiscovered || (e as any).aiDiscovered).length;
     return { totalCases, totalEntities, totalStations, crossStationLinks, restrictedRecords, aiDiscoveredLinks };
   }, [filteredNodes, filteredEdges]);
 

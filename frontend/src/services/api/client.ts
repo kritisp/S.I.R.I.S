@@ -67,9 +67,6 @@ export async function request<T>(
 
     if (response.status === 401) {
       clearAuthState();
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
       throw new ApiError('Session expired. Please sign in again.', 401);
     }
 

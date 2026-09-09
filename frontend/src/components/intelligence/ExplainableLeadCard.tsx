@@ -78,7 +78,7 @@ export function ExplainableLeadCard({ lead, onDecisionChange }: Props) {
           <Info size={13} /> Why Flagged (Analytical Justification)
         </h4>
         <ul className="space-y-1.5 pl-1">
-          {lead.whyFlagged.map((why, idx) => (
+          {(lead.whyFlagged || []).map((why, idx) => (
             <li key={idx} className="text-xs text-text flex items-start gap-2">
               <span className="text-success font-bold font-mono">✓</span>
               <span className="leading-snug">{why}</span>
@@ -94,7 +94,7 @@ export function ExplainableLeadCard({ lead, onDecisionChange }: Props) {
             <FileText size={12} /> Grounded Supporting Records
           </span>
           <div className="space-y-1">
-            {lead.supportingRecords.map(rec => (
+            {(lead.supportingRecords || []).map(rec => (
               <div key={rec.id} className="text-xs font-mono font-bold text-text flex items-center justify-between">
                 <span>{rec.id} · {rec.title}</span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-surface border text-text-dim">{rec.type}</span>
@@ -109,7 +109,7 @@ export function ExplainableLeadCard({ lead, onDecisionChange }: Props) {
             <AlertTriangle size={12} /> Not Yet Corroborated (Missing Feeds)
           </span>
           <ul className="space-y-1">
-            {lead.notCorroborated.map((item, idx) => (
+            {(lead.notCorroborated || []).map((item, idx) => (
               <li key={idx} className="text-[11px] text-text-dim flex items-center gap-1.5">
                 <span className="text-warning-bright">•</span>
                 <span>{item}</span>

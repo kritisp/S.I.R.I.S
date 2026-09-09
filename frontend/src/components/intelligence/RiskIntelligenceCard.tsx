@@ -86,7 +86,7 @@ export function RiskIntelligenceCard({
           Contributing Factors
         </div>
         <div className="space-y-1.5">
-          {riskData.contributingFactors.map((factor, i) => (
+          {(riskData.contributingFactors || []).map((factor, i) => (
             <div key={i} className="text-xs text-text flex items-start gap-2 bg-surface-2 p-2 rounded-lg border border-border-soft">
               <CheckCircle2 size={13} className="text-brand shrink-0 mt-0.5" />
               <span>{factor}</span>

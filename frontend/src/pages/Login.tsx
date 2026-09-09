@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Building, User, Lock, Globe, KeyRound, Brain, Video, BarChart3, Car, Fingerprint, ScanFace, Network as NetworkIcon, Folder } from 'lucide-react';
 import { useMockState } from '../mockServices/MockStateContext';
 import { UserRole } from '../mockServices/types';
-import { authApi } from '../services/api';
+import { authApi, setAuthToken } from '../services/api';
 
 export function Login() {
   const { state, dispatch } = useMockState();
@@ -50,6 +50,9 @@ export function Login() {
       });
 
       if (res && res.user) {
+        if (res.token) {
+          setAuthToken(res.token);
+        }
         dispatch({ type: 'SET_USER', payload: res.user });
         navigate('/dashboard');
         return;

@@ -280,7 +280,7 @@ export const KarenProvider = ({ children }: { children: ReactNode }) => {
         } catch (e) {}
       }
     };
-  }, [isOpen, state.currentUser, location.pathname]);
+  }, [isOpen, currentUserId, location.pathname]);
 
   // 2. Background Clap Activation (detects sudden loud spike in microphone volume when closed)
   useEffect(() => {
@@ -352,7 +352,7 @@ export const KarenProvider = ({ children }: { children: ReactNode }) => {
         mediaStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [isOpen, state.currentUser, location.pathname]);
+  }, [isOpen, currentUserId, location.pathname]);
 
   const startListening = () => {
     stopSpeaking();
@@ -508,34 +508,33 @@ export const KarenProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [isOpen]);
 
-  // Watch for active background match alerts to trigger proactive alert UI
-  const lastAlert = state.alerts[0];
+  const lastAlertId = state.alerts[0]?.id;
+  const lastAlertType = state.alerts[0]?.type;
+  const lastAlertIsRead = state.alerts[0]?.isRead;
+  const lastAlertRelatedCaseId = state.alerts[0]?.relatedCaseId;
+  const currentUserId = state.currentUser?.id;
+  const currentUserName = state.currentUser?.name;
   const [lastProcessedAlertId, setLastProcessedAlertId] = useState<string>('');
 
   useEffect(() => {
-    if (!state.currentUser) return;
+    if (!currentUserId) return;
     if (
-      lastAlert &&
-      lastAlert.type === 'CROSS_STATION_MATCH' &&
-      !lastAlert.isRead &&
-      lastAlert.id !== lastProcessedAlertId
+      lastAlertId &&
+      lastAlertType === 'CROSS_STATION_MATCH' &&
+      !lastAlertIsRead &&
+      lastAlertId !== lastProcessedAlertId
     ) {
-      setLastProcessedAlertId(lastAlert.id);
+      setLastProcessedAlertId(lastAlertId);
 
       // Auto expand Karen core
       setIsOpen(true);
       setListeningState('SPEAKING');
 
-      const currentUser = state.currentUser?.name || 'Inspector';
-
       const mockResponse: KarenResponse = {
         intent: 'PROACTIVE_ALERT',
-        response: `${currentUser}, new intelligence has been discovered.
-Cross-station relationship matching identified a related case in Cuttack Sadar.
-• Case: **CR-CTC-2026-00981**
-• Similarity: **94%**`,
+        response: `${currentUserName || 'Inspector'}, new intelligence has been discovered.\nCross-station relationship matching identified a related case in Cuttack Sadar.\n• Case: **CR-CTC-2026-00981**\n• Similarity: **94%**`,
         actions: [
-          { label: 'VIEW RELATIONSHIP', route: `/cases/${lastAlert.relatedCaseId}` },
+          { label: 'VIEW RELATIONSHIP', route: `/cases/${lastAlertRelatedCaseId}` },
           { label: 'REQUEST ACCESS', route: `/requests` }
         ]
       };
@@ -555,9 +554,9 @@ Cross-station relationship matching identified a related case in Cuttack Sadar.
       ]);
 
       // Automatically mark the alert as read
-      dispatch({ type: 'MARK_ALERT_READ', payload: lastAlert.id });
+      dispatch({ type: 'MARK_ALERT_READ', payload: lastAlertId });
     }
-  }, [state.alerts, lastAlert, lastProcessedAlertId, state.currentUser, dispatch]);
+  }, [lastAlertId, lastAlertType, lastAlertIsRead, lastProcessedAlertId, currentUserId]);
 
   return (
     <KarenContextObj.Provider

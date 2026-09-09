@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { AppState, User, Station, CaseRecord, Evidence, AccessRequest, IntelligenceAlert } from './types';
 import { initialState } from './initialData';
 import {
@@ -101,6 +101,11 @@ const MockStateContext = createContext<{
 export const MockStateProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  // Use a ref to read currentUser inside the callback WITHOUT making it a reactive dependency.
+  // This breaks the infinite loop: state.currentUser change → new callback → useEffect re-fires → API call → state change → repeat
+  const currentUserRef = useRef(state.currentUser);
+  useEffect(() => { currentUserRef.current = state.currentUser; }, [state.currentUser]);
+
   const refreshBackendData = useCallback(async () => {
     try {
       // 1. Fetch Cases directly from authoritative Database (430 cases)
@@ -118,7 +123,7 @@ export const MockStateProvider = ({ children }: { children: ReactNode }) => {
       // 3. If user has JWT auth token, fetch authenticated profile and evidence
       const token = getAuthToken();
       if (token) {
-        if (!state.currentUser) {
+        if (!currentUserRef.current) {
           const me = await authApi.getMe().catch(() => null);
           if (me && me.user) {
             dispatch({ type: 'SET_USER', payload: me.user });
@@ -154,11 +159,11 @@ export const MockStateProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.currentUser]);
+  }, []); // ← stable: no reactive deps, reads currentUser via ref
 
   useEffect(() => {
     refreshBackendData();
-  }, [refreshBackendData]);
+  }, []); // ← runs once on mount only
 
   return (
     <MockStateContext.Provider value={{ state, dispatch, refreshBackendData }}>
