@@ -1,10 +1,12 @@
+import os
 import psycopg2
 import bcrypt
 
 salt = bcrypt.gensalt()
 password_hash = bcrypt.hashpw(b'admin', salt).decode('utf-8')
 
-conn = psycopg2.connect('postgresql://postgres:Pf7eqEttsmsw8Jdt@db.pbhhuilzqlnwsalgcvbn.supabase.co:5432/postgres')
+db_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/postgres")
+conn = psycopg2.connect(db_url)
 cur = conn.cursor()
 
 # Insert Station

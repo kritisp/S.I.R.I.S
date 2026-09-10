@@ -45,10 +45,10 @@ class CrimeLensRetriever:
     """
 
     def __init__(self, database_url: Optional[str] = None, neo4j_uri: Optional[str] = None):
-        self.db_url = database_url or os.getenv("DATABASE_URL", "postgresql://postgres:Pf7eqEttsmsw8Jdt@db.pbhhuilzqlnwsalgcvbn.supabase.co:5432/postgres")
-        self.neo4j_uri = neo4j_uri or os.getenv("NEO4J_URI", "neo4j+s://1cb4cc93.databases.neo4j.io")
-        self.neo4j_user = os.getenv("NEO4J_USERNAME", "1cb4cc93")
-        self.neo4j_password = os.getenv("NEO4J_PASSWORD", "60RbmZa2Mo0j2ENhRf-xKIBkMVTNuR743g2p0DXemTw")
+        self.db_url = database_url or os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/postgres")
+        self.neo4j_uri = neo4j_uri or os.getenv("NEO4J_URI", "bolt://127.0.0.1:7687")
+        self.neo4j_user = os.getenv("NEO4J_USERNAME", "neo4j")
+        self.neo4j_password = os.getenv("NEO4J_PASSWORD", "password")
 
     def _get_pg_connection(self):
         """Create read-only connection to Supabase PostgreSQL."""

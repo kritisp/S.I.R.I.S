@@ -1,6 +1,8 @@
+import os
 import psycopg2
 
-conn = psycopg2.connect('postgresql://postgres:Pf7eqEttsmsw8Jdt@db.pbhhuilzqlnwsalgcvbn.supabase.co:5432/postgres')
+db_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/postgres")
+conn = psycopg2.connect(db_url)
 cur = conn.cursor()
 
 # Drop existing tables to fix schema issues

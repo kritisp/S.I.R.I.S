@@ -19,11 +19,11 @@ Your repository contains a pre-configured [render.yaml](file:///e:/desk/S.I.R.I.
    - **`siris-fir-bns-rag`** (ChromaDB statutory legal engine Docker image)
    - **`siris-voice-gateway`** (Node.js WebSocket voice server Docker image)
 5. Under Environment Variables in Render, add your API keys:
-   - `GROQ_API_KEY`: `gsk_...`
-   - `NEO4J_URI`: `neo4j+s://1cb4cc93.databases.neo4j.io`
-   - `NEO4J_USERNAME`: `1cb4cc93`
-   - `NEO4J_PASSWORD`: `60RbmZa2Mo0j2ENhRf-xKIBkMVTNuR743g2p0DXemTw`
-   - `DATABASE_URL`: `postgresql://postgres:Pf7eqEttsmsw8Jdt@db.pbhhuilzqlnwsalgcvbn.supabase.co:5432/postgres`
+   - `GROQ_API_KEY`: `<your_groq_api_key>`
+   - `NEO4J_URI`: `neo4j+s://<your-neo4j-db-id>.databases.neo4j.io`
+   - `NEO4J_USERNAME`: `neo4j`
+   - `NEO4J_PASSWORD`: `<your_neo4j_password>`
+   - `DATABASE_URL`: `postgresql://postgres:<your_postgres_password>@db.<your_supabase_host>.supabase.co:5432/postgres`
 
 After deployment, note your live backend URLs:
 - Central Backend: `https://siris-central-intel.onrender.com`
@@ -50,8 +50,8 @@ After deployment, note your live backend URLs:
 | `VITE_INTEL_SERVICE_URL` | `https://siris-central-intel.onrender.com/api/v1/graph` | URL to Graph Backend |
 | `VITE_RAG_API_URL` | `https://siris-fir-bns-rag.onrender.com` | URL to FIR RAG Backend |
 | `VITE_GROQ_API_KEY` | `<your_groq_api_key>` | Groq AI Key |
-| `VITE_BHASHINI_API_KEY` | `-_oVT-BJc9miqpgS6SpTTixyQGXhebibkgsI3CTmelTau7QuQxT_Mnl1R7MgWy8h` | Bhasini NLU Key |
-| `VITE_BHASHINI_UDYAT_KEY` | `36bcfef5a1-1c64-4bd1-ba20-329f198c0ed2` | Bhasini Udyat Key |
+| `VITE_BHASHINI_API_KEY` | `<your_bhashini_api_key>` | Bhasini NLU Key |
+| `VITE_BHASHINI_UDYAT_KEY` | `<your_bhashini_udyat_key>` | Bhasini Udyat Key |
 
 6. Click **Deploy**.
 

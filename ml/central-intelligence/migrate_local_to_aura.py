@@ -174,13 +174,13 @@ class Neo4jMigrationService:
 def main():
     src_uri = os.getenv("LOCAL_NEO4J_URI", "bolt://127.0.0.1:7687")
     src_user = os.getenv("LOCAL_NEO4J_USER", "neo4j")
-    src_pass = os.getenv("LOCAL_NEO4J_PASSWORD", "Sreyash@123")
+    src_pass = os.getenv("LOCAL_NEO4J_PASSWORD", "password")
     src_db = os.getenv("LOCAL_NEO4J_DB", "neo4j")
 
-    tgt_uri = os.getenv("NEO4J_AURA_URI", os.getenv("NEO4J_URI", "neo4j+s://1cb4cc93.databases.neo4j.io"))
-    tgt_user = os.getenv("NEO4J_USERNAME", "1cb4cc93")
-    tgt_pass = os.getenv("NEO4J_PASSWORD", "60RbmZa2Mo0j2ENhRf-xKIBkMVTNuR743g2p0DXemTw")
-    tgt_db = os.getenv("NEO4J_DATABASE", "1cb4cc93")
+    tgt_uri = os.getenv("NEO4J_AURA_URI", os.getenv("NEO4J_URI", ""))
+    tgt_user = os.getenv("NEO4J_USERNAME", "neo4j")
+    tgt_pass = os.getenv("NEO4J_PASSWORD", "")
+    tgt_db = os.getenv("NEO4J_DATABASE", "neo4j")
 
     migrator = Neo4jMigrationService(src_uri, src_user, src_pass, src_db, tgt_uri, tgt_user, tgt_pass, tgt_db)
     res = migrator.execute_migration()

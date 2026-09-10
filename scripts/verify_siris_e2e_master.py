@@ -17,8 +17,8 @@ import json
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
-BHASINI_API_KEY = os.getenv("BHASINI_API_KEY", "-_oVT-BJc9miqpgS6SpTTixyQGXhebibkgsI3CTmelTau7QuQxT_Mnl1R7MgWy8h")
-BHASINI_UDYAT_KEY = os.getenv("BHASINI_UDYAT_KEY", "36bcfef5a1-1c64-4bd1-ba20-329f198c0ed2")
+BHASINI_API_KEY = os.getenv("BHASINI_API_KEY", "")
+BHASINI_UDYAT_KEY = os.getenv("BHASINI_UDYAT_KEY", "")
 BHASINI_URL = "https://dhruva-api.bhasini.gov.in/services/inference/translation"
 
 def print_header(title):

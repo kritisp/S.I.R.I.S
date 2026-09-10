@@ -52,8 +52,8 @@ class LocalSTT:
         bhasini_udyat_key: Optional[str] = None,
         language: str = "hi",
     ):
-        self.api_key = bhasini_api_key or os.getenv("BHASINI_API_KEY", "-_oVT-BJc9miqpgS6SpTTixyQGXhebibkgsI3CTmelTau7QuQxT_Mnl1R7MgWy8h")
-        self.udyat_key = bhasini_udyat_key or os.getenv("BHASINI_UDYAT_KEY", "36bcfef5a1-1c64-4bd1-ba20-329f198c0ed2")
+        self.api_key = bhasini_api_key or os.getenv("BHASINI_API_KEY", "")
+        self.udyat_key = bhasini_udyat_key or os.getenv("BHASINI_UDYAT_KEY", "")
         self.endpoint_url = "https://dhruva-api.bhasini.gov.in/services/inference/pipeline"
         self.language = language
         self.gpu_name = "Bhasini ASR API Engine"
