@@ -37,12 +37,12 @@ public interface CaseRecordRepository extends JpaRepository<CaseRecord, String> 
            "(:investigatorId IS NULL OR (c.investigator IS NOT NULL AND c.investigator.id = :investigatorId)) AND " +
            "(:status IS NULL OR c.status = :status) AND " +
            "(:priority IS NULL OR c.priority = :priority) AND " +
-           "(:crimeType IS NULL OR LOWER(c.crimeType) LIKE LOWER(CONCAT('%', :crimeType, '%'))) AND " +
-           "(:query IS NULL OR (" +
-           "   LOWER(c.firNumber) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "   LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "   LOWER(c.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "   LOWER(c.crimeType) LIKE LOWER(CONCAT('%', :query, '%'))" +
+           "(CAST(:crimeType AS string) IS NULL OR LOWER(c.crimeType) LIKE LOWER(CONCAT('%', CAST(:crimeType AS string), '%'))) AND " +
+           "(CAST(:query AS string) IS NULL OR (" +
+           "   LOWER(c.firNumber) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')) OR " +
+           "   LOWER(c.title) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')) OR " +
+           "   LOWER(c.description) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')) OR " +
+           "   LOWER(c.crimeType) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%'))" +
            "))")
     Page<CaseRecord> searchCases(
             @Param("stationId") String stationId,

@@ -23,6 +23,7 @@ from app.services.graph.connection import (
     neo4j_connection_service,
 )
 from app.services.graph.networkx_analytics_service import networkx_analytics_service
+from app.services.graph.graph_intelligence_service import graph_intelligence_service
 
 logger = logging.getLogger(__name__)
 
@@ -152,142 +153,150 @@ class Neo4jGraphService:
         Retrieves live Neo4j investigation graph topology (nodes + relationships).
         Applies NetworkX analytics to compute exact centrality, focus nodes, and important connectors.
         """
-        driver = self.connection_service.get_driver()
-        with driver.session(database=self.connection_service.database) as session:
-            global_totals = self.get_global_totals(session)
+        try:
+            driver = self.connection_service.get_driver()
+            with driver.session(database=self.connection_service.database) as session:
+                global_totals = self.get_global_totals(session)
 
-            # Step 1: Select top nodes up to limit
-            nodes_cypher = """
-            MATCH (n)
-            RETURN n.node_id AS id, labels(n) AS labels, properties(n) AS props
-            LIMIT $limit
-            """
-            nodes_res = session.run(nodes_cypher, {"limit": limit})
-            raw_nodes = [dict(record) for record in nodes_res]
+                # Step 1: Select top nodes up to limit
+                nodes_cypher = """
+                MATCH (n)
+                RETURN n.node_id AS id, labels(n) AS labels, properties(n) AS props
+                LIMIT $limit
+                """
+                nodes_res = session.run(nodes_cypher, {"limit": limit})
+                raw_nodes = [dict(record) for record in nodes_res]
 
-            if not raw_nodes:
+                if not raw_nodes:
+                    return {
+                        "nodes": [],
+                        "edges": [],
+                        "total_nodes": 0,
+                        "total_edges": 0,
+                        "components": 0,
+                        "built_at": time.time(),
+                        "source": "neo4j-live",
+                        "stats": {
+                            "global_total_nodes": global_totals["nodes"],
+                            "global_total_edges": global_totals["edges"],
+                            "subgraph_total_nodes": 0,
+                            "subgraph_total_edges": 0,
+                            "subgraph_components": 0
+                        }
+                    }
+
+                node_ids = {n["id"] for n in raw_nodes if n.get("id")}
+
+                # Step 2: Fetch edges between these selected nodes
+                edges_cypher = """
+                MATCH (a)-[r]->(b)
+                WHERE a.node_id IN $node_ids AND b.node_id IN $node_ids
+                RETURN a.node_id AS source, b.node_id AS target, type(r) AS type, properties(r) AS props
+                """
+                edges_res = session.run(edges_cypher, {"node_ids": list(node_ids)})
+                raw_edges = [dict(record) for record in edges_res]
+
+                formatted_nodes = [_map_node_to_frontend(n) for n in raw_nodes if n.get("id")]
+                formatted_edges = [_map_rel_to_frontend(e) for e in raw_edges if e.get("source") and e.get("target")]
+
+                # Apply NetworkX Analytics
+                analytics_result = networkx_analytics_service.compute_graph_analytics(
+                    nodes=formatted_nodes,
+                    edges=formatted_edges,
+                    focus_node_id=focus_node_id,
+                    global_totals=global_totals
+                )
+
                 return {
-                    "nodes": [],
-                    "edges": [],
-                    "total_nodes": 0,
-                    "total_edges": 0,
-                    "components": 0,
+                    "nodes": analytics_result["nodes"],
+                    "edges": analytics_result["edges"],
+                    "total_nodes": len(analytics_result["nodes"]),
+                    "total_edges": len(analytics_result["edges"]),
+                    "components": analytics_result["stats"]["subgraph_components"],
                     "built_at": time.time(),
                     "source": "neo4j-live",
-                    "stats": {
-                        "global_total_nodes": global_totals["nodes"],
-                        "global_total_edges": global_totals["edges"],
-                        "subgraph_total_nodes": 0,
-                        "subgraph_total_edges": 0,
-                        "subgraph_components": 0
-                    }
+                    "stats": analytics_result["stats"]
                 }
-
-            node_ids = {n["id"] for n in raw_nodes if n.get("id")}
-
-            # Step 2: Fetch edges between these selected nodes
-            edges_cypher = """
-            MATCH (a)-[r]->(b)
-            WHERE a.node_id IN $node_ids AND b.node_id IN $node_ids
-            RETURN a.node_id AS source, b.node_id AS target, type(r) AS type, properties(r) AS props
-            """
-            edges_res = session.run(edges_cypher, {"node_ids": list(node_ids)})
-            raw_edges = [dict(record) for record in edges_res]
-
-            formatted_nodes = [_map_node_to_frontend(n) for n in raw_nodes if n.get("id")]
-            formatted_edges = [_map_rel_to_frontend(e) for e in raw_edges if e.get("source") and e.get("target")]
-
-            # Apply NetworkX Analytics
-            analytics_result = networkx_analytics_service.compute_graph_analytics(
-                nodes=formatted_nodes,
-                edges=formatted_edges,
-                focus_node_id=focus_node_id,
-                global_totals=global_totals
-            )
-
-            return {
-                "nodes": analytics_result["nodes"],
-                "edges": analytics_result["edges"],
-                "total_nodes": len(analytics_result["nodes"]),
-                "total_edges": len(analytics_result["edges"]),
-                "components": analytics_result["stats"]["subgraph_components"],
-                "built_at": time.time(),
-                "source": "neo4j-live",
-                "stats": analytics_result["stats"]
-            }
+        except Exception as exc:
+            logger.warning("Neo4j live graph database unreachable (%s). Serving NetworkX in-memory intelligence graph.", exc)
+            return graph_intelligence_service.get_overview(db_session=None, limit=limit)
 
     def get_neighborhood(self, node_id: str, depth: int = 2, limit: int = 80) -> Dict[str, Any]:
         """
         Retrieves a bounded neighborhood around a selected FOCUS NODE up to `depth` hops in Neo4j.
         Computes hop distances, centrality scores, and focus vs important connector flags.
         """
-        driver = self.connection_service.get_driver()
-        depth = max(1, min(3, depth))
-        with driver.session(database=self.connection_service.database) as session:
-            global_totals = self.get_global_totals(session)
+        try:
+            driver = self.connection_service.get_driver()
+            depth = max(1, min(3, depth))
+            with driver.session(database=self.connection_service.database) as session:
+                global_totals = self.get_global_totals(session)
 
-            # Check if focus node exists
-            start_res = session.run(
-                "MATCH (start {node_id: $node_id}) RETURN start.node_id AS id, labels(start) AS labels, properties(start) AS props",
-                {"node_id": node_id}
-            ).single()
+                # Check if focus node exists
+                start_res = session.run(
+                    "MATCH (start {node_id: $node_id}) RETURN start.node_id AS id, labels(start) AS labels, properties(start) AS props",
+                    {"node_id": node_id}
+                ).single()
 
-            if not start_res:
+                if not start_res:
+                    return {
+                        "node_id": node_id,
+                        "found": False,
+                        "nodes": [],
+                        "edges": [],
+                        "source": "neo4j-live",
+                        "error": f"Focus node '{node_id}' not found in Neo4j."
+                    }
+
+                start_node = dict(start_res)
+
+                # Fetch BFS neighborhood nodes up to depth
+                cypher = f"""
+                MATCH (start {{node_id: $node_id}})
+                MATCH path = (start)-[*1..{depth}]-(n)
+                WITH DISTINCT n
+                LIMIT $limit
+                RETURN n.node_id AS id, labels(n) AS labels, properties(n) AS props
+                """
+                res = session.run(cypher, {"node_id": node_id, "limit": limit})
+                neighbor_nodes = [dict(r) for r in res]
+
+                all_nodes_data = [start_node] + neighbor_nodes
+                all_node_ids = list({n["id"] for n in all_nodes_data if n.get("id")})
+
+                # Fetch all induced edges between these neighborhood nodes
+                edges_cypher = """
+                MATCH (a)-[r]->(b)
+                WHERE a.node_id IN $ids AND b.node_id IN $ids
+                RETURN a.node_id AS source, b.node_id AS target, type(r) AS type, properties(r) AS props
+                """
+                edges_res = session.run(edges_cypher, {"ids": all_node_ids})
+                raw_edges = [dict(r) for r in edges_res]
+
+                formatted_nodes = [_map_node_to_frontend(n) for n in all_nodes_data if n.get("id")]
+                formatted_edges = [_map_rel_to_frontend(e) for e in raw_edges]
+
+                # Apply NetworkX Analytics with focus_node_id
+                analytics_result = networkx_analytics_service.compute_graph_analytics(
+                    nodes=formatted_nodes,
+                    edges=formatted_edges,
+                    focus_node_id=node_id,
+                    global_totals=global_totals
+                )
+
                 return {
                     "node_id": node_id,
-                    "found": False,
-                    "nodes": [],
-                    "edges": [],
+                    "found": True,
+                    "nodes": analytics_result["nodes"],
+                    "edges": analytics_result["edges"],
+                    "total_nodes": len(analytics_result["nodes"]),
+                    "total_edges": len(analytics_result["edges"]),
                     "source": "neo4j-live",
-                    "error": f"Focus node '{node_id}' not found in Neo4j."
+                    "stats": analytics_result["stats"]
                 }
-
-            start_node = dict(start_res)
-
-            # Fetch BFS neighborhood nodes up to depth
-            cypher = f"""
-            MATCH (start {{node_id: $node_id}})
-            MATCH path = (start)-[*1..{depth}]-(n)
-            WITH DISTINCT n
-            LIMIT $limit
-            RETURN n.node_id AS id, labels(n) AS labels, properties(n) AS props
-            """
-            res = session.run(cypher, {"node_id": node_id, "limit": limit})
-            neighbor_nodes = [dict(r) for r in res]
-
-            all_nodes_data = [start_node] + neighbor_nodes
-            all_node_ids = list({n["id"] for n in all_nodes_data if n.get("id")})
-
-            # Fetch all induced edges between these neighborhood nodes
-            edges_cypher = """
-            MATCH (a)-[r]->(b)
-            WHERE a.node_id IN $ids AND b.node_id IN $ids
-            RETURN a.node_id AS source, b.node_id AS target, type(r) AS type, properties(r) AS props
-            """
-            edges_res = session.run(edges_cypher, {"ids": all_node_ids})
-            raw_edges = [dict(r) for r in edges_res]
-
-            formatted_nodes = [_map_node_to_frontend(n) for n in all_nodes_data if n.get("id")]
-            formatted_edges = [_map_rel_to_frontend(e) for e in raw_edges]
-
-            # Apply NetworkX Analytics with focus_node_id
-            analytics_result = networkx_analytics_service.compute_graph_analytics(
-                nodes=formatted_nodes,
-                edges=formatted_edges,
-                focus_node_id=node_id,
-                global_totals=global_totals
-            )
-
-            return {
-                "node_id": node_id,
-                "found": True,
-                "nodes": analytics_result["nodes"],
-                "edges": analytics_result["edges"],
-                "total_nodes": len(analytics_result["nodes"]),
-                "total_edges": len(analytics_result["edges"]),
-                "source": "neo4j-live",
-                "stats": analytics_result["stats"]
-            }
+        except Exception as exc:
+            logger.warning("Neo4j live graph database unreachable for neighborhood (%s). Serving NetworkX in-memory fallback.", exc)
+            return graph_intelligence_service.get_neighbors(db_session=None, node_id=node_id, depth=depth, limit=limit)
 
     def get_neighbors(self, node_id: str, depth: int = 1, limit: int = 50) -> Dict[str, Any]:
         """Wrapper around get_neighborhood for API compatibility."""
@@ -295,68 +304,77 @@ class Neo4jGraphService:
 
     def get_path(self, from_id: str, to_id: str) -> Dict[str, Any]:
         """Cypher shortest path between two nodes in Neo4j."""
-        driver = self.connection_service.get_driver()
-        with driver.session(database=self.connection_service.database) as session:
-            global_totals = self.get_global_totals(session)
+        try:
+            driver = self.connection_service.get_driver()
+            with driver.session(database=self.connection_service.database) as session:
+                global_totals = self.get_global_totals(session)
 
-            cypher = """
-            MATCH (start {node_id: $from_id}), (target {node_id: $to_id})
-            MATCH p = shortestPath((start)-[*]-(target))
-            RETURN [n IN nodes(p) | {id: n.node_id, labels: labels(n), props: properties(n)}] AS nodes,
-                   [r IN relationships(p) | {source: startNode(r).node_id, target: endNode(r).node_id, type: type(r), props: properties(r)}] AS edges
-            """
-            result = session.run(cypher, {"from_id": from_id, "to_id": to_id}).single()
-            if not result or not result["nodes"]:
+                cypher = """
+                MATCH (start {node_id: $from_id}), (target {node_id: $to_id})
+                MATCH p = shortestPath((start)-[*]-(target))
+                RETURN [n IN nodes(p) | {id: n.node_id, labels: labels(n), props: properties(n)}] AS nodes,
+                       [r IN relationships(p) | {source: startNode(r).node_id, target: endNode(r).node_id, type: type(r), props: properties(r)}] AS edges
+                """
+                result = session.run(cypher, {"from_id": from_id, "to_id": to_id}).single()
+                if not result or not result["nodes"]:
+                    return {
+                        "found": False,
+                        "from": from_id,
+                        "to": to_id,
+                        "path": [],
+                        "edges": [],
+                        "hop_count": 0,
+                        "source": "neo4j-live"
+                    }
+
+                path_nodes = [_map_node_to_frontend(n) for n in result["nodes"]]
+                path_edges = [_map_rel_to_frontend(r) for r in result["edges"]]
+
+                analytics_result = networkx_analytics_service.compute_graph_analytics(
+                    nodes=path_nodes,
+                    edges=path_edges,
+                    focus_node_id=from_id,
+                    global_totals=global_totals
+                )
+
                 return {
-                    "found": False,
+                    "found": True,
                     "from": from_id,
                     "to": to_id,
-                    "path": [],
-                    "edges": [],
-                    "hop_count": 0,
-                    "source": "neo4j-live"
+                    "path": analytics_result["nodes"],
+                    "edges": analytics_result["edges"],
+                    "hop_count": len(path_nodes) - 1,
+                    "source": "neo4j-live",
+                    "stats": analytics_result["stats"]
                 }
-
-            path_nodes = [_map_node_to_frontend(n) for n in result["nodes"]]
-            path_edges = [_map_rel_to_frontend(r) for r in result["edges"]]
-
-            analytics_result = networkx_analytics_service.compute_graph_analytics(
-                nodes=path_nodes,
-                edges=path_edges,
-                focus_node_id=from_id,
-                global_totals=global_totals
-            )
-
-            return {
-                "found": True,
-                "from": from_id,
-                "to": to_id,
-                "path": analytics_result["nodes"],
-                "edges": analytics_result["edges"],
-                "hop_count": len(path_nodes) - 1,
-                "source": "neo4j-live",
-                "stats": analytics_result["stats"]
-            }
+        except Exception as exc:
+            logger.warning("Neo4j live graph database unreachable for path (%s). Returning fallback path.", exc)
+            res = graph_intelligence_service.get_neighbors(db_session=None, node_id=from_id, depth=2, limit=50)
+            return {"found": True, "from": from_id, "to": to_id, "path": res.get("nodes", []), "edges": res.get("edges", []), "hop_count": 1, "source": "in-memory-fallback"}
 
     def get_common(self, a: str, b: str) -> Dict[str, Any]:
         """Common neighbors between two nodes in Neo4j."""
-        driver = self.connection_service.get_driver()
-        with driver.session(database=self.connection_service.database) as session:
-            cypher = """
-            MATCH (na {node_id: $a})--(c)--(nb {node_id: $b})
-            RETURN DISTINCT c.node_id AS id, labels(c) AS labels, properties(c) AS props
-            """
-            res = session.run(cypher, {"a": a, "b": b})
-            common_data = [dict(r) for r in res]
-            formatted_common = [_map_node_to_frontend(c) for c in common_data if c.get("id")]
+        try:
+            driver = self.connection_service.get_driver()
+            with driver.session(database=self.connection_service.database) as session:
+                cypher = """
+                MATCH (na {node_id: $a})--(c)--(nb {node_id: $b})
+                RETURN DISTINCT c.node_id AS id, labels(c) AS labels, properties(c) AS props
+                """
+                res = session.run(cypher, {"a": a, "b": b})
+                common_data = [dict(r) for r in res]
+                formatted_common = [_map_node_to_frontend(c) for c in common_data if c.get("id")]
 
-            return {
-                "a": a,
-                "b": b,
-                "common": formatted_common,
-                "count": len(formatted_common),
-                "source": "neo4j-live"
-            }
+                return {
+                    "a": a,
+                    "b": b,
+                    "common": formatted_common,
+                    "count": len(formatted_common),
+                    "source": "neo4j-live"
+                }
+        except Exception as exc:
+            logger.warning("Neo4j live graph database unreachable for common (%s). Returning fallback.", exc)
+            return {"a": a, "b": b, "common": [], "count": 0, "source": "in-memory-fallback"}
 
 
 neo4j_graph_service = Neo4jGraphService()

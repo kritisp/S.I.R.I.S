@@ -551,10 +551,14 @@ def _build_graph_from_postgres(db_session) -> Tuple[Graph, Dict[str, int]]:
     except Exception as exc:
         logger.error("Failed to build graph from Postgres: %s", exc)
         try:
-            db_session.rollback()
+            if db_session:
+                db_session.rollback()
         except Exception:
             pass
 
+    # NOTE: No synthetic/hardcoded fallback topology is injected here. When the
+    # Postgres domain tables are empty the graph is returned empty so that graph
+    # analytics only ever reflect real persisted data (never fabricated nodes).
     return graph, entity_complaint_counts
 
 

@@ -44,11 +44,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-5s %(message)s")
-logger = logging.getLogger("seed_odisha_network")port datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-5s %(message)s")
-logger = logging.getLogger("seed_argus_odisha")
+logger = logging.getLogger("seed_odisha_network")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. DETERMINISTIC PRNG (Python port of ARGUS mulberry32)

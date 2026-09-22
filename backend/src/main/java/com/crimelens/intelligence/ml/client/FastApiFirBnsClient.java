@@ -27,7 +27,7 @@ public class FastApiFirBnsClient implements FirIntelligenceClient {
 
     public FastApiFirBnsClient(
             RestTemplateBuilder restTemplateBuilder,
-            @Value("${app.ml.fir-bns-url:http://localhost:8000}") String mlBaseUrl,
+            @Value("${app.ml.fir-bns-url:http://localhost:8001}") String mlBaseUrl,
             @Value("${app.ml.internal-api-key:crimelens-internal-secret-key-2026}") String internalApiKey,
             @Value("${app.ml.read-timeout-ms:40000}") int readTimeoutMs) {
         
