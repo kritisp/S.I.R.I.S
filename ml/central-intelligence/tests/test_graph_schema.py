@@ -49,7 +49,16 @@ def test_node_projection_contract_validation():
 
 
 def test_deterministic_node_ids():
-    """Verifies that node_id requires a valid UUID string and rejects invalid strings."""
+    """
+    Verifies node_id/source_id are non-empty identifiers, deterministically preserved.
+
+    Intentionally NOT restricted to UUID format: the live-verified Case Identity Fix
+    projects Spring Boot `case_records` cases using their authoritative string ID
+    (e.g. "CR-BBSR001-2026-A1B2C3"), and person/vehicle/phone node_ids may be
+    deterministic hash-based fallback strings (see
+    Neo4jGraphProjectionService.project_extracted_features). Rejecting non-UUID
+    strings here would break real, verified case projection.
+    """
     c_uuid = str(uuid.uuid4())
     p_node = PersonGraphNode(
         node_id=c_uuid,
@@ -59,10 +68,27 @@ def test_deterministic_node_ids():
     )
     assert p_node.node_id == c_uuid
 
+    # Non-UUID S.I.R.I.S. identifiers (Spring Boot case IDs, hash-based fallback ids)
+    # must be preserved, not rejected.
+    spring_case_id = "CR-BBSR001-2026-A1B2C3"
+    case_node = CaseGraphNode(
+        node_id=spring_case_id,
+        source_id=spring_case_id,
+        fir_number="FIR/2026/001",
+        station_id="PS_BBSR_001",
+        police_station="Saheed Nagar PS",
+        district="Khordha",
+        state="Odisha",
+        registration_date="2026-08-29",
+        crime_type="BURGLARY",
+        crime_category="PROPERTY_CRIME",
+    )
+    assert case_node.node_id == spring_case_id
+
     with pytest.raises(ValueError):
         PersonGraphNode(
-            node_id="not-a-valid-uuid",
-            source_id="not-a-valid-uuid",
+            node_id="",
+            source_id="",
             name="Test",
         )
 
@@ -88,9 +114,18 @@ def test_canonical_relationship_key_identical_pair_rejection():
 
 
 def test_relationship_contracts_uuid_validation():
-    """Test D & E: Verifies that relationship contracts accept valid UUIDs and reject invalid strings."""
+    """
+    Test D & E (revised): Verifies relationship contracts accept any non-empty S.I.R.I.S.
+    identifier (UUID or otherwise) and reject only empty/blank ones.
+
+    Not format-restricted to UUIDs: case_id may be a Spring Boot case_records ID
+    (verified authoritative — see Case Identity Fix), and person/vehicle/phone ids may
+    be deterministic hash-based fallback strings. Forcing UUID format would reject
+    valid, live-verified identifiers.
+    """
     c_uuid = str(uuid.uuid4())
     p_uuid = str(uuid.uuid4())
+    spring_case_id = "CR-BBSR001-2026-A1B2C3"
 
     # Valid UUIDs accepted
     cp_rel = CasePersonRelContract(case_id=c_uuid, person_id=p_uuid, role="ACCUSED")
@@ -100,15 +135,20 @@ def test_relationship_contracts_uuid_validation():
     cv_rel = CaseVehicleRelContract(case_id=c_uuid, vehicle_id=str(uuid.uuid4()), role="STOLEN_VEHICLE")
     assert cv_rel.case_id == c_uuid
 
-    # Invalid UUIDs rejected
+    # Valid non-UUID S.I.R.I.S. identifiers accepted (Spring Boot case ID, hash-based fallback id)
+    cp_rel_spring = CasePersonRelContract(case_id=spring_case_id, person_id="p_305419896", role="SUSPECT")
+    assert cp_rel_spring.case_id == spring_case_id
+    assert cp_rel_spring.person_id == "p_305419896"
+
+    # Empty/blank identifiers rejected
     with pytest.raises(ValueError):
-        CasePersonRelContract(case_id="invalid-case-uuid", person_id=p_uuid)
+        CasePersonRelContract(case_id="", person_id=p_uuid)
 
     with pytest.raises(ValueError):
-        CaseVehicleRelContract(case_id=c_uuid, vehicle_id="invalid-vehicle-uuid")
+        CaseVehicleRelContract(case_id=c_uuid, vehicle_id="   ")
 
     with pytest.raises(ValueError):
-        CasePhoneRelContract(case_id=c_uuid, phone_id="not-a-phone-uuid")
+        CasePhoneRelContract(case_id=c_uuid, phone_id=None)
 
 
 def test_related_to_directional_canonicalization():

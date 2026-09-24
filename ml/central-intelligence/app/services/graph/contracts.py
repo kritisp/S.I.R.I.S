@@ -26,8 +26,11 @@ class BaseGraphNode(BaseModel):
     projection_version: str = "graph-v1"
 
     @field_validator("node_id", "source_id")
-    def validate_uuid_string(cls, v: str) -> str:
-        # Ensures node_id is a valid non-empty string identifier
+    def validate_identifier_string(cls, v: str) -> str:
+        # Non-empty check only — deliberately not UUID-format-restricted. A (:Case) node_id
+        # may be a Spring Boot case_records ID ("CR-BBSR001-2026-A1B2C3") and Person/Vehicle/
+        # Phone node_ids may be deterministic hash-based fallback strings (see
+        # Neo4jGraphProjectionService.project_extracted_features) rather than UUIDs.
         if not v or not str(v).strip():
             raise ValueError("node_id / source_id cannot be empty")
         return str(v).strip()
@@ -46,6 +49,7 @@ class CaseGraphNode(BaseGraphNode):
     crime_type: str
     crime_category: str
     status: str = "UNDER_INVESTIGATION"
+    last_projected_at: Optional[str] = None  # ISO-8601 UTC timestamp of this projection write, used for staleness checks
 
 
 class PersonGraphNode(BaseGraphNode):
@@ -122,10 +126,18 @@ class BaseGraphRelationship(BaseModel):
         mode="before",
         check_fields=False,
     )
-    def validate_uuid_relationship_field(cls, v: str) -> str:
-        if v is not None and str(v).strip():
-            return str(v).strip()
-        return v
+    def validate_identifier_field(cls, v: str) -> str:
+        """
+        Rejects empty/blank identifiers. Deliberately does NOT enforce UUID format:
+        `case_id` may be a Spring Boot `case_records` ID (e.g. "CR-BBSR001-2026-A1B2C3",
+        verified authoritative — see Case Identity Fix) rather than a UUID, and
+        person/vehicle/phone ids may be deterministic hash-based fallback strings
+        (see Neo4jGraphProjectionService.project_extracted_features) rather than UUIDs.
+        Forcing UUID format here would reject valid, live-verified S.I.R.I.S. identifiers.
+        """
+        if v is None or not str(v).strip():
+            raise ValueError("Graph relationship identifier fields cannot be empty.")
+        return str(v).strip()
 
 
 # =====================================================================

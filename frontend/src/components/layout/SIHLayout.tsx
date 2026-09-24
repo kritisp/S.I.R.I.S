@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Shield, FilePlus, Search, ShieldAlert,
   Network, Sparkles, Scale, FileText, FileBarChart,
-  Bell, LogOut, Moon, Sun, Lock, Building, Users, Globe, ChevronDown, Briefcase, Video, Navigation,
-  CreditCard, UserCheck, TrendingUp, PhoneCall, ClipboardCheck, CheckSquare, History, AlertTriangle, Bot, GitBranch
-, Radio, Truck, Layers, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-
-
-
-
+  Bell, LogOut, Moon, Sun, Lock, Building, Users, Globe, ChevronDown, ChevronRight, Briefcase, Video, Navigation,
+  CreditCard, UserCheck, TrendingUp, PhoneCall, ClipboardCheck, CheckSquare, History, AlertTriangle, Bot, GitBranch,
+  Radio, Truck, Layers, Menu, PanelLeftClose, PanelLeftOpen, X, FolderKanban, ShieldCheck
+} from 'lucide-react';
 
 import { useMockState } from '../../mockServices/MockStateContext';
 import { useLanguage, LanguageCode } from '../../context/LanguageContext';
@@ -17,14 +14,40 @@ import { AiraProvider } from '../Aira/AiraProvider';
 import { AiraOrb } from '../Aira/AiraOrb';
 import { AiraVoicePanel } from '../Aira/AiraVoicePanel';
 
+interface NavItemConfig {
+  to: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  badge?: number;
+  badgeColor?: string;
+}
+
+interface NavGroupConfig {
+  id: string;
+  title: string;
+  items: NavItemConfig[];
+}
+
 export function SIHLayout() {
   const { state, dispatch } = useMockState();
   const { language, setLanguage, t, languages } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('siris_sidebar_collapsed') === 'true';
+  });
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    operations: true,
+    intelligence: true,
+    forensics: false,
+    collaboration: false,
+    assistance: false,
+  });
+
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('crimelens_theme') as 'dark' | 'light') || 'light';
+    return (localStorage.getItem('crimelens_theme') as 'dark' | 'light') || 'dark';
   });
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
@@ -40,6 +63,16 @@ export function SIHLayout() {
     localStorage.setItem('crimelens_theme', theme);
   }, [theme]);
 
+  // Persist sidebar collapsed state
+  useEffect(() => {
+    localStorage.setItem('siris_sidebar_collapsed', String(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setIsMobileDrawerOpen(false);
+  }, [location.pathname]);
+
   // Close language menu on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -51,7 +84,14 @@ export function SIHLayout() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  };
 
   if (state.isLoading) {
     return (
@@ -72,327 +112,382 @@ export function SIHLayout() {
   const isSuperAdmin = role === 'SUPER_ADMIN';
   
   const unreadAlerts = isSuperAdmin 
-    ? state.alerts.filter(a => !a.isRead).length
-    : state.alerts.filter(a => !a.isRead && state.cases.find(c => c.id === a.relatedCaseId)?.stationId === state.currentUser?.stationId).length;
+    ? state.alerts.filter((a) => !a.isRead).length
+    : state.alerts.filter((a) => !a.isRead && state.cases.find((c) => c.id === a.relatedCaseId)?.stationId === state.currentUser?.stationId).length;
 
-  const pendingRequests = state.accessRequests.filter(r => 
+  const pendingRequests = state.accessRequests.filter((r) => 
     r.targetStationId === state.currentUser?.stationId && r.status === 'PENDING'
   ).length;
 
-  const outgoingRequestsCount = state.accessRequests.filter(r => 
+  const outgoingRequestsCount = state.accessRequests.filter((r) => 
     r.requestingOfficerId === state.currentUser?.id
   ).length;
 
-  const currentLangObj = languages.find(l => l.code === language) || languages[0];
+  const currentLangObj = languages.find((l) => l.code === language) || languages[0];
+
+  // Define structured navigation groups
+  const navGroups: NavGroupConfig[] = [
+    {
+      id: 'workspace',
+      title: 'WORKSPACE',
+      items: [
+        { to: '/dashboard', icon: LayoutDashboard, label: 'Operations Command' },
+        { to: '/cases', icon: Briefcase, label: 'My Investigations' },
+        { to: '/network', icon: Network, label: 'Network Explorer' },
+      ],
+    },
+    {
+      id: 'operations',
+      title: 'CASE OPERATIONS',
+      items: [
+        { to: '/cases/new', icon: FilePlus, label: 'Register Statutory FIR' },
+        { to: '/evidence', icon: FileText, label: 'Evidence Vault & Locker' },
+        { to: '/legal', icon: Scale, label: 'BNS & Statutory Provisions' },
+        { to: '/reports', icon: FileBarChart, label: 'Investigation Reports' },
+      ],
+    },
+    {
+      id: 'intelligence',
+      title: 'INTELLIGENCE & ANALYSIS',
+      items: [
+        { to: '/intelligence-fusion', icon: Layers, label: 'Intelligence Fusion Center' },
+        { to: '/predictive-risk', icon: TrendingUp, label: 'Predictive Crime Risk' },
+        { to: '/analytics', icon: FileBarChart, label: 'Modus Operandi & Analytics' },
+        { to: '/anomalies', icon: AlertTriangle, label: 'Anomaly Radar' },
+        { to: '/identity-review', icon: UserCheck, label: 'Identity Resolution' },
+      ],
+    },
+    {
+      id: 'forensics',
+      title: 'FIELD & FORENSICS',
+      items: [
+        { to: '/cctv', icon: Video, label: 'CCTV Surveillance' },
+        { to: '/trail', icon: Navigation, label: 'Vehicle Geo-Trail' },
+        { to: '/money-trail', icon: CreditCard, label: 'AML Money Trail' },
+        { to: '/cdr', icon: PhoneCall, label: 'CDR Intelligence' },
+        { to: '/map', icon: Globe, label: 'GIS Crime Hotspots' },
+      ],
+    },
+    {
+      id: 'collaboration',
+      title: 'COLLABORATION & ACCESS',
+      items: [
+        { to: '/requests', icon: Lock, label: 'Inter-Station Requests', badge: pendingRequests || outgoingRequestsCount },
+        { to: '/supervisor/approvals', icon: ClipboardCheck, label: 'Sanctions & Approvals' },
+        { to: '/supervisor/audit', icon: History, label: 'Statutory Audit Logs' },
+        { to: '/investigators', icon: Users, label: 'Station Officers' },
+      ],
+    },
+    {
+      id: 'assistance',
+      title: 'ASSISTANCE & FLEET',
+      items: [
+        { to: '/assistant', icon: Bot, label: 'S.I.R.I.S. AI Co-Pilot' },
+        { to: '/resource-optimization', icon: Truck, label: 'Resource Optimization' },
+        { to: '/news', icon: Radio, label: 'Live Incident Feed' },
+      ],
+    },
+  ];
 
   return (
     <AiraProvider>
-      <div className="flex h-screen bg-bg text-text font-sans selection:bg-accent/15 selection:text-accent">
-      {/* Sidebar Navigation */}
-      <aside className={`flex flex-col bg-surface border-r border-border shadow-[1px_0_4px_rgba(0,0,0,0.03)] z-30 select-none transition-all duration-300 ${
-        isSidebarCollapsed ? 'w-16 overflow-hidden' : 'w-64'
-      }`}>
-        {/* Official Police Seal Header */}
-        <div className="p-4 border-b border-border-soft bg-surface-2/60">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl overflow-hidden bg-surface border border-brand/40 flex items-center justify-center p-1 shadow-md shrink-0">
-              <img src="/siris.png" alt="S.I.R.I.S" className="w-full h-full object-contain" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <h1 className="text-base font-serif font-bold text-brand tracking-tight leading-none">S.I.R.I.S.</h1>
-                <span className="inline-flex items-center gap-1 text-[8px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> LIVE
-                </span>
+      <div className="flex h-screen bg-bg text-text font-sans selection:bg-accent/15 selection:text-accent overflow-hidden">
+        
+        {/* Mobile Backdrop Overlay */}
+        {isMobileDrawerOpen && (
+          <div
+            onClick={() => setIsMobileDrawerOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
+          />
+        )}
+
+        {/* Sidebar Navigation */}
+        <aside
+          className={`
+            fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-surface dark:bg-[#0B0F17] border-r border-border-soft dark:border-[#1E293B] shadow-lg lg:shadow-[1px_0_4px_rgba(0,0,0,0.03)] select-none transition-all duration-300
+            ${isSidebarCollapsed ? 'w-16' : 'w-64'}
+            ${isMobileDrawerOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          `}
+        >
+          {/* Header Seal & Brand */}
+          <div className="p-3.5 border-b border-border-soft dark:border-[#1E293B] bg-surface-2/60 dark:bg-[#0E1422] flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1 shadow-xs shrink-0">
+                <img src="/siris.png" alt="S.I.R.I.S" className="w-full h-full object-contain" />
               </div>
-              <p className="text-[10px] text-text-dim font-medium truncate mt-0.5 uppercase">
-                {isSuperAdmin ? 'STATE CRIME COMMAND' : role === 'STATION_ADMIN' ? 'STATION COMMAND' : 'INVESTIGATOR WORKSTATION'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-1.5">
-          {isSuperAdmin && (
-            <>
-              <div className="text-[9px] uppercase font-bold text-brand px-3 mt-2 mb-1 tracking-widest flex items-center gap-1.5">
-                <Sparkles size={11} className="text-brand" /> PROACTIVE AI INTELLIGENCE
-              </div>
-              <NavItem to="/intelligence-fusion" icon={Layers} label="Intelligence Fusion Center" />
-              <NavItem to="/predictive-risk" icon={TrendingUp} label="Predictive Crime Risk" />
-              <NavItem to="/resource-optimization" icon={Truck} label="AI Resource Optimization" />
-              
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-4 mb-1 tracking-widest">COMMAND & SUPERVISION</div>
-              <NavItem to="/dashboard" icon={LayoutDashboard} label="Operations Command" />
-              <NavItem to="/supervisor/performance" icon={Users} label="Officer & Station Performance" />
-              <NavItem to="/supervisor/assignment" icon={CheckSquare} label="Case Assignment Desk" />
-              <NavItem to="/supervisor/approvals" icon={ClipboardCheck} label="Sanctions & Warrants" badge={pendingRequests} />
-              <NavItem to="/supervisor/dispatch" icon={Navigation} label="Fleet & Patrol Dispatch" />
-              <NavItem to="/network" icon={GitBranch} label="Cross-Station Knowledge Graph" />
-              <NavItem to="/supervisor/escalations" icon={AlertTriangle} label="Emergency Broadcast & QRT" badge={unreadAlerts} />
-              <NavItem to="/supervisor/audit" icon={History} label="Audit & Statutory Logs" />
-              <NavItem to="/assistant" icon={Bot} label="Supervisor AI Co-Pilot" />
-              <NavItem to="/analytics" icon={FileBarChart} label="Crime Analytics" />
-              <NavItem to="/news" icon={Radio} label="Live Intelligence Feed" />
-              <NavItem to="/map" icon={Globe} label="GIS Crime Map" />
-              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'BNS Legal Intelligence')} />
-            </>
-          )}
-
-          {role === 'STATION_ADMIN' && (
-            <>
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-2 mb-1 tracking-widest">STATION COMMAND</div>
-              <NavItem to="/dashboard" icon={LayoutDashboard} label={t('nav.dashboard', 'Operations Desk')} />
-              
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-3 mb-1 tracking-widest">INVESTIGATIONS & FIR</div>
-              <NavItem to="/cases" icon={Search} label={t('nav.allCases', 'Active Cases')} />
-              <NavItem to="/cases/new" icon={FilePlus} label={t('nav.registerFir', 'Register FIR')} />
-              <NavItem to="/evidence" icon={FileText} label={t('nav.evidenceVault', 'Evidence Vault')} />
-              
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-3 mb-1 tracking-widest">INTELLIGENCE SUBSYSTEMS</div>
-              <NavItem to="/intelligence-fusion" icon={Layers} label="Intelligence Fusion Center" />
-              <NavItem to="/predictive-risk" icon={TrendingUp} label="Predictive Crime Risk" />
-              <NavItem to="/resource-optimization" icon={Truck} label="AI Resource Optimization" />
-              <NavItem to="/assistant" icon={Sparkles} label={t('nav.aiAssistant', 'AI Assistant')} />
-              <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
-              <NavItem to="/analytics" icon={FileBarChart} label="Analytics" />
-              <NavItem to="/news" icon={Radio} label="Live News Feed" />
-              <NavItem to="/map" icon={Globe} label="GIS Crime Map" />
-              <NavItem to="/cctv" icon={Video} label="CCTV Surveillance" />
-              <NavItem to="/trail" icon={Navigation} label="Vehicle Geo-Trail" />
-              <NavItem to="/money-trail" icon={CreditCard} label="AML Money Trail" />
-              <NavItem to="/cdr" icon={PhoneCall} label="CDR Intelligence" />
-              <NavItem to="/identity-review" icon={UserCheck} label="Identity Review" />
-              <NavItem to="/anomalies" icon={TrendingUp} label="Anomaly Radar" />
-              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'BNS Statutory Legal RAG')} />
-              
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-3 mb-1 tracking-widest">OPERATIONS & PERSONNEL</div>
-              <NavItem to="/investigators" icon={Users} label={t('nav.officers', 'Station Officers')} />
-              <NavItem to="/requests" icon={Lock} label={t('nav.accessRequests', 'Access Requests')} badge={pendingRequests} />
-              <NavItem to="/reports" icon={FileBarChart} label={t('nav.caseReports', 'Case Reports')} />
-            </>
-          )}
-
-          {role === 'OFFICER' && (
-            <>
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-2 mb-1 tracking-widest">OFFICER DESK</div>
-              <NavItem to="/dashboard" icon={LayoutDashboard} label={t('nav.dashboard', 'Operations Desk')} />
-              <NavItem to="/cases" icon={Briefcase} label={t('nav.myInvestigations', 'My Investigations')} />
-              <NavItem to="/requests" icon={Lock} label={t('nav.accessRequests', 'Access Requests')} badge={outgoingRequestsCount} />
-              
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-3 mb-1 tracking-widest">INVESTIGATION TOOLS</div>
-              <NavItem to="/cases/new" icon={FilePlus} label={t('nav.registerFir', 'Register FIR')} />
-              <NavItem to="/evidence" icon={FileText} label={t('nav.evidenceVault', 'Evidence Vault')} />
-              <NavItem to="/case-search" icon={Search} label={t('nav.caseSearch', 'Case Search')} />
-              
-              <div className="text-[9px] uppercase font-bold text-text-faint px-3 mt-3 mb-1 tracking-widest">INTELLIGENCE SUBSYSTEMS</div>
-              <NavItem to="/intelligence-fusion" icon={Layers} label="Intelligence Fusion Center" />
-              <NavItem to="/predictive-risk" icon={TrendingUp} label="Predictive Crime Risk" />
-              <NavItem to="/resource-optimization" icon={Truck} label="AI Resource Optimization" />
-              <NavItem to="/assistant" icon={Sparkles} label={t('nav.aiAssistant', 'AI Assistant')} />
-              <NavItem to="/network" icon={Network} label={t('nav.networkExplorer', 'Network Explorer')} />
-              <NavItem to="/analytics" icon={FileBarChart} label="Analytics" />
-              <NavItem to="/news" icon={Radio} label="Live News Feed" />
-              <NavItem to="/map" icon={Globe} label="GIS Crime Map" />
-              <NavItem to="/cctv" icon={Video} label="CCTV Surveillance" />
-              <NavItem to="/trail" icon={Navigation} label="Vehicle Geo-Trail" />
-              <NavItem to="/money-trail" icon={CreditCard} label="AML Money Trail" />
-              <NavItem to="/cdr" icon={PhoneCall} label="CDR Intelligence" />
-              <NavItem to="/identity-review" icon={UserCheck} label="Identity Review" />
-              <NavItem to="/anomalies" icon={TrendingUp} label="Anomaly Radar" />
-              <NavItem to="/legal" icon={Scale} label={t('nav.legalIntelligence', 'BNS Statutory RAG')} />
-            </>
-          )}
-        </nav>
-
-        {/* User Officer Panel */}
-        <div className="p-3 border-t border-border-soft bg-surface-2/70">
-          <div className="flex items-center gap-2.5 mb-2.5 px-1">
-            <div className="h-8 w-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand font-bold border border-brand/30 shrink-0 shadow-sm">
-              {state.currentUser.name.charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-text truncate">{state.currentUser.name}</p>
-              <p className="text-[10px] text-brand truncate font-mono">{state.currentUser.rank}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between pt-1 border-t border-border-soft/60">
-            <button
-              onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-text-dim hover:text-text hover:bg-surface-hover rounded-md transition-colors cursor-pointer"
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            >
-              {theme === 'dark' ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-text-dim" />}
-              <span className="text-[11px] font-medium">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-            </button>
-            <button 
-              onClick={() => { dispatch({ type: 'SET_USER', payload: null as any }); navigate('/'); }}
-              className="p-1.5 text-text-dim hover:text-danger hover:bg-danger/10 rounded-md transition-colors cursor-pointer"
-              title="Secure Logout"
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-bg">
-        <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0 z-20 shadow-[0_1px_2px_rgba(16,24,40,0.02)]">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSidebarCollapsed(prev => !prev)}
-              className="p-2 text-text-dim hover:text-brand hover:bg-surface-hover border border-border-soft rounded-xl transition-all cursor-pointer mr-1"
-              title={isSidebarCollapsed ? "Expand Sidebar Navigation" : "Collapse Sidebar Navigation"}
-            >
-              {isSidebarCollapsed ? <Menu size={18} /> : <PanelLeftClose size={18} />}
-            </button>
-
-            {state.currentUser.stationId ? (
-              <div className="flex items-center gap-2 text-xs font-mono bg-surface-2 px-3 py-1.5 rounded-lg border border-border">
-                <span className="text-text-faint font-semibold uppercase text-[10px]">{t('header.station', 'STATION')}:</span>
-                <span className="font-bold text-text">
-                  {state.stations.find(s => s.id === state.currentUser?.stationId)?.name}
-                </span>
-                <span className="text-text-dim text-[10px]">[{state.currentUser.stationId}]</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-xs font-mono bg-brand/10 text-brand px-3 py-1.5 rounded-lg border border-brand/30 font-semibold">
-                <Shield size={14} /> {t('header.stateCommand', 'ODISHA POLICE · STATE COMMAND')}
-              </div>
-            )}
-            
-            {state.isProcessingIntelligence && (
-              <div className="flex items-center gap-2 text-[10px] font-bold text-brand animate-pulse uppercase tracking-wider bg-brand/5 border border-brand/20 px-2.5 py-1 rounded-md">
-                <Sparkles size={13} /> {t('header.engineRunning', 'Intelligence Engine Running...')}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Language Selector Dropdown */}
-            <div className="relative" ref={langMenuRef}>
-              <button
-                type="button"
-                onClick={() => setLangMenuOpen(prev => !prev)}
-                className="flex items-center gap-2 bg-surface hover:bg-surface-hover border border-border hover:border-brand/40 px-3 py-1.5 rounded-lg text-xs font-semibold text-text transition-all shadow-sm"
-                title="Change language"
-              >
-                <Globe size={14} className="text-brand shrink-0" />
-                <span className="font-medium">{currentLangObj.nativeLabel}</span>
-                <ChevronDown size={12} className={`text-text-dim transition-transform duration-200 ${langMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {langMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-44 bg-surface border border-border rounded-xl shadow-lg py-1.5 z-50 animate-fade-in divide-y divide-border-soft">
-                  <div className="px-3 py-1 text-[10px] font-bold font-mono uppercase tracking-wider text-text-faint">
-                    {t('header.language', 'Select Language')}
+              {!isSidebarCollapsed && (
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h1 className="text-sm font-bold font-mono text-accent dark:text-[#38BDF8] tracking-tight leading-none">
+                      S.I.R.I.S.
+                    </h1>
+                    <span className="inline-flex items-center gap-1 text-[8px] font-mono font-bold uppercase px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> LIVE
+                    </span>
                   </div>
-                  <div className="py-1">
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        type="button"
-                        onClick={() => {
-                          setLanguage(lang.code as LanguageCode);
-                          setLangMenuOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors ${
-                          language === lang.code
-                            ? 'bg-brand/10 text-brand font-bold'
-                            : 'text-text hover:bg-surface-hover'
-                        }`}
-                      >
-                        <span>{lang.nativeLabel}</span>
-                        <span className="text-[10px] font-mono text-text-dim uppercase">
-                          {lang.code.toUpperCase()}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                  <p className="text-[9px] text-text-dim dark:text-[#94A3B8] font-mono truncate mt-0.5">
+                    {isSuperAdmin ? 'STATE CRIME COMMAND' : 'INVESTIGATION WORKSTATION'}
+                  </p>
                 </div>
               )}
             </div>
 
-            <button 
-              onClick={() => navigate('/intelligence/alerts')} 
-              className="relative p-2 text-text-dim hover:text-text hover:bg-surface-hover rounded-lg transition-colors border border-border-soft"
-              title="Intelligence Alerts"
+            {/* Mobile Close Button */}
+            <button
+              onClick={() => setIsMobileDrawerOpen(false)}
+              className="p-1 rounded-md text-text-dim hover:text-text hover:bg-surface-hover lg:hidden"
             >
-              <Bell size={17} />
-              {unreadAlerts > 0 && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-danger rounded-full ring-2 ring-surface"></span>
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Grouped Accordion Navigation */}
+          <nav className="flex-1 overflow-y-auto py-2.5 px-2 space-y-2 scrollbar-thin">
+            {navGroups.map((group) => {
+              const isGroupOpen = openGroups[group.id] ?? true;
+              const hasActiveChild = group.items.some((item) => location.pathname === item.to);
+
+              return (
+                <div key={group.id} className="space-y-0.5">
+                  {/* Group Header (Expanded view only) */}
+                  {!isSidebarCollapsed && (
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-bold font-mono uppercase tracking-wider text-text-dim dark:text-[#64748B] hover:text-text dark:hover:text-[#94A3B8] transition-colors cursor-pointer rounded"
+                    >
+                      <span className={hasActiveChild ? 'text-accent dark:text-[#38BDF8]' : ''}>
+                        {group.title}
+                      </span>
+                      {isGroupOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                    </button>
+                  )}
+
+                  {/* Group Nav Items */}
+                  {(isSidebarCollapsed || isGroupOpen) && (
+                    <div className="space-y-0.5">
+                      {group.items.map((item) => (
+                        <NavItem
+                          key={item.to}
+                          to={item.to}
+                          icon={item.icon}
+                          label={item.label}
+                          badge={item.badge}
+                          collapsed={isSidebarCollapsed}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          {/* User Officer Panel */}
+          <div className="p-2.5 border-t border-border-soft dark:border-[#1E293B] bg-surface-2/70 dark:bg-[#0E1422]">
+            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2'} mb-2 px-1`}>
+              <div className="h-7 w-7 rounded-md bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 shrink-0 text-xs">
+                {state.currentUser.name.charAt(0)}
+              </div>
+              {!isSidebarCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-text dark:text-[#F8FAFC] truncate">
+                    {state.currentUser.name}
+                  </p>
+                  <p className="text-[9px] text-text-dim dark:text-[#94A3B8] truncate font-mono">
+                    {state.currentUser.rank || 'Investigating Officer'}
+                  </p>
+                </div>
               )}
-            </button>
-          </div>
-        </header>
-
-        {/* Global Alert Banner */}
-        {unreadAlerts > 0 && (
-          <div className="bg-danger/10 border-b border-danger/20 px-6 py-2 flex items-center justify-between z-10 shrink-0">
-            <div className="flex items-center gap-2 text-sm text-danger font-medium">
-              <ShieldAlert size={16} className="text-danger shrink-0" />
-              <span className="font-bold uppercase tracking-wider text-[10px] text-danger">{t('header.newIntel', 'NEW INTELLIGENCE DISCOVERED:')}</span>
-              <span className="text-xs text-text">{state.alerts.find(a => !a.isRead)?.message}</span>
             </div>
-            <button 
-              onClick={() => navigate('/intelligence/alerts')}
-              className="text-xs font-bold text-danger hover:underline uppercase tracking-wider"
-            >
-              {t('header.viewDetails', 'VIEW DETAILS')}
-            </button>
-          </div>
-        )}
+            
+            <div className={`flex items-center ${isSidebarCollapsed ? 'flex-col gap-1.5' : 'justify-between'} pt-1.5 border-t border-border-soft/60 dark:border-[#1E293B]`}>
+              <button
+                onClick={toggleTheme}
+                className={`flex items-center gap-1.5 px-2 py-1 text-xs text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-md transition-colors cursor-pointer ${
+                  isSidebarCollapsed ? 'w-full justify-center' : ''
+                }`}
+                title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              >
+                {theme === 'dark' ? <Sun size={13} className="text-amber-400" /> : <Moon size={13} className="text-text-dim" />}
+                {!isSidebarCollapsed && (
+                  <span className="text-[10px] font-mono">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+                )}
+              </button>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <Outlet />
-        </div>
-      </main>
-      <AiraOrb />
-      <AiraVoicePanel />
-    </div>
+              <button 
+                onClick={() => {
+                  dispatch({ type: 'SET_USER', payload: null as any });
+                  navigate('/');
+                }}
+                className="p-1 text-text-dim dark:text-[#94A3B8] hover:text-danger hover:bg-danger/10 rounded-md transition-colors cursor-pointer"
+                title="Secure Logout"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-bg">
+          {/* Top Bar Header */}
+          <header className="h-13 bg-surface dark:bg-[#0B0F17] border-b border-border-soft dark:border-[#1E293B] flex items-center justify-between px-4 sm:px-6 shrink-0 z-20 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              {/* Desktop Collapse Button */}
+              <button
+                onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+                className="hidden lg:flex p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-accent dark:hover:text-[#38BDF8] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] rounded-lg transition-all cursor-pointer"
+                title={isSidebarCollapsed ? 'Expand Navigation' : 'Collapse Navigation'}
+              >
+                {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+              </button>
+
+              {/* Mobile Hamburger Button */}
+              <button
+                onClick={() => setIsMobileDrawerOpen(true)}
+                className="flex lg:hidden p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-accent dark:hover:text-[#38BDF8] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] rounded-lg transition-all cursor-pointer"
+                title="Open Navigation"
+              >
+                <Menu size={16} />
+              </button>
+
+              {state.currentUser.stationId ? (
+                <div className="flex items-center gap-1.5 text-xs font-mono bg-surface-2 dark:bg-[#0E1422] px-2.5 py-1 rounded-lg border border-border-soft dark:border-[#1E293B]">
+                  <span className="text-text-dim dark:text-[#64748B] text-[9px] uppercase font-bold">STATION:</span>
+                  <span className="font-bold text-text dark:text-[#F8FAFC] text-[11px]">
+                    {state.stations.find((s) => s.id === state.currentUser?.stationId)?.name || 'Khandagiri PS'}
+                  </span>
+                  <span className="text-text-dim dark:text-[#64748B] text-[9px]">[{state.currentUser.stationId}]</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs font-mono bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] px-2.5 py-1 rounded-lg border border-accent/30 dark:border-[#38BDF8]/30 font-bold text-[11px]">
+                  <Shield size={13} /> ODISHA POLICE STATE COMMAND
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {/* Language Selector Dropdown */}
+              <div className="relative" ref={langMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setLangMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-1.5 bg-surface-2 dark:bg-[#0E1422] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] px-2.5 py-1 rounded-lg text-xs font-semibold text-text dark:text-[#F8FAFC] transition-all"
+                  title="Change language"
+                >
+                  <Globe size={13} className="text-accent dark:text-[#38BDF8] shrink-0" />
+                  <span className="font-medium text-[11px]">{currentLangObj.nativeLabel}</span>
+                  <ChevronDown size={11} className={`text-text-dim transition-transform duration-200 ${langMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {langMenuOpen && (
+                  <div className="absolute right-0 mt-1.5 w-40 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl shadow-lg py-1 z-50 animate-fade-in divide-y divide-border-soft dark:divide-[#1E293B]">
+                    <div className="px-3 py-1 text-[9px] font-bold font-mono uppercase tracking-wider text-text-dim dark:text-[#64748B]">
+                      {t('header.language', 'Select Language')}
+                    </div>
+                    <div className="py-1">
+                      {languages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          onClick={() => {
+                            setLanguage(lang.code as LanguageCode);
+                            setLangMenuOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors ${
+                            language === lang.code
+                              ? 'bg-accent/15 text-accent dark:text-[#38BDF8] font-bold'
+                              : 'text-text dark:text-[#E2E8F0] hover:bg-surface-hover dark:hover:bg-[#1E293B]'
+                          }`}
+                        >
+                          <span>{lang.nativeLabel}</span>
+                          <span className="text-[9px] font-mono text-text-dim uppercase">
+                            {lang.code.toUpperCase()}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Alert Bell */}
+              <button 
+                onClick={() => navigate('/requests')} 
+                className="relative p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-lg transition-colors border border-border-soft dark:border-[#1E293B]"
+                title="Pending Station Requests"
+              >
+                <Bell size={15} />
+                {pendingRequests > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-surface"></span>
+                )}
+              </button>
+            </div>
+          </header>
+
+          {/* Page Content Viewport */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+            <Outlet />
+          </div>
+        </main>
+
+        <AiraOrb />
+        <AiraVoicePanel />
+      </div>
     </AiraProvider>
   );
 }
 
-function NavItem({ to, icon: Icon, label, badge, collapsed }: { to: string, icon: any, label: string, badge?: number, collapsed?: boolean }) {
+function NavItem({
+  to,
+  icon: Icon,
+  label,
+  badge,
+  collapsed,
+}: {
+  to: string;
+  icon: any;
+  label: string;
+  badge?: number;
+  collapsed?: boolean;
+}) {
   return (
     <NavLink
       to={to}
       title={collapsed ? label : undefined}
       className={({ isActive }) => `
-        group relative flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer overflow-hidden
-        ${isActive 
-          ? 'bg-surface-2 text-brand font-bold border border-border-soft/80 shadow-xs' 
-          : 'text-text-dim hover:text-text hover:bg-surface-hover/80 border border-transparent'
+        group relative flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-2.5'} py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer overflow-hidden
+        ${
+          isActive 
+            ? 'bg-surface-2 dark:bg-[#131B2E] text-accent dark:text-[#38BDF8] font-bold border border-border-soft dark:border-[#1E293B] shadow-2xs' 
+            : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#0E1422] border border-transparent'
         }
       `}
     >
       {({ isActive }) => (
         <>
           {isActive && (
-            <span className="absolute left-0 top-0 bottom-0 w-1 bg-brand rounded-r" />
+            <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent dark:bg-[#38BDF8] rounded-r" />
           )}
-          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'} min-w-0`}>
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2'} min-w-0`}>
             <Icon 
-              size={16} 
-              className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
-                isActive ? 'text-brand' : 'text-text-dim group-hover:text-text'
+              size={15} 
+              className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${
+                isActive ? 'text-accent dark:text-[#38BDF8]' : 'text-text-dim dark:text-[#64748B] group-hover:text-text dark:group-hover:text-[#F8FAFC]'
               }`} 
             />
-            {!collapsed && <span className="tracking-tight truncate">{label}</span>}
+            {!collapsed && <span className="tracking-tight truncate text-[11px]">{label}</span>}
           </div>
-          {(!collapsed && badge !== undefined && badge > 0) && (
-            <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold shadow-xs ${
-              isActive ? 'bg-brand/15 text-brand border border-brand/30' : 'bg-danger/20 text-danger-bright border border-danger/30'
-            }`}>
+          {!collapsed && badge !== undefined && badge > 0 && (
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
               {badge}
             </span>
+          )}
+          {collapsed && badge !== undefined && badge > 0 && (
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500 ring-1 ring-surface" />
           )}
         </>
       )}
     </NavLink>
   );
 }
-

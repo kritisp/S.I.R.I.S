@@ -40,20 +40,21 @@ class SpringBootPostgresAdapter:
             result = None
             if has_case_records:
                 query_sb = text("""
-                    SELECT 
-                        c.id, 
-                        c.fir_number, 
-                        c.station_id, 
-                        ps.name as police_station, 
-                        ps.district, 
-                        ps.state, 
-                        c.description, 
-                        c.crime_type, 
-                        c.status, 
+                    SELECT
+                        c.id,
+                        c.fir_number,
+                        c.station_id,
+                        ps.name as police_station,
+                        ps.district,
+                        ps.state,
+                        c.description,
+                        c.crime_type,
+                        c.status,
                         c.priority,
                         c.incident_date,
                         c.created_at as registration_date,
-                        c.created_at
+                        c.created_at,
+                        c.updated_at
                     FROM case_records c
                     LEFT JOIN police_stations ps ON c.station_id = ps.id
                     WHERE CAST(c.id AS VARCHAR) = :case_id OR c.fir_number = :case_id
@@ -107,7 +108,7 @@ class SpringBootPostgresAdapter:
                 ).scalars().all()
                 for s in suspects:
                     if s:
-                        persons.append({"name": s, "role": "SUSPECT"})
+                        persons.append({"id": f"{cid_str}-person-{len(persons)}", "name": s, "role": "SUSPECT"})
             except Exception:
                 pass
 
@@ -120,7 +121,7 @@ class SpringBootPostgresAdapter:
                 ).scalars().all()
                 for v in vehs:
                     if v:
-                        vehicles.append({"registration_number": v, "role": "SUSPECT_VEHICLE"})
+                        vehicles.append({"id": f"{cid_str}-vehicle-{len(vehicles)}", "registration_number": v, "role": "SUSPECT_VEHICLE"})
             except Exception:
                 pass
 
@@ -136,11 +137,11 @@ class SpringBootPostgresAdapter:
                     eval = (e.get("entity_value") or "").strip()
                     erole = e.get("role") or "OTHER"
                     if etype in ("PERSON", "SUSPECT", "COMPLAINANT", "WITNESS") and eval:
-                        persons.append({"name": eval, "role": erole})
+                        persons.append({"id": f"{cid_str}-person-{len(persons)}", "name": eval, "role": erole})
                     elif etype in ("VEHICLE", "CAR", "BIKE") and eval:
-                        vehicles.append({"registration_number": eval, "role": erole})
+                        vehicles.append({"id": f"{cid_str}-vehicle-{len(vehicles)}", "registration_number": eval, "role": erole})
                     elif etype in ("PHONE", "MOBILE", "CONTACT") and eval:
-                        phones.append({"normalized_number": eval, "role": erole})
+                        phones.append({"id": f"{cid_str}-phone-{len(phones)}", "normalized_number": eval, "role": erole})
             except Exception:
                 pass
 

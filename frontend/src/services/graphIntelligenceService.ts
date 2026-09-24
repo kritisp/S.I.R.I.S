@@ -8,7 +8,7 @@
  */
 
 const BASE_URL = import.meta.env.VITE_INTEL_SERVICE_URL || 'http://localhost:8000/api/v1/graph';
-const TIMEOUT_MS = 5000;
+const TIMEOUT_MS = 30000;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -136,200 +136,43 @@ async function fetchWithTimeout<T>(url: string, options: RequestInit = {}): Prom
   }
 }
 
-// ─── Fallback mock data ───────────────────────────────────────────────────────
-// Used when the Python service is unreachable (demo / offline mode).
+/** Thrown by getCaseWorkspace()/projectCaseToGraph() so callers can distinguish
+ * "case genuinely not found" (404) from "service unreachable" (network/timeout). */
+export class WorkspaceApiError extends Error {
+  status?: number;
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'WorkspaceApiError';
+    this.status = status;
+  }
+}
 
-const MOCK_NODES: GraphNode[] = [
-  { id: 'phone:alpha-coord', label: 'Biswanath Mishra (Coord)', entity_type: 'PHONE', node_type: 'entity', betweenness: 0.82, influence: 0.9, complaint_count: 0, is_flagged: true, district: 'Khordha (Bhubaneswar)' },
-  { id: 'phone:alpha-h1', label: 'Rakesh Kumar Sahoo', entity_type: 'PHONE', node_type: 'entity', betweenness: 0.32, influence: 0.4, complaint_count: 7, is_flagged: false, district: 'Khordha (Bhubaneswar)' },
-  { id: 'phone:alpha-h2', label: 'Dipak Nayak', entity_type: 'PHONE', node_type: 'entity', betweenness: 0.28, influence: 0.36, complaint_count: 7, is_flagged: false, district: 'Khordha (Bhubaneswar)' },
-  { id: 'phone:alpha-h3', label: 'Santosh Behera', entity_type: 'PHONE', node_type: 'entity', betweenness: 0.25, influence: 0.32, complaint_count: 7, is_flagged: false, district: 'Cuttack' },
-  { id: 'phone:alpha-h4', label: 'Pramod Mohanty', entity_type: 'PHONE', node_type: 'entity', betweenness: 0.22, influence: 0.29, complaint_count: 7, is_flagged: false, district: 'Cuttack' },
-  { id: 'phone:beta-coord', label: 'Subhendu Tripathy (Coord)', entity_type: 'PHONE', node_type: 'entity', betweenness: 0.71, influence: 0.78, complaint_count: 0, is_flagged: true, district: 'Sambalpur' },
-  { id: 'phone:beta-h1', label: 'Dilip Kumar Swain', entity_type: 'PHONE', node_type: 'entity', betweenness: 0.18, influence: 0.24, complaint_count: 10, is_flagged: false, district: 'Sambalpur' },
-  { id: 'phone:gamma-coord', label: 'Jagannath Pradhan (Coord)', entity_type: 'PERSON', node_type: 'entity', betweenness: 0.61, influence: 0.65, complaint_count: 0, is_flagged: true, district: 'Khordha (Bhubaneswar)' },
-  { id: 'case:fir-001', label: 'FIR-2026-BBSR-001-2001', entity_type: 'CASE', node_type: 'case', betweenness: 0, influence: 0, complaint_count: 0, is_flagged: false, district: 'Khordha (Bhubaneswar)', station_id: 'PS_BBSR_001' },
-  { id: 'case:fir-002', label: 'FIR-2026-BBSR-001-2002', entity_type: 'CASE', node_type: 'case', betweenness: 0, influence: 0, complaint_count: 0, is_flagged: false, district: 'Khordha (Bhubaneswar)', station_id: 'PS_BBSR_001' },
-  { id: 'case:fir-003', label: 'FIR-2026-CTC-001-2003', entity_type: 'CASE', node_type: 'case', betweenness: 0, influence: 0, complaint_count: 0, is_flagged: false, district: 'Cuttack', station_id: 'PS_CTC_001' },
-];
-
-const MOCK_EDGES: GraphEdge[] = [
-  { source: 'case:fir-001', target: 'phone:alpha-h1', weight: 1 },
-  { source: 'case:fir-002', target: 'phone:alpha-h2', weight: 1 },
-  { source: 'case:fir-003', target: 'phone:alpha-h3', weight: 1 },
-  { source: 'phone:alpha-h1', target: 'phone:alpha-coord', weight: 0.9 },
-  { source: 'phone:alpha-h2', target: 'phone:alpha-coord', weight: 0.9 },
-  { source: 'phone:alpha-h3', target: 'phone:alpha-coord', weight: 0.9 },
-  { source: 'phone:alpha-h4', target: 'phone:alpha-coord', weight: 0.9 },
-  { source: 'phone:beta-h1', target: 'phone:beta-coord', weight: 0.9 },
-];
-
-const MOCK_ALERTS: IntelAlert[] = [
-  {
-    id: 'fp-mastermind-alpha',
-    severity: 'CRITICAL',
-    alert_type: 'MASTERMIND_IDENTIFIED',
-    title: 'Potential network coordinator identified — Biswanath Mishra',
-    details: {
-      node_id: 'phone:alpha-coord',
-      entity_type: 'PHONE',
-      label: 'Biswanath Mishra',
-      betweenness_score: 0.82,
-      influence_score: 0.9,
-      complaint_count: 0,
-      note: 'High betweenness + influence — appears in 0 FIRs but bridges all 3 ALPHA cells.',
-    },
-    fingerprint: 'fp-mastermind-alpha',
-    created_at: Date.now(),
-    status: 'OPEN',
-  },
-  {
-    id: 'fp-entity-reuse-h1',
-    severity: 'HIGH',
-    alert_type: 'ENTITY_REUSE',
-    title: 'Phone entity reused across 7 complaints',
-    details: { node_id: 'phone:alpha-h1', entity_type: 'PHONE', complaint_count: 7, label: 'Rakesh Kumar Sahoo' },
-    fingerprint: 'fp-entity-reuse-h1',
-    created_at: Date.now() - 3600000,
-    status: 'OPEN',
-  },
-  {
-    id: 'fp-beta-mastermind',
-    severity: 'CRITICAL',
-    alert_type: 'MASTERMIND_IDENTIFIED',
-    title: 'Potential network coordinator — Subhendu Tripathy (BETA cell)',
-    details: {
-      node_id: 'phone:beta-coord',
-      entity_type: 'PHONE',
-      betweenness_score: 0.71,
-      complaint_count: 0,
-      note: 'Bridges Sambalpur, Rourkela, Berhampur BETA cells.',
-    },
-    fingerprint: 'fp-beta-mastermind',
-    created_at: Date.now() - 7200000,
-    status: 'OPEN',
-  },
-];
-
-function createFallbackWorkspaceData(caseId: string): CaseWorkspaceData {
-  const cleanId = caseId || 'FIR-2026-BBSR-001-2001';
-  const firNum = cleanId.startsWith('FIR') ? cleanId : `FIR-2026-BBSR-${cleanId}`;
-
-  return {
-    case_id: cleanId,
-    fir_number: firNum,
-    is_authoritative_postgres: false,
-    metadata: {
-      title: `Armed Robbery & Inter-State Theft Operation (${cleanId})`,
-      fir_number: firNum,
-      status: 'INVESTIGATION_ACTIVE',
-      priority: 'CRITICAL',
-      police_station: 'Capital Police Station',
-      station_id: 'OP-BBSR-CAP',
-      district: 'Khordha (Bhubaneswar)',
-      state: 'Odisha',
-      registration_date: new Date().toISOString().split('T')[0],
-      incident_date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-      crime_type: 'Armed Robbery & AML Money Trail',
-      crime_category: 'HEINOUS_CRIME',
-      description: 'Coordinated heist involving suspect vehicle OD-02-AB-1234, linked phone intercepts, and high-frequency UPI transaction bursts across station boundaries.',
-      created_at: new Date().toISOString(),
-    },
-    location: {
-      id: 'loc-bbsr-central',
-      locality: 'Janpath Master Canteen Square',
-      city: 'Bhubaneswar',
-      district: 'Khordha',
-      state: 'Odisha',
-      latitude: 20.2961,
-      longitude: 85.8245,
-    },
-    entities: {
-      persons: [
-        { id: 'person-01', name: 'Biswanath Mishra', role: 'SUSPECT_COORDINATOR', gender: 'MALE' },
-        { id: 'person-02', name: 'Rakesh Kumar Sahoo', role: 'FIELD_OPERATIVE', gender: 'MALE' },
-        { id: 'person-03', name: 'Dipak Nayak', role: 'RECEIVER_ACCOMPLICE', gender: 'MALE' },
-      ],
-      phones: [
-        { id: 'phone-01', normalized_number: '+919861012345' },
-        { id: 'phone-02', normalized_number: '+919437098765' },
-        { id: 'phone-03', normalized_number: '+917008123456' },
-      ],
-      vehicles: [
-        { id: 'veh-01', registration_number: 'OD-02-AB-1234', make: 'Hyundai', model: 'Creta', vehicle_type: 'SUV', role: 'GETAWAY_VEHICLE' },
-        { id: 'veh-02', registration_number: 'OR-02-BV-9876', make: 'TVS', model: 'Apache', vehicle_type: 'MOTORCYCLE', role: 'RECONNAISSANCE' },
-      ],
-      locations: [
-        { id: 'loc-01', locality: 'Janpath Square', city: 'Bhubaneswar', district: 'Khordha', state: 'Odisha' },
-        { id: 'loc-02', locality: 'Vani Vihar Overbridge', city: 'Bhubaneswar', district: 'Khordha', state: 'Odisha' },
-      ],
-      evidences: [
-        { id: 'ev-01', evidence_type: 'CCTV_FOOTAGE', source: 'Janpath Traffic AI Camera #4', status: 'ANALYZED' },
-        { id: 'ev-02', evidence_type: 'CDR_EXCEL_CSV', source: 'Tower Dump - Master Canteen', status: 'PROCESSED' },
-        { id: 'ev-03', evidence_type: 'BANK_STATEMENT', source: 'SBI Account Txn Logs', status: 'FLAGGED' },
-      ],
-      legal_sections: [
-        { id: 'sec-310', code: 'BNS 310(2)', title: 'Dacoity with Attempt to Cause Death', law_name: 'Bharatiya Nyaya Sanhita 2023' },
-        { id: 'sec-111', code: 'BNS 111', title: 'Organized Crime Network Operations', law_name: 'Bharatiya Nyaya Sanhita 2023' },
-        { id: 'sec-317', code: 'BNS 317(3)', title: 'Stolen Property Handling', law_name: 'Bharatiya Nyaya Sanhita 2023' },
-      ],
-    },
-    graph_neighborhood: {
-      nodes: MOCK_NODES,
-      edges: MOCK_EDGES,
-      total_nodes: MOCK_NODES.length,
-      total_edges: MOCK_EDGES.length,
-      focus_node_id: `case:${cleanId}`,
-    },
-    analytics: {
-      degree: 6,
-      pagerank: 0.0842,
-      betweenness: 0.7412,
-      community_id: 1,
-      connected_components: 2,
-      is_important_connector: true,
-    },
-    cross_case_intelligence: {
-      related_cases: [
-        {
-          target_case_id: 'FIR-2026-BBSR-001-2002',
-          confidence_score: 0.94,
-          relationship_type: 'SHARED_VEHICLE_AND_PHONE',
-          explanation: 'Vehicle OD-02-AB-1234 spotted within 12 minutes of secondary armed robbery in Saheed Nagar.',
-        },
-        {
-          target_case_id: 'FIR-2026-CTC-001-2003',
-          confidence_score: 0.88,
-          relationship_type: 'CROSS_DISTRICT_MODUS_OPERANDI',
-          explanation: 'Identical UPI money layering chain detected across Cuttack Choudwar industrial belt.',
-        },
-      ],
-      shared_counts: {
-        persons: 2,
-        phones: 3,
-        vehicles: 1,
-        locations: 2,
-      },
-    },
-    patterns: [
-      {
-        pattern_id: 'pat-01',
-        pattern_name: 'Cross-District High-Speed Getaway',
-        confidence_score: 0.96,
-        supporting_evidence: 'ANPR camera hits at Janpath (22:14) and NH-16 Cuttack Toll (22:31).',
-        cases_involved: [cleanId, 'FIR-2026-CTC-001-2003'],
-      },
-    ],
-    alerts: [
-      {
-        id: 'alert-ws-01',
-        severity: 'CRITICAL',
-        alert_type: 'MASTERMIND_LINK',
-        title: 'Mastermind Node Match: Biswanath Mishra',
-        message: 'Biswanath Mishra linked to 3 active robbery FIRs across Khordha and Cuttack.',
-      },
-    ],
-  };
+/** Fetch that preserves HTTP status / distinguishes network failure from a real error
+ * response, instead of collapsing everything to null like fetchWithTimeout(). */
+async function fetchStatusAware<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, { ...options, signal: controller.signal });
+  } catch (err: any) {
+    clearTimeout(timer);
+    throw new WorkspaceApiError(
+      err?.name === 'AbortError' ? 'Central intelligence service timed out.' : `Central intelligence service unreachable: ${err?.message || err}`
+    );
+  }
+  clearTimeout(timer);
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const body = await res.json();
+      detail = typeof body?.detail === 'string' ? body.detail : JSON.stringify(body?.detail ?? body);
+    } catch {
+      // response body wasn't JSON; fall through with empty detail
+    }
+    throw new WorkspaceApiError(detail || `Request failed with status ${res.status}`, res.status);
+  }
+  return (await res.json()) as T;
 }
 
 // ─── Service API ──────────────────────────────────────────────────────────────
@@ -443,15 +286,28 @@ export const graphIntelligenceService = {
     }
   },
 
+  /**
+   * Loads the READ-ONLY case workspace: saved PostgreSQL case data plus whatever has
+   * already been projected into Neo4j. Never triggers extraction or graph writes.
+   * Throws WorkspaceApiError (with `.status` set to 404 when the case genuinely does
+   * not exist) instead of ever returning fabricated data.
+   */
   async getCaseWorkspace(caseId: string): Promise<CaseWorkspaceData> {
     const enc = encodeURIComponent(caseId);
     const workspaceUrl = BASE_URL.replace('/graph', '/workspace');
-    const remoteData = await fetchWithTimeout<CaseWorkspaceData>(`${workspaceUrl}/case/${enc}`);
-    if (remoteData && (remoteData.fir_number || remoteData.metadata)) {
-      return remoteData;
-    }
-    console.warn(`[graphIntelligenceService] Central intelligence workspace API unavailable for ${caseId}, generating fallback workspace payload.`);
-    return createFallbackWorkspaceData(caseId);
+    return fetchStatusAware<CaseWorkspaceData>(`${workspaceUrl}/case/${enc}`);
+  },
+
+  /**
+   * Explicit, investigator-triggered action that (re)projects a case's PostgreSQL data
+   * into the Neo4j intelligence graph. This is the ONLY call in this client that causes
+   * a graph write — call it after registering a new FIR, or to refresh a stale/failed
+   * projection. Never call this automatically from a page-load/GET flow.
+   */
+  async projectCaseToGraph(caseId: string): Promise<{ status: string; graph_status: string; counts: Record<string, number> }> {
+    const enc = encodeURIComponent(caseId);
+    const workspaceUrl = BASE_URL.replace('/graph', '/workspace');
+    return fetchStatusAware(`${workspaceUrl}/case/${enc}/project`, { method: 'POST' });
   },
 
   /**
@@ -467,6 +323,9 @@ export interface CaseWorkspaceData {
   case_id: string;
   fir_number: string;
   is_authoritative_postgres: boolean;
+  /** available | not_projected | stale | failed — see workspace.py graph_status computation. */
+  graph_status?: 'available' | 'not_projected' | 'stale' | 'failed' | 'processing';
+  graph_status_message?: string | null;
   metadata: {
     title: string;
     fir_number: string;

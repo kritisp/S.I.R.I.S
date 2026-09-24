@@ -52,21 +52,21 @@ export function ResourceOptimizationPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-6 rounded-2xl border border-border-soft shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-6 rounded-2xl border border-border-soft shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
-              <Sparkles size={12} /> CCTNS 2.0 RESOURCE ENGINE • SIMULATION
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Truck size={12} /> PATROL DISPATCH ALLOCATION ENGINE
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand border border-brand/30 text-[10px] font-mono font-bold uppercase tracking-wider">
               STATEWIDE PATROL DISPATCH
             </span>
           </div>
           <h1 className="text-2xl font-display font-bold text-text tracking-tight flex items-center gap-2">
-            AI RESOURCE OPTIMIZATION
+            PATROL RESOURCE & DISPATCH ALLOCATION
           </h1>
           <p className="text-xs text-text-dim mt-1 font-sans">
-            Convert predicted risk into actionable deployment recommendations
+            Optimizes patrol unit routing and sector allocation based on active FIR density and risk terrain indicators.
           </p>
         </div>
 

@@ -15,21 +15,21 @@ export function PredictiveRiskPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-6 rounded-2xl border border-border-soft shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-6 rounded-2xl border border-border-soft shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
-              <Sparkles size={12} /> PROTOTYPE • SYNTHETIC DATA
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <ShieldAlert size={12} /> SPATIAL RISK MODEL • STATISTICAL FORECAST
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand border border-brand/30 text-[10px] font-mono font-bold uppercase tracking-wider">
               BHUBANESWAR URBAN
             </span>
           </div>
           <h1 className="text-2xl font-display font-bold text-text tracking-tight flex items-center gap-2">
-            PREDICTIVE CRIME RISK
+            PREDICTIVE CRIME RISK TERRAIN
           </h1>
           <p className="text-xs text-text-dim mt-1 font-sans">
-            AI-assisted risk forecasting using historical and recent synthetic intelligence signals
+            Spatial-temporal risk forecasting utilizing FIR historical patterns, geographic incidence vectors, and environmental risk factors.
           </p>
         </div>
 

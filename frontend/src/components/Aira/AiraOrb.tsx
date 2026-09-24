@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Mic, VolumeX, Volume2, Sparkles, X, Keyboard } from 'lucide-react';
+import { Mic, VolumeX, Volume2, Sparkles, X, Keyboard, Shield, Activity, Radio, Waves } from 'lucide-react';
 import { useAira } from './AiraProvider';
 
 export function AiraOrb() {
@@ -132,7 +132,7 @@ export function AiraOrb() {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <span className="text-[10px] font-mono font-bold text-brand uppercase tracking-wider flex items-center gap-1">
-                <Sparkles size={11} /> S.I.R.I.S. AI CO-PILOT HUD
+                <Sparkles size={11} /> Investigation Assistant HUD
               </span>
             </div>
             <button
@@ -144,7 +144,7 @@ export function AiraOrb() {
           </div>
 
           {liveTranscript ? (
-            <div className="p-3 rounded-xl bg-surface-2 border border-accent/40 text-xs font-mono text-accent font-bold animate-pulse">
+            <div className="p-3 rounded-xl bg-surface-2 border border-accent/40 text-xs font-mono text-accent font-bold">
               &quot;{liveTranscript}&quot;
             </div>
           ) : (
@@ -162,7 +162,7 @@ export function AiraOrb() {
                   onClick={() => sendQuery(sug)}
                   className="text-[10px] px-2.5 py-1 rounded-lg bg-surface-2 border border-border-soft text-brand font-mono font-bold hover:bg-surface-hover transition-colors cursor-pointer"
                 >
-                  ⚡ {sug}
+                  {sug}
                 </button>
               ))}
             </div>
@@ -170,62 +170,114 @@ export function AiraOrb() {
         </div>
       )}
 
-      {/* Floating Multi-Ring AI Orb */}
-      <div className="relative group flex items-center justify-center cursor-pointer" onClick={handleOrbClick}>
-        {/* Outer Pulsing Ambient Aura Ring */}
+      {/* Holographic S.I.R.I.S. Command Sphere */}
+      <div 
+        className="relative group flex items-center justify-center cursor-pointer select-none" 
+        onClick={handleOrbClick}
+        title="S.I.R.I.S. Intelligence & Voice Assistant (Click to expand / Drag to reposition)"
+      >
+        {/* High-Contrast Floating Drop Shadow & Ambient Aura */}
         <div 
-          className={`absolute inset-0 rounded-full blur-md transition-all duration-300 ${
-            orbState === 'listening' ? 'bg-emerald-500/50 animate-ping' :
-            orbState === 'thinking' ? 'bg-amber-500/50 scale-125 animate-spin' :
-            orbState === 'speaking' ? 'bg-cyan-500/40 scale-125 animate-pulse' :
-            'bg-brand/30 scale-110 group-hover:scale-125'
+          className={`absolute inset-0 rounded-full transition-all duration-300 pointer-events-none ${
+            orbState === 'listening' ? 'bg-rose-500/35 blur-2xl' :
+            orbState === 'thinking' ? 'bg-amber-500/30 blur-2xl' :
+            orbState === 'speaking' ? 'bg-cyan-500/35 blur-2xl' :
+            'bg-slate-950/60 blur-xl group-hover:bg-amber-500/30'
           }`} 
-          style={{ transform: `scale(${orbScale * 1.2})` }}
+          style={{ transform: `scale(${isListening ? 1.5 + audioLevel * 1.2 : 1.3})` }}
         />
 
-        {/* Rotating Outer Gyro Ring */}
+        {/* Outer High-Contrast Tactical Radar Ring (with dark background backing to pop from white page) */}
         <div 
-          className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-dashed transition-all duration-300 flex items-center justify-center ${
-            orbState === 'listening' ? 'border-emerald-400 rotate-45' :
-            orbState === 'thinking' ? 'border-amber-400 animate-spin' :
-            orbState === 'speaking' ? 'border-cyan-400 animate-pulse' :
-            'border-brand/60 group-hover:border-brand'
+          className={`w-24 h-24 sm:w-26 sm:h-26 rounded-full border-2 transition-all duration-300 flex items-center justify-center relative bg-slate-950/80 shadow-[0_12px_36px_rgba(0,0,0,0.5)] ${
+            orbState === 'listening' ? 'border-rose-400 border-dashed animate-spin' :
+            orbState === 'thinking' ? 'border-amber-400 border-dashed animate-spin' :
+            orbState === 'speaking' ? 'border-cyan-400 border-dashed' :
+            'border-amber-500/70 border-dashed group-hover:border-amber-400 group-hover:rotate-45'
           }`}
-          style={{ transform: `scale(${orbScale})` }}
+          style={{ transform: `scale(${isListening ? 1.06 + audioLevel * 0.3 : 1})` }}
         >
-          {/* Inner Glowing Orb Nucleus */}
-          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-            orbState === 'listening' ? 'bg-gradient-to-tr from-emerald-600 to-teal-400 text-white shadow-emerald-500/50 scale-105' :
-            orbState === 'thinking' ? 'bg-gradient-to-tr from-amber-600 to-yellow-400 text-white shadow-amber-500/50 scale-105' :
-            orbState === 'speaking' ? 'bg-gradient-to-tr from-cyan-600 to-blue-400 text-white shadow-cyan-500/50 scale-105' :
-            'bg-gradient-to-tr from-brand to-brand-bright text-bg shadow-brand/40 group-hover:scale-105'
-          }`}>
-            <Sparkles size={24} className={orbState !== 'idle' ? 'animate-bounce' : ''} />
+          {/* Compass / HUD North Indicator */}
+          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-amber-400 border border-slate-950 shadow-sm shadow-amber-400" />
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-600/80 border border-slate-950" />
+
+          {/* Inner Luminous Crystal Well (72px) with sharp high-contrast border */}
+          <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full p-1 bg-white border-2 border-amber-400 shadow-[0_4px_16px_rgba(0,0,0,0.35)] flex items-center justify-center">
+            
+            {/* High-Contrast Core Orb */}
+            <div className={`w-full h-full rounded-full flex flex-col items-center justify-center transition-all duration-300 relative overflow-hidden ${
+              orbState === 'listening'
+                ? 'bg-gradient-to-tr from-rose-700 via-rose-600 to-rose-500 text-white shadow-rose-900/80'
+                : orbState === 'thinking'
+                ? 'bg-gradient-to-tr from-amber-700 via-amber-600 to-amber-500 text-white shadow-amber-900/80'
+                : orbState === 'speaking'
+                ? 'bg-gradient-to-tr from-cyan-700 via-cyan-600 to-cyan-500 text-white shadow-cyan-900/80'
+                : 'bg-gradient-to-b from-white to-amber-50/70'
+            }`}>
+              
+              {/* Dynamic State Graphics */}
+              {isListening ? (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 bg-white rounded-full transition-all duration-75 shadow-sm" style={{ height: `${Math.max(8, audioLevel * 32)}px` }} />
+                    <span className="w-1.5 bg-white rounded-full transition-all duration-75 shadow-sm" style={{ height: `${Math.max(14, audioLevel * 44)}px` }} />
+                    <span className="w-1.5 bg-white rounded-full transition-all duration-75 shadow-sm" style={{ height: `${Math.max(8, audioLevel * 28)}px` }} />
+                  </div>
+                  <span className="text-[8px] font-mono font-black uppercase tracking-wider text-white">REC</span>
+                </div>
+              ) : orbState === 'thinking' ? (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Activity size={24} className="animate-spin text-white drop-shadow" />
+                  <span className="text-[7px] font-mono font-bold uppercase tracking-wider text-amber-200">INTEL</span>
+                </div>
+              ) : orbState === 'speaking' ? (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Waves size={24} className="animate-pulse text-white drop-shadow" />
+                  <span className="text-[7px] font-mono font-bold uppercase tracking-wider text-cyan-200">VOICE</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-1 w-full h-full relative">
+                  <img 
+                    src="/siris_clean.png" 
+                    alt="S.I.R.I.S." 
+                    className="w-13 h-13 sm:w-14 sm:h-14 object-contain group-hover:scale-110 transition-transform duration-300 pointer-events-none" 
+                  />
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Dedicated High-Visibility S.I.R.I.S. Station Pill Badge */}
+        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-slate-950 border border-amber-400 shadow-[0_4px_12px_rgba(0,0,0,0.7)] flex items-center gap-1 z-10 pointer-events-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          <span className="text-[10px] font-mono font-black tracking-widest text-amber-300 drop-shadow">
+            S.I.R.I.S.
+          </span>
         </div>
       </div>
 
-      {/* Floating Controls Bar */}
-      <div className="mt-2.5 flex items-center gap-2 glass px-3 py-1.5 rounded-full bg-surface border border-border-soft shadow-xl text-xs font-mono">
+      {/* High-Contrast Floating Controls Toolbar */}
+      <div className="mt-3 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950 border-2 border-amber-500/80 shadow-[0_8px_24px_rgba(0,0,0,0.6)] text-xs font-mono backdrop-blur-md">
         {/* Click-to-Talk Mic Toggle Button */}
         <button
           onClick={(e) => { e.stopPropagation(); toggleListening(); }}
-          className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
             isListening
-              ? 'bg-rose-600 text-white shadow-md shadow-rose-500/30 scale-105 animate-pulse'
-              : 'bg-surface-2 text-text hover:text-brand border border-border-soft'
+              ? 'bg-rose-600 text-white shadow-rose-900/50 scale-105 animate-pulse border border-rose-300'
+              : 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black border border-amber-300 hover:scale-105'
           }`}
           title="Click to toggle mic recording"
         >
-          <Mic size={12} className={isListening ? 'animate-bounce' : ''} />
-          <span>{isListening ? 'LISTENING (CLICK TO STOP)' : 'CLICK TO TALK'}</span>
+          <Mic size={13} className={isListening ? 'animate-bounce' : 'text-slate-950'} />
+          <span>{isListening ? 'LISTENING…' : 'CLICK TO TALK'}</span>
         </button>
 
         {/* Keyboard Input Toggle */}
         <button
           onClick={(e) => { e.stopPropagation(); setShowTypingInput(!showTypingInput); }}
-          className="p-1.5 rounded-full text-text-dim hover:text-brand hover:bg-surface-hover transition-colors cursor-pointer"
-          title="Type query"
+          className="p-1.5 rounded-full text-slate-300 hover:text-amber-400 hover:bg-slate-800 transition-colors cursor-pointer border border-slate-800 hover:border-amber-500/40"
+          title="Type investigation query"
         >
           <Keyboard size={14} />
         </button>
@@ -233,10 +285,10 @@ export function AiraOrb() {
         {/* Mute Toggle */}
         <button
           onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-          className="p-1.5 rounded-full text-text-dim hover:text-brand hover:bg-surface-hover transition-colors cursor-pointer"
+          className="p-1.5 rounded-full text-slate-300 hover:text-amber-400 hover:bg-slate-800 transition-colors cursor-pointer border border-slate-800 hover:border-amber-500/40"
           title={isMuted ? 'Unmute' : 'Mute'}
         >
-          {isMuted ? <VolumeX size={14} className="text-danger-bright" /> : <Volume2 size={14} />}
+          {isMuted ? <VolumeX size={14} className="text-rose-400" /> : <Volume2 size={14} className="text-slate-300" />}
         </button>
       </div>
 

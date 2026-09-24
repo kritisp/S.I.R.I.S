@@ -8,7 +8,10 @@ dotenv.config({ path: '../.env' });
 dotenv.config(); // fallback to local .env
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 3001;
+// PORT takes priority (Docker/Render/Heroku convention, matches server/Dockerfile's
+// ENV PORT=10000 and docker-compose.yml's voice-gateway port mapping); SERVER_PORT is
+// kept as a fallback for existing local-dev .env files that set it instead.
+const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
@@ -63,6 +66,94 @@ app.get('/api/gemini/live-token', async (req, res) => {
     return res.status(500).json({
       error: error?.message || 'Failed to create Gemini Live token',
     });
+  }
+});
+
+/**
+ * Server-side Groq Chat Completions proxy — keeps GROQ_API_KEY out of the browser
+ * bundle (previously shipped as VITE_GROQ_API_KEY, callable directly from Groq's API
+ * by anyone who extracted it from the frontend build).
+ * POST /api/groq/chat-completion
+ */
+app.post('/api/groq/chat-completion', async (req, res) => {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) {
+    return res.status(500).json({ error: 'GROQ_API_KEY is not configured in server environment.' });
+  }
+
+  const { messages, temperature = 0.2 } = req.body || {};
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'messages array is required.' });
+  }
+
+  try {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+        messages,
+        temperature,
+        max_tokens: 1024,
+      }),
+    });
+
+    if (!groqRes.ok) {
+      const errText = await groqRes.text();
+      console.warn('[GROQ PROXY] Groq API returned HTTP error:', groqRes.status, errText);
+      return res.status(groqRes.status).json({ error: `Groq API error HTTP ${groqRes.status}` });
+    }
+
+    const data = await groqRes.json();
+    return res.json({ content: data?.choices?.[0]?.message?.content || '' });
+  } catch (error) {
+    console.error('[GROQ PROXY ERROR]:', error?.message || error);
+    return res.status(500).json({ error: error?.message || 'Groq proxy request failed' });
+  }
+});
+
+/**
+ * Server-side Bhashini translation/pipeline proxy — keeps the Bhashini API key and
+ * UDYAT key out of the browser bundle (previously shipped as VITE_BHASINI_API_KEY /
+ * VITE_BHASINI_UDYAT_KEY).
+ * POST /api/bhasini/pipeline
+ */
+app.post('/api/bhasini/pipeline', async (req, res) => {
+  const bhasiniApiKey = process.env.BHASINI_API_KEY;
+  const bhasiniUdyatKey = process.env.BHASINI_UDYAT_KEY;
+  if (!bhasiniApiKey || !bhasiniUdyatKey) {
+    return res.status(500).json({ error: 'BHASINI_API_KEY / BHASINI_UDYAT_KEY are not configured in server environment.' });
+  }
+
+  const { pipelineUrl, payload } = req.body || {};
+  const targetUrl = pipelineUrl || 'https://dhruva-api.bhasini.gov.in/services/inference/pipeline';
+  if (!payload) {
+    return res.status(400).json({ error: 'payload is required.' });
+  }
+
+  try {
+    const bhasiniRes = await fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': bhasiniApiKey,
+        'userID': bhasiniUdyatKey,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await bhasiniRes.json();
+    if (!bhasiniRes.ok) {
+      console.warn('[BHASINI PROXY] Bhashini API returned HTTP error:', bhasiniRes.status, data);
+      return res.status(bhasiniRes.status).json(data);
+    }
+    return res.json(data);
+  } catch (error) {
+    console.error('[BHASINI PROXY ERROR]:', error?.message || error);
+    return res.status(500).json({ error: error?.message || 'Bhashini proxy request failed' });
   }
 });
 

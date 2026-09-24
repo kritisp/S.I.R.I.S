@@ -6,9 +6,6 @@
 
 import { getAuthToken, API_BASE_URL } from './api/client';
 
-const RAG_BASE_URL = (import.meta.env.VITE_RAG_API_URL as string) || 'http://localhost:8001';
-const INTERNAL_API_KEY = (import.meta.env.VITE_INTERNAL_API_KEY as string) || 'crimelens-internal-secret-key-2026';
-
 export interface BnsSectionRecommendation {
   law: string; // 'BNS'
   section: string; // e.g. 'Section 305'
@@ -452,91 +449,66 @@ function generateFallbackFirAnalysis(firText?: string, fileName?: string): Proce
 
 export const firAnalysisService = {
   /**
-   * Submits FIR text narrative or document file to real backend RAG pipeline.
-   * Employs multi-tier failover (FastAPI port 8001, Vite proxy, port 8000, Spring Boot /fir/process-raw)
-   * and falls back to statutory heuristic analyzer if all remote backend services are offline.
+   * Submits FIR text narrative or document file to the real backend RAG pipeline via
+   * Spring Boot's POST /cases/fir/process-raw (backend/.../CaseService.processRawFir),
+   * which holds the fir-bns-rag internal service key server-side and forwards the
+   * request. Falls back to the statutory heuristic analyzer (clearly labeled in the UI
+   * as "STATUTORY ENGINE INTAKE", never disguised as live RAG output) only if that
+   * single, authenticated backend call fails.
+   *
+   * Previously this also tried 4 direct-to-FastAPI endpoints carrying the
+   * fir-bns-rag/central-intelligence internal service secret in a VITE_-prefixed env
+   * var shipped to the browser bundle. That secret exposure has been removed — the
+   * user's own auth token is sufficient since Spring Boot mediates the call.
    */
   async processFIR(firText?: string, file?: File): Promise<ProcessFirResponse> {
     if ((!firText || !firText.trim()) && !file) {
       throw new Error('Please provide FIR incident narrative text or upload a document.');
     }
 
-    // Build FormData
-    const buildFormData = () => {
-      const fd = new FormData();
-      if (file) {
-        fd.append('file', file);
-      }
-      if (firText && firText.trim()) {
-        fd.append('fir_text', firText.trim());
-      }
-      return fd;
-    };
-
-    // Potential endpoints to attempt in priority order
-    const candidateEndpoints: Array<{ url: string; headers: Record<string, string>; isSpringBoot?: boolean }> = [
-      {
-        url: 'http://localhost:8001/process-fir',
-        headers: { 'X-Internal-API-Key': INTERNAL_API_KEY },
-      },
-      {
-        url: '/process-fir',
-        headers: { 'X-Internal-API-Key': INTERNAL_API_KEY },
-      },
-      {
-        url: `${RAG_BASE_URL}/process-fir`,
-        headers: { 'X-Internal-API-Key': INTERNAL_API_KEY },
-      },
-      {
-        url: 'http://localhost:8000/process-fir',
-        headers: { 'X-Internal-API-Key': INTERNAL_API_KEY },
-      },
-      {
-        url: `${API_BASE_URL}/cases/fir/process-raw`,
-        headers: getAuthToken() ? { 'Authorization': `Bearer ${getAuthToken()}` } : {},
-        isSpringBoot: true,
-      },
-    ];
-
-    let lastError: any = null;
-
-    for (const candidate of candidateEndpoints) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s network timeout for dense RAG inference
-
-        const res = await fetch(candidate.url, {
-          method: 'POST',
-          headers: candidate.headers,
-          body: buildFormData(),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const json = await res.json();
-          // If Spring Boot wraps response in ApiResponse (with data field)
-          const data = (json && typeof json === 'object' && 'data' in json && json.data) ? json.data : json;
-          if (data && (data.bns_sections || data.summary || data.crime_type)) {
-            console.log('[firAnalysisService] Successfully received RAG analysis from live backend:', candidate.url);
-            data.execution_metadata = {
-              source: 'rag_live',
-              timestamp: new Date().toISOString(),
-            };
-            return data as ProcessFirResponse;
-          }
-        } else {
-          console.warn(`[firAnalysisService] Endpoint ${candidate.url} returned HTTP ${res.status}`);
-        }
-      } catch (err: any) {
-        lastError = err;
-        // Proceed to next candidate endpoint
-      }
+    const fd = new FormData();
+    if (file) {
+      fd.append('file', file);
+    }
+    if (firText && firText.trim()) {
+      fd.append('fir_text', firText.trim());
     }
 
-    // If all remote network attempts failed (e.g. backend servers not running in development mode)
-    console.warn('[firAnalysisService] Remote RAG backends unreachable. Falling back to S.I.R.I.S Statutory Legal Engine:', lastError);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s network timeout for dense RAG inference
+
+      const token = getAuthToken();
+      const res = await fetch(`${API_BASE_URL}/cases/fir/process-raw`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: fd,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        // Spring Boot wraps the response in ApiResponse (with a data field)
+        const data = (json && typeof json === 'object' && 'data' in json && json.data) ? json.data : json;
+        if (data && (data.bns_sections || data.summary || data.crime_type)) {
+          data.execution_metadata = {
+            source: 'rag_live',
+            timestamp: new Date().toISOString(),
+          };
+          return data as ProcessFirResponse;
+        }
+      } else {
+        console.warn(`[firAnalysisService] Backend returned HTTP ${res.status} for FIR analysis.`);
+      }
+    } catch (err: any) {
+      console.warn('[firAnalysisService] Backend FIR analysis request failed:', err?.message || err);
+    }
+
+    // Backend unreachable or returned an unusable response — fall back to the clearly
+    // labeled statutory heuristic engine rather than surfacing a raw network error.
+    console.warn('[firAnalysisService] Falling back to S.I.R.I.S Statutory Legal Engine (offline mode).');
     return generateFallbackFirAnalysis(firText, file?.name);
   },
 };

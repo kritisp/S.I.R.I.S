@@ -83,6 +83,8 @@ export function EvidenceVault() {
   // State for ingested evidence items
   const [evidenceItems, setEvidenceItems] = useState<IngestionEvidenceItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [evidenceLoadError, setEvidenceLoadError] = useState<string | null>(null);
+  const [isDemoData, setIsDemoData] = useState(false);
   
   // Verification Modal State
   const [verifyingItem, setVerifyingItem] = useState<IngestionEvidenceItem | null>(null);
@@ -93,27 +95,29 @@ export function EvidenceVault() {
   useEffect(() => {
     evidenceApi.getEvidence()
       .then((backendItems) => {
-        if (backendItems && backendItems.length > 0) {
-          const mapped: IngestionEvidenceItem[] = backendItems.map((b) => ({
-            id: b.id,
-            type: b.type || 'EVIDENCE RECORD',
-            source: b.caseId ? `Case #${b.caseId}` : 'Station Registry',
-            timestamp: b.uploadedAt ? new Date(b.uploadedAt).toLocaleString('en-IN') : '2026-09-01 18:30 IST',
-            status: 'READY',
-            iconName: b.type?.includes('PHONE') || b.type?.includes('CDR') ? 'PhoneCall' : b.type?.includes('VIDEO') || b.type?.includes('CCTV') ? 'Video' : 'FileText',
-            details: b.description || 'Uploaded investigative material'
-          }));
-          setEvidenceItems(mapped);
-          setSelectedIds(mapped.map(m => m.id));
-        } else {
-          setEvidenceItems(DEMO_EVIDENCE_PRESETS);
-          setSelectedIds(DEMO_EVIDENCE_PRESETS.map(e => e.id));
-        }
+        // A genuinely empty vault is a real, truthful state — show it as empty, not as
+        // fabricated demo evidence. Demo data is only ever loaded via the explicit
+        // "Load Demo Evidence" button below (handleLoadDemoEvidence), never silently.
+        const mapped: IngestionEvidenceItem[] = (backendItems || []).map((b) => ({
+          id: b.id,
+          type: b.type || 'EVIDENCE RECORD',
+          source: b.caseId ? `Case #${b.caseId}` : 'Station Registry',
+          timestamp: b.uploadedAt ? new Date(b.uploadedAt).toLocaleString('en-IN') : '2026-09-01 18:30 IST',
+          status: 'READY',
+          iconName: b.type?.includes('PHONE') || b.type?.includes('CDR') ? 'PhoneCall' : b.type?.includes('VIDEO') || b.type?.includes('CCTV') ? 'Video' : 'FileText',
+          details: b.description || 'Uploaded investigative material'
+        }));
+        setEvidenceItems(mapped);
+        setSelectedIds(mapped.map(m => m.id));
+        setIsDemoData(false);
+        setEvidenceLoadError(null);
       })
       .catch((err) => {
         console.warn('Evidence API fetch notice:', err);
-        setEvidenceItems(DEMO_EVIDENCE_PRESETS);
-        setSelectedIds(DEMO_EVIDENCE_PRESETS.map(e => e.id));
+        setEvidenceItems([]);
+        setSelectedIds([]);
+        setIsDemoData(false);
+        setEvidenceLoadError(err?.message || 'Failed to load evidence vault from backend.');
       });
   }, []);
 
@@ -124,6 +128,8 @@ export function EvidenceVault() {
   const handleLoadDemoEvidence = () => {
     setEvidenceItems(DEMO_EVIDENCE_PRESETS);
     setSelectedIds(DEMO_EVIDENCE_PRESETS.map(e => e.id));
+    setIsDemoData(true);
+    setEvidenceLoadError(null);
     setActiveTab('queue');
   };
 
@@ -284,7 +290,7 @@ export function EvidenceVault() {
             <button
               onClick={() => setActiveTab('audit-chain')}
               className={`px-3 py-1.5 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'audit-chain' ? 'bg-[#059669] text-white shadow-sm' : 'text-emerald-400 hover:text-emerald-300'
+                activeTab === 'audit-chain' ? 'bg-emerald-600 text-white shadow-sm' : 'text-emerald-400 hover:text-emerald-300'
               }`}
             >
               <FolderCheck size={13} />
@@ -309,8 +315,11 @@ export function EvidenceVault() {
 
             <div className="max-w-md mx-auto space-y-2">
               <h2 className="text-base font-mono font-bold text-text uppercase tracking-wider">
-                EVIDENCE QUEUE IS CURRENTLY EMPTY
+                {evidenceLoadError ? 'EVIDENCE VAULT UNAVAILABLE' : 'EVIDENCE QUEUE IS CURRENTLY EMPTY'}
               </h2>
+              {evidenceLoadError && (
+                <p className="text-xs text-danger-bright font-mono">{evidenceLoadError}</p>
+              )}
               <p className="text-xs text-text-dim font-sans leading-relaxed">
                 Click <strong className="text-brand">&quot;LOAD DEMO EVIDENCE PRESETS&quot;</strong> to populate the 5 multi-modal investigation feeds (FIR Report, CDR Extracts, CCTV ANPR, Geo Trail, Financial Transactions) for <strong className="text-brand font-mono">{workspaceQuery}</strong>.
               </p>
@@ -340,6 +349,11 @@ export function EvidenceVault() {
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-mono font-bold text-text uppercase tracking-wider flex items-center gap-2">
                 <FileText size={14} className="text-brand" /> MULTI-MODAL EVIDENCE INGESTION QUEUE ({selectedIds.length} / {evidenceItems.length} SELECTED)
+                {isDemoData && (
+                  <span className="text-[9px] font-bold text-warning bg-warning/10 border border-warning/30 px-2 py-0.5 rounded normal-case tracking-normal">
+                    Demo Data — Not From Case Records
+                  </span>
+                )}
               </h2>
 
               <div className="flex items-center gap-2">

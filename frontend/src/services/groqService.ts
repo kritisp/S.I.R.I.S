@@ -1,12 +1,12 @@
 /**
  * Groq LLM Cloud Reasoning Service for S.I.R.I.S.
- * Directly communicates with Groq OpenAI-compatible Chat Completions API.
- * Uses primary model: `openai/gpt-oss-120b` (or configured fallback).
+ * Calls the voice-gateway server's /api/groq/chat-completion proxy, which holds
+ * GROQ_API_KEY server-side. Previously called Groq's API directly from the browser
+ * with a VITE_GROQ_API_KEY exposed in the built bundle — removed for security.
  */
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
-const GROQ_MODEL = import.meta.env.VITE_GROQ_MODEL || "openai/gpt-oss-120b";
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const VOICE_GATEWAY_URL = (import.meta.env.VITE_GEMINI_TOKEN_URL as string || 'http://localhost:3001/api/gemini/live-token').replace(/\/api\/gemini\/live-token$/, '');
+const GROQ_PROXY_URL = `${VOICE_GATEWAY_URL}/api/groq/chat-completion`;
 
 export interface ParsedFirDraft {
   isFirRequest: boolean;
@@ -27,32 +27,20 @@ class GroqService {
    * Execute chat completion query against Groq Cloud API.
    */
   async chatCompletion(messages: { role: string; content: string }[], temperature = 0.2): Promise<string> {
-    if (!GROQ_API_KEY) {
-      throw new Error("GROQ_API_KEY is not configured.");
-    }
-
-    const response = await fetch(GROQ_URL, {
+    const response = await fetch(GROQ_PROXY_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: messages,
-        temperature: temperature,
-        max_tokens: 1024
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages, temperature })
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.warn("[GroqService] Groq API returned HTTP error:", response.status, errText);
-      throw new Error(`Groq API error HTTP ${response.status}`);
+      console.warn("[GroqService] Groq proxy returned HTTP error:", response.status, errText);
+      throw new Error(`Groq proxy error HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    return data?.choices?.[0]?.message?.content || "";
+    return data?.content || "";
   }
 
   /**

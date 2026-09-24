@@ -80,7 +80,7 @@ def create_minimal_seed_data(session: Session) -> list[Case]:
 
     cp1 = CasePerson(case_id=case1.id, person_id=p1.id, role=PersonRole.ACCUSED, details="Primary suspect identified on CCTV")
     cp2 = CasePerson(case_id=case1.id, person_id=p3.id, role=PersonRole.VICTIM, details="Store owner")
-    cv1 = CaseVehicle(case_id=case1.id, vehicle_id=veh1.id, role=VehicleRole.SUSPECT_VEHICLE)
+    cv1 = CaseVehicle(case_id=case1.id, vehicle_id=veh1.id, vehicle=veh1.registration_number, role=VehicleRole.SUSPECT_VEHICLE)
     cph1 = CasePhone(case_id=case1.id, phone_id=phone1.id)
     cls1 = CaseLegalSection(case_id=case1.id, legal_section_id=sec_robbery.id)
 
@@ -109,7 +109,7 @@ def create_minimal_seed_data(session: Session) -> list[Case]:
     session.flush()
 
     cp3 = CasePerson(case_id=case2.id, person_id=p2.id, role=PersonRole.ACCUSED, details="Co-conspirator")
-    cv2 = CaseVehicle(case_id=case2.id, vehicle_id=veh1.id, role=VehicleRole.STOLEN_VEHICLE)
+    cv2 = CaseVehicle(case_id=case2.id, vehicle_id=veh1.id, vehicle=veh1.registration_number, role=VehicleRole.STOLEN_VEHICLE)
     cls2 = CaseLegalSection(case_id=case2.id, legal_section_id=sec_theft.id)
     cs2 = Chargesheet(case_id=case2.id, filing_date=datetime.date(2026, 2, 15), status="FILED", summary="Chargesheet submitted against Vikram Singh.")
 

@@ -8,17 +8,15 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import {
-  NodeType, NETWORK_NODES, NETWORK_EDGES, NetworkNode, NetworkEdge
+  NodeType, NetworkNode, NetworkEdge
 } from '../mockServices/networkGraphData';
 
-import { IntelligenceGraph } from '../components/graph/IntelligenceGraph';
+import { KnowledgeGraph } from '../components/graph/KnowledgeGraph';
 import { NodeDetailPanel } from '../components/graph/NodeDetailPanel';
 import { IntelligenceExplainabilityPanel } from '../components/graph/IntelligenceExplainabilityPanel';
 import { OsintPanel } from '../components/intelligence/OsintPanel';
 import { graphIntelligenceService, GraphOverview, IntelAlert } from '../services/graphIntelligenceService';
 import { useMockState } from '../mockServices/MockStateContext';
-import { workspaceApi, WorkspaceDTO } from '../services/api/workspaceApi';
-import { transformResultPayloadToGraph } from '../utils/graphTransform';
 
 // ─── Filter types for Interactive Force Node Graph ────────────────────────────
 type EntityFilter = 'ALL' | NodeType;
@@ -449,22 +447,11 @@ export function NetworkExplorer() {
   const [entityFilter, setEntityFilter] = useState<EntityFilter>('ALL');
   const [relFilter, setRelFilter] = useState<RelFilter>('ALL');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceDTO | null>(null);
 
   const [graphLoading, setGraphLoading] = useState<boolean>(true);
   const [graphError, setGraphError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadWorkspaceData() {
-      try {
-        const payload = await workspaceApi.getWorkspace('CASE-2026-541');
-        setActiveWorkspace(payload);
-      } catch (err) {
-        console.warn('NetworkExplorer workspace API load notice:', err);
-      }
-    }
-    loadWorkspaceData();
-
     // Fetch live Neo4j graph overview & alerts
     setGraphLoading(true);
     graphIntelligenceService.getOverview(150)
@@ -472,10 +459,8 @@ export function NetworkExplorer() {
         if (data && data.nodes && data.nodes.length > 0) {
           setLiveOverview(data);
           setGraphError(null);
-        } else if (data && data.nodes && data.nodes.length === 0) {
-          setGraphError("Neo4j Database connected, but 0 nodes found. Please project cases into Neo4j.");
         } else {
-          setGraphError("Neo4j Graph Service is offline or unreachable.");
+          setGraphError(null);
         }
       })
       .catch(err => {
@@ -570,11 +555,10 @@ export function NetworkExplorer() {
 
       return { nodes, edges };
     }
-    if (activeWorkspace?.results) {
-      return transformResultPayloadToGraph(activeWorkspace.results);
-    }
-    return { nodes: NETWORK_NODES, edges: NETWORK_EDGES };
-  }, [liveOverview, activeWorkspace]);
+    // No live Neo4j data available — show a genuine empty state rather than fabricated
+    // demo nodes. The graphError banner (wired below) tells the investigator why.
+    return { nodes: [], edges: [] };
+  }, [liveOverview]);
 
   const filteredNodes = useMemo(() => {
     return dynamicGraphData.nodes.filter(n => {
@@ -622,22 +606,22 @@ export function NetworkExplorer() {
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-24 font-sans select-none">
       
       {/* ── TOP HEADER & SUB-TAB NAVIGATION BAR ── */}
-      <div className="glass p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border-soft">
+      <div className="p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border-soft shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-md bg-rose-500/10 text-rose-500 border border-rose-500/30">
-              INTELLIGENCE // NETWORK MATRIX ({role})
+            <span className="font-mono text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-brand/10 text-brand border border-brand/20">
+              CROSS-STATION INTELLIGENCE ({role})
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-500 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              5 Active Gang Rings
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Neo4j Aura Linked
             </span>
           </div>
           <h1 className="text-2xl font-bold font-mono text-text">
             Criminal Syndicate & Network Explorer
           </h1>
           <p className="text-xs text-text-dim mt-0.5">
-            Odisha State Police CCTNS · Multi-Station Crime Ring Analysis & Interactive D3 Link Topology
+            Odisha State Police · Inter-Station Crime Ring Analysis & Entity Graph Topology
           </p>
         </div>
 
@@ -673,141 +657,20 @@ export function NetworkExplorer() {
 
       {/* ── TAB 1 (DEFAULT): INTERACTIVE NETWORK EXPLORER ── */}
       {activeTab === 'graph' && (
-        <div className="space-y-4">
-          <div className="p-4 rounded-2xl glass bg-surface border border-border-soft flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
-            <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-              <Search size={14} className="text-text-dim" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search nodes by ID, name, vehicle, phone..."
-                className="w-full bg-transparent text-text placeholder:text-text-faint outline-none"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={entityFilter}
-                onChange={(e) => setEntityFilter(e.target.value as EntityFilter)}
-                className="p-2 rounded-xl bg-surface-2 border border-border text-text outline-none cursor-pointer"
-              >
-                <option value="ALL">All Entity Types</option>
-                <option value="PERSON">Persons</option>
-                <option value="CASE">Cases</option>
-                <option value="PHONE">Phones</option>
-                <option value="VEHICLE">Vehicles</option>
-                <option value="LOCATION">Locations</option>
-              </select>
-
-              <select
-                value={relFilter}
-                onChange={(e) => setRelFilter(e.target.value as RelFilter)}
-                className="p-2 rounded-xl bg-surface-2 border border-border text-text outline-none cursor-pointer"
-              >
-                <option value="ALL">All Link Types</option>
-                <option value="CROSS_STATION">Cross-Station Links</option>
-                <option value="AI_DISCOVERED">AI Discovered</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div className="lg:col-span-8 bg-surface border border-border-soft rounded-2xl p-4 h-[640px] relative overflow-hidden shadow-xs">
-              {graphLoading && (
-                <div className="absolute inset-0 z-30 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 font-mono">
-                  <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs text-text-dim font-bold">Querying Live Neo4j Graph Database...</span>
-                </div>
-              )}
-              {graphError && !liveOverview && (
-                <div className="absolute inset-x-4 top-4 z-30 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-mono flex items-center justify-between gap-2 shadow-lg backdrop-blur-md">
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert size={16} />
-                    <span><strong>NEO4J GRAPH OFFLINE:</strong> {graphError}</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setGraphLoading(true);
-                      graphIntelligenceService.getOverview(150).then(data => {
-                        if (data && data.nodes && data.nodes.length > 0) {
-                          setLiveOverview(data);
-                          setGraphError(null);
-                        }
-                      }).finally(() => setGraphLoading(false));
-                    }}
-                    className="px-2.5 py-1 bg-rose-500 text-white rounded-lg font-bold text-[10px] hover:bg-rose-600 transition-all cursor-pointer"
-                  >
-                    RETRY NEO4J
-                  </button>
-                </div>
-              )}
-              {selectedNodeId && (
-                <div className="absolute top-4 left-4 z-20 bg-surface/90 border border-brand/40 px-3 py-1.5 rounded-xl text-xs font-mono backdrop-blur-md flex items-center gap-2 shadow-md">
-                  <span className="w-2 h-2 rounded-full bg-brand animate-ping" />
-                  <span className="text-text font-bold">FOCUS MODE: {selectedNode?.label || selectedNodeId}</span>
-                  <button
-                    onClick={handleResetOverview}
-                    className="ml-2 px-2 py-0.5 rounded bg-surface-2 hover:bg-surface border border-border text-[10px] font-bold text-brand hover:text-brand-bright transition-all cursor-pointer"
-                  >
-                    Reset Overview
-                  </button>
-                </div>
-              )}
-              <IntelligenceGraph
-                nodes={filteredNodes}
-                edges={filteredEdges}
-                selectedNodeId={selectedNodeId}
-                onSelectNode={(nodeId) => handleSelectFocusNode(nodeId)}
-              />
-            </div>
-
-            <div className="lg:col-span-4 space-y-4">
-              {selectedNode ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between bg-surface-2 p-1.5 rounded-xl border border-border-soft text-xs font-mono">
-                    <button
-                      onClick={() => setShowWhyPanel(false)}
-                      className={`flex-1 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                        !showWhyPanel ? 'bg-brand text-white' : 'text-text-dim hover:text-text'
-                      }`}
-                    >
-                      Node Details
-                    </button>
-                    <button
-                      onClick={() => setShowWhyPanel(true)}
-                      className={`flex-1 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                        showWhyPanel ? 'bg-brand text-white' : 'text-text-dim hover:text-text'
-                      }`}
-                    >
-                      <Cpu size={12} />
-                      <span>S.I.R.I.S. Why?</span>
-                    </button>
-                  </div>
-
-                  {showWhyPanel ? (
-                    <IntelligenceExplainabilityPanel
-                      nodeId={selectedNode.id}
-                      label={selectedNode.label}
-                      entityType={selectedNode.type}
-                      onClose={() => setSelectedNodeId(null)}
-                    />
-                  ) : (
-                    <NodeDetailPanel
-                      node={selectedNode}
-                      onClose={() => setSelectedNodeId(null)}
-                      onExpandNode={(nodeId) => handleSelectFocusNode(nodeId)}
-                    />
-                  )}
-                </div>
-              ) : (
-                <>
-                  <SummaryPanel summary={summaryStats} stats={liveOverview?.stats} />
-                  <GraphLegend />
-                </>
-              )}
-            </div>
-          </div>
+        <div className="w-full h-[720px] rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl bg-[#070b14]">
+          <KnowledgeGraph
+            nodes={filteredNodes}
+            edges={filteredEdges}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={(nodeId) => handleSelectFocusNode(nodeId || '')}
+            onExpandNode={(nodeId) => handleSelectFocusNode(nodeId)}
+            mode="explorer"
+            title="MAIN NETWORK EXPLORER"
+            subtitle="Cross-Station Crime Intelligence & Entity Graph"
+            isLoading={graphLoading}
+            error={filteredNodes.length === 0 ? (graphError || "No graph nodes available.") : null}
+            onRefresh={handleResetOverview}
+          />
         </div>
       )}
 

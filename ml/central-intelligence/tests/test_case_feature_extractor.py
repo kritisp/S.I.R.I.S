@@ -194,7 +194,7 @@ def test_live_supabase_case_feature_extraction_benchmark():
         cases = session.query(Case).options(
             joinedload(Case.location),
             joinedload(Case.person_associations).joinedload(Case.person_associations.property.mapper.class_.person),
-            joinedload(Case.vehicle_associations).joinedload(Case.vehicle_associations.property.mapper.class_.vehicle),
+            joinedload(Case.vehicle_associations),  # CaseVehicle.vehicle/.role are plain columns, not a relationship — do not nest joinedload here
             joinedload(Case.phone_associations).joinedload(Case.phone_associations.property.mapper.class_.phone),
             joinedload(Case.evidences),
             joinedload(Case.legal_section_associations).joinedload(Case.legal_section_associations.property.mapper.class_.legal_section),

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import { CaseRecord } from '../../mockServices/types';
 
 interface CrimeCategory {
   key: string;
@@ -9,20 +10,64 @@ interface CrimeCategory {
   color: string;
 }
 
-const CATEGORIES: CrimeCategory[] = [
-  { key: 'cat.cyber', defaultName: 'Cyber Crime', count: 42, percentage: 35, color: '#3B82F6' },
-  { key: 'cat.financial', defaultName: 'Financial Fraud', count: 30, percentage: 25, color: '#38BDF8' },
-  { key: 'cat.theft', defaultName: 'Theft', count: 18, percentage: 15, color: '#F59E0B' },
-  { key: 'cat.extortion', defaultName: 'Extortion', count: 12, percentage: 10, color: '#F97316' },
-  { key: 'cat.assault', defaultName: 'Assault', count: 10, percentage: 8, color: '#EF4444' },
-  { key: 'cat.other', defaultName: 'Other Crimes', count: 8, percentage: 7, color: '#94A3B8' },
-];
+interface CrimeCategoryDonutChartProps {
+  cases?: CaseRecord[];
+}
 
-export function CrimeCategoryDonutChart() {
+const CATEGORY_COLORS: Record<string, string> = {
+  theft: '#F59E0B',
+  robbery: '#EF4444',
+  cyber: '#3B82F6',
+  fraud: '#38BDF8',
+  burglary: '#8B5CF6',
+  assault: '#EC4899',
+  narcotics: '#10B981',
+  extortion: '#F97316',
+  other: '#64748B',
+};
+
+export function CrimeCategoryDonutChart({ cases = [] }: CrimeCategoryDonutChartProps) {
   const { t } = useLanguage();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  const totalCases = 120;
+  const { categories, totalCases } = useMemo(() => {
+    if (!cases || cases.length === 0) {
+      return {
+        categories: [
+          { key: 'cat.theft', defaultName: 'Theft & Robbery', count: 1, percentage: 50, color: '#F59E0B' },
+          { key: 'cat.cyber', defaultName: 'Cyber & Fraud', count: 1, percentage: 50, color: '#3B82F6' },
+        ],
+        totalCases: 2,
+      };
+    }
+
+    const counts: Record<string, number> = {};
+    cases.forEach((c) => {
+      const type = (c.crimeType || 'other').toLowerCase();
+      let bucket = 'other';
+      if (type.includes('theft') || type.includes('vehicle')) bucket = 'theft';
+      else if (type.includes('robbery') || type.includes('snatching')) bucket = 'robbery';
+      else if (type.includes('cyber') || type.includes('otp')) bucket = 'cyber';
+      else if (type.includes('fraud') || type.includes('money')) bucket = 'fraud';
+      else if (type.includes('burglary') || type.includes('house')) bucket = 'burglary';
+      else if (type.includes('assault')) bucket = 'assault';
+      else if (type.includes('narcotics') || type.includes('drug')) bucket = 'narcotics';
+      else if (type.includes('extortion')) bucket = 'extortion';
+
+      counts[bucket] = (counts[bucket] || 0) + 1;
+    });
+
+    const total = cases.length;
+    const cats: CrimeCategory[] = Object.entries(counts).map(([bucket, count]) => ({
+      key: `cat.${bucket}`,
+      defaultName: bucket.charAt(0).toUpperCase() + bucket.slice(1),
+      count,
+      percentage: Math.round((count / total) * 100),
+      color: CATEGORY_COLORS[bucket] || CATEGORY_COLORS.other,
+    })).sort((a, b) => b.count - a.count);
+
+    return { categories: cats, totalCases: total };
+  }, [cases]);
   const size = 180;
   const strokeWidth = 26;
   const radius = (size - strokeWidth) / 2;
@@ -44,7 +89,7 @@ export function CrimeCategoryDonutChart() {
         {/* Donut Chart SVG with Center Badge */}
         <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
-            {CATEGORIES.map((cat, idx) => {
+            {categories.map((cat, idx) => {
               const strokeDasharray = `${(cat.percentage / 100) * circumference} ${circumference}`;
               const strokeDashoffset = -((cumulativePercent / 100) * circumference);
               cumulativePercent += cat.percentage;
@@ -74,17 +119,17 @@ export function CrimeCategoryDonutChart() {
           {/* Center Metric Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
             <span className="text-2xl font-bold font-display text-text dark:text-[#F8FAFC] leading-none">
-              {hoveredIdx !== null ? CATEGORIES[hoveredIdx].count : totalCases}
+              {hoveredIdx !== null ? categories[hoveredIdx]?.count : totalCases}
             </span>
             <span className="text-[9px] font-mono font-medium text-text-faint dark:text-[#94A3B8] uppercase mt-1">
-              {hoveredIdx !== null ? t(CATEGORIES[hoveredIdx].key, CATEGORIES[hoveredIdx].defaultName) : t('dashboard.activeCases', 'Active Cases')}
+              {hoveredIdx !== null ? t(categories[hoveredIdx]?.key, categories[hoveredIdx]?.defaultName) : t('dashboard.activeCases', 'Active Cases')}
             </span>
           </div>
         </div>
 
         {/* Legend List */}
         <div className="flex-1 space-y-1.5 w-full sm:w-auto">
-          {CATEGORIES.map((cat, idx) => {
+          {categories.map((cat, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
               <div

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 from typing import Dict, Optional
 from app.models.case import Case
 from app.models.person import CasePerson, Person
@@ -60,7 +61,8 @@ class Neo4jGraphProjectionService:
             n.status = $status,
             n.source_system = $source_system,
             n.source_id = $source_id,
-            n.projection_version = $projection_version
+            n.projection_version = $projection_version,
+            n.last_projected_at = $last_projected_at
         """
         return self._execute_query(query, case_contract.model_dump())
 
@@ -270,6 +272,7 @@ class Neo4jGraphProjectionService:
             crime_type=case.crime_type,
             crime_category=case.crime_category,
             status=case.status,
+            last_projected_at=datetime.now(timezone.utc).isoformat(),
         )
         if self.project_case_node(c_node):
             counts["cases"] += 1
@@ -421,7 +424,8 @@ class Neo4jGraphProjectionService:
             incident_date=features.identity.incident_date,
             crime_type=features.crime.crime_type or "OTHER",
             crime_category=features.crime.crime_category or "GENERAL",
-            status=features.identity.status or "UNDER_INVESTIGATION"
+            status=features.identity.status or "UNDER_INVESTIGATION",
+            last_projected_at=datetime.now(timezone.utc).isoformat(),
         )
         if self.project_case_node(c_node):
             counts["cases"] += 1
@@ -475,6 +479,25 @@ class Neo4jGraphProjectionService:
                 counts["relationships"] += 1
 
         return counts
+
+    # =====================================================================
+    # READ-ONLY STALENESS LOOKUP
+    # =====================================================================
+
+    def get_case_projection_timestamp(self, node_id: str) -> Optional[str]:
+        """Read-only lookup of a (:Case) node's last_projected_at property. Never writes."""
+        try:
+            driver = self.connection_service.get_driver()
+            with driver.session(database=self.connection_service.database) as session:
+                record = session.run(
+                    "MATCH (n:Case {node_id: $node_id}) RETURN n.last_projected_at AS last_projected_at",
+                    {"node_id": node_id}
+                ).single()
+                return record["last_projected_at"] if record else None
+        except Exception as e:
+            sanitized_msg = _sanitize_error_message(e, self.connection_service.password)
+            logger.warning("Failed reading case projection timestamp: %s", sanitized_msg)
+            return None
 
     # =====================================================================
     # PRIVATE QUERY EXECUTION HELPER

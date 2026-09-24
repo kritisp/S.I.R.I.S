@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, Mic, Send, Volume2, VolumeX, Sparkles, Bot, Shield, 
-  Layers, Activity, FileText, CheckCircle2
+  Layers, Activity, FileText, CheckCircle2, Database, Network, Scale
 } from 'lucide-react';
 import { useAira } from './AiraProvider';
+import { useMockState } from '../../mockServices/MockStateContext';
 import { bhasiniTranslationService } from '../../services/bhasiniTranslationService';
 
 export function AiraVoicePanel() {
+  const { state } = useMockState();
   const { 
     isPanelOpen, togglePanel, orbState, isListening, isSpeaking, isMuted, toggleMute,
     language, setLanguage, liveTranscript, response, chatHistory, startListening, stopListening, toggleListening,
@@ -15,6 +17,11 @@ export function AiraVoicePanel() {
 
   const [inputText, setInputText] = useState<string>('');
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const activeCasesCount = state.cases?.filter(c => c.status === 'ACTIVE' || c.status === 'PENDING').length || state.cases?.length || 0;
+  const stationsCount = state.stations?.length || 0;
+  const alertsCount = state.alerts?.filter(a => !a.isRead).length || 0;
+  const evidenceCount = state.evidence?.length || 0;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -54,14 +61,14 @@ export function AiraVoicePanel() {
         {/* Header Bar */}
         <div className="p-4 border-b border-border-soft flex items-center justify-between bg-surface-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-3 h-3 rounded-full bg-brand animate-pulse" />
+            <div className="w-2.5 h-2.5 rounded-full bg-brand" />
             <div>
               <div className="flex items-center gap-1.5 font-mono font-bold text-sm text-text">
-                <span>S.I.R.I.S. AI CO-PILOT</span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded bg-brand/10 text-brand border border-brand/30">v2.4</span>
+                <span>INVESTIGATION ASSISTANT</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-brand/10 text-brand border border-brand/30">S.I.R.I.S.</span>
               </div>
               <span className="text-[10px] font-mono text-text-dim uppercase">
-                {orbState === 'listening' ? 'Listening to voice…' : orbState === 'thinking' ? 'Analyzing intelligence…' : 'System Ready'}
+                {orbState === 'listening' ? 'Listening to voice…' : orbState === 'thinking' ? 'Querying state intelligence…' : 'Active Investigation Session'}
               </span>
             </div>
           </div>
@@ -102,23 +109,23 @@ export function AiraVoicePanel() {
           </div>
         </div>
 
-        {/* Telemetry Strip */}
+        {/* Live System State Telemetry Strip */}
         <div className="grid grid-cols-4 gap-1.5 p-3 border-b border-border-soft bg-surface-2/60 text-center font-mono">
           <div className="p-1.5 rounded-lg bg-surface border border-border-soft">
-            <div className="text-xs font-bold text-danger-bright">1,420</div>
-            <div className="text-[8px] text-text-dim uppercase">Active FIRs</div>
+            <div className="text-xs font-bold text-brand">{activeCasesCount}</div>
+            <div className="text-[8px] text-text-dim uppercase">Active Cases</div>
           </div>
           <div className="p-1.5 rounded-lg bg-surface border border-border-soft">
-            <div className="text-xs font-bold text-amber-400">49</div>
-            <div className="text-[8px] text-text-dim uppercase">Hotspots</div>
+            <div className="text-xs font-bold text-amber-500">{alertsCount}</div>
+            <div className="text-[8px] text-text-dim uppercase">Open Alerts</div>
           </div>
           <div className="p-1.5 rounded-lg bg-surface border border-border-soft">
-            <div className="text-xs font-bold text-brand">12</div>
-            <div className="text-[8px] text-text-dim uppercase">Repeaters</div>
+            <div className="text-xs font-bold text-text">{evidenceCount}</div>
+            <div className="text-[8px] text-text-dim uppercase">Vault Items</div>
           </div>
           <div className="p-1.5 rounded-lg bg-surface border border-border-soft">
-            <div className="text-xs font-bold text-success">98%</div>
-            <div className="text-[8px] text-text-dim uppercase">ANPR Feed</div>
+            <div className="text-xs font-bold text-emerald-500">{stationsCount}</div>
+            <div className="text-[8px] text-text-dim uppercase">Jurisdictions</div>
           </div>
         </div>
 
@@ -132,7 +139,7 @@ export function AiraVoicePanel() {
                   : 'bg-surface-2 border-border-soft text-text rounded-tl-none'
               }`}>
                 <div className="flex items-center justify-between text-[9px] font-mono border-b border-border-soft/40 pb-1">
-                  <span className="font-bold uppercase">{msg.role === 'user' ? 'Officer' : 'S.I.R.I.S. AI'}</span>
+                  <span className="font-bold uppercase">{msg.role === 'user' ? (state.currentUser?.name || 'Officer') : 'S.I.R.I.S. INTEL'}</span>
                   <span>{msg.timestamp}</span>
                 </div>
                 <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>

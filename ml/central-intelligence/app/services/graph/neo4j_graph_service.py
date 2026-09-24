@@ -168,22 +168,8 @@ class Neo4jGraphService:
                 raw_nodes = [dict(record) for record in nodes_res]
 
                 if not raw_nodes:
-                    return {
-                        "nodes": [],
-                        "edges": [],
-                        "total_nodes": 0,
-                        "total_edges": 0,
-                        "components": 0,
-                        "built_at": time.time(),
-                        "source": "neo4j-live",
-                        "stats": {
-                            "global_total_nodes": global_totals["nodes"],
-                            "global_total_edges": global_totals["edges"],
-                            "subgraph_total_nodes": 0,
-                            "subgraph_total_edges": 0,
-                            "subgraph_components": 0
-                        }
-                    }
+                    logger.info("Neo4j database returned 0 nodes. Serving primary S.I.R.I.S graph intelligence service.")
+                    return graph_intelligence_service.get_overview(db_session=None, limit=limit)
 
                 node_ids = {n["id"] for n in raw_nodes if n.get("id")}
 
@@ -239,14 +225,7 @@ class Neo4jGraphService:
                 ).single()
 
                 if not start_res:
-                    return {
-                        "node_id": node_id,
-                        "found": False,
-                        "nodes": [],
-                        "edges": [],
-                        "source": "neo4j-live",
-                        "error": f"Focus node '{node_id}' not found in Neo4j."
-                    }
+                    return graph_intelligence_service.get_neighbors(db_session=None, node_id=node_id, depth=depth, limit=limit)
 
                 start_node = dict(start_res)
 

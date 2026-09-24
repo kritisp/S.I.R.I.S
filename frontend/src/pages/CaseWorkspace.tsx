@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useMockState } from '../mockServices/MockStateContext';
-import { IntelligenceGraph } from '../components/graph/IntelligenceGraph';
+import { KnowledgeGraph } from '../components/graph/KnowledgeGraph';
 import {
   Shield, FileText, Share2, AlertTriangle, FileBarChart, Scale, Bot, Lock, CheckCircle,
   Clock, Network, AlertCircle, ChevronRight, HelpCircle, Eye, Car, Navigation, Sparkles,
@@ -10,7 +10,7 @@ import {
 
 import { HERO_CASE_PROVISIONS, ROBBERY_CASE_PROVISIONS, FIR_ANALYSIS_PROVISIONS } from '../mockServices/legalProvisionMockData';
 import { LegalProvisionList } from '../components/legal/LegalProvisionList';
-import { generateFirDraft } from '../services/api';
+import { generateFirDraft, requestsApi } from '../services/api';
 import { VehicleIntelligenceModal } from '../components/intelligence/VehicleIntelligenceModal';
 import { VehicleGeoTrailModal } from '../components/intelligence/VehicleGeoTrailModal';
 import { InvestigationActionQueue } from '../components/intelligence/InvestigationActionQueue';
@@ -20,12 +20,16 @@ import { graphIntelligenceService, CaseWorkspaceData } from '../services/graphIn
 import type { NodeType, NetworkNode, NetworkEdge } from '../mockServices/networkGraphData';
 import { NodeDetailPanel } from '../components/graph/NodeDetailPanel';
 import { IntelligenceExplainabilityPanel } from '../components/graph/IntelligenceExplainabilityPanel';
+import { InvestigationWorkspacePanel } from '../components/workspace/InvestigationWorkspacePanel';
 
 export function CaseWorkspace() {
   const { id } = useParams<{ id: string }>();
-  const { state } = useMockState();
+  const { state, dispatch } = useMockState();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Cross-station "Request Access" submission state, keyed by target case ID
+  const [crossCaseRequestState, setCrossCaseRequestState] = useState<Record<string, 'submitting' | 'error'>>({});
 
   const [workspaceData, setWorkspaceData] = useState<CaseWorkspaceData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -45,6 +49,10 @@ export function CaseWorkspace() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [draftGenerated, setDraftGenerated] = useState(false);
 
+  // Explicit, investigator-triggered Neo4j graph projection (never automatic on load)
+  const [isProjecting, setIsProjecting] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
+
   // Modals
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [showTrailModal, setShowTrailModal] = useState(false);
@@ -56,73 +64,128 @@ export function CaseWorkspace() {
 
   // Map graphNeighborhood nodes and edges to rich NetworkNode & NetworkEdge objects matching NetworkExplorer styling
   const formattedGraphNodes = useMemo(() => {
-    if (!workspaceData?.graph_neighborhood?.nodes) return [];
-    const gn = workspaceData.graph_neighborhood;
-    const meta = workspaceData.metadata;
-    return gn.nodes.map(n => {
-      let rawType = (n.entity_type || (n.node_type === 'case' ? 'CASE' : 'PERSON')).toUpperCase();
-      if (n.id.startsWith('case:')) rawType = 'CASE';
-      else if (n.id.startsWith('phone:')) rawType = 'PHONE';
-      else if (n.id.startsWith('veh:') || n.id.startsWith('vehicle:')) rawType = 'VEHICLE';
-      else if (n.id.startsWith('loc:') || n.id.startsWith('location:')) rawType = 'LOCATION';
-      else if (n.id.startsWith('person:')) rawType = 'PERSON';
-      else if (n.id.startsWith('station:')) rawType = 'STATION';
+    if (workspaceData?.graph_neighborhood?.nodes && workspaceData.graph_neighborhood.nodes.length > 0) {
+      const gn = workspaceData.graph_neighborhood;
+      const meta = workspaceData.metadata;
+      return gn.nodes.map(n => {
+        let rawType = (n.entity_type || (n.node_type === 'case' ? 'CASE' : 'PERSON')).toUpperCase();
+        if (n.id.startsWith('case:')) rawType = 'CASE';
+        else if (n.id.startsWith('phone:')) rawType = 'PHONE';
+        else if (n.id.startsWith('veh:') || n.id.startsWith('vehicle:')) rawType = 'VEHICLE';
+        else if (n.id.startsWith('loc:') || n.id.startsWith('location:')) rawType = 'LOCATION';
+        else if (n.id.startsWith('person:')) rawType = 'PERSON';
+        else if (n.id.startsWith('station:')) rawType = 'STATION';
 
-      let nodeType: NodeType = 'PERSON';
-      if (rawType === 'CASE') nodeType = 'CASE';
-      else if (rawType === 'PHONE') nodeType = 'PHONE';
-      else if (rawType === 'VEHICLE') nodeType = 'VEHICLE';
-      else if (rawType === 'LOCATION') nodeType = 'LOCATION';
-      else if (rawType === 'STATION') nodeType = 'STATION';
-      else if (rawType === 'EVIDENCE') nodeType = 'EVIDENCE';
-      else if (['BANK_ACCOUNT', 'UPI', 'WALLET', 'EMAIL', 'IP', 'LEGAL_SECTION'].includes(rawType)) {
-        nodeType = rawType as NodeType;
-      }
-
-      return {
-        id: n.id,
-        type: nodeType,
-        label: n.label || n.id,
-        sublabel: n.is_focus
-          ? 'FOCUS NODE (Center)'
-          : (n.district || n.station_id || `Betweenness: ${n.betweenness?.toFixed(3) ?? 0}`),
-        stationId: n.station_id || meta?.station_id || 'OP-BBSR-CAP',
-        accessStatus: n.is_flagged ? 'RESTRICTED' : 'AUTHORIZED',
-        isCrossStation: Boolean(n.is_flagged || (n.betweenness && n.betweenness > 0.2)),
-        isAiDiscovered: Boolean((n.betweenness && n.betweenness > 0.1) || n.is_important),
-        is_focus: Boolean(n.is_focus || n.id === gn.focus_node_id || n.id === selectedNodeId),
-        is_important: Boolean(n.is_important),
-        hop_distance: n.hop_distance,
-        metadata: {
-          betweenness: n.betweenness,
-          influence: n.influence,
-          complaintCount: n.complaint_count,
-          district: n.district || meta?.district || 'Khordha (Bhubaneswar)'
+        let nodeType: NodeType = 'PERSON';
+        if (rawType === 'CASE') nodeType = 'CASE';
+        else if (rawType === 'PHONE') nodeType = 'PHONE';
+        else if (rawType === 'VEHICLE') nodeType = 'VEHICLE';
+        else if (rawType === 'LOCATION') nodeType = 'LOCATION';
+        else if (rawType === 'STATION') nodeType = 'STATION';
+        else if (rawType === 'EVIDENCE') nodeType = 'EVIDENCE';
+        else if (['BANK_ACCOUNT', 'UPI', 'WALLET', 'EMAIL', 'IP', 'LEGAL_SECTION'].includes(rawType)) {
+          nodeType = rawType as NodeType;
         }
-      } as NetworkNode;
-    });
-  }, [workspaceData, selectedNodeId]);
+
+        return {
+          id: n.id,
+          type: nodeType,
+          label: n.label || n.id,
+          sublabel: n.is_focus
+            ? 'FOCUS NODE (Center)'
+            : (n.district || n.station_id || `Betweenness: ${n.betweenness?.toFixed(3) ?? 0}`),
+          stationId: n.station_id || meta?.station_id || 'OP-BBSR-CAP',
+          accessStatus: n.is_flagged ? 'RESTRICTED' : 'AUTHORIZED',
+          isCrossStation: Boolean(n.is_flagged || (n.betweenness && n.betweenness > 0.2)),
+          isAiDiscovered: Boolean((n.betweenness && n.betweenness > 0.1) || n.is_important),
+          is_focus: Boolean(n.is_focus || n.id === gn.focus_node_id || n.id === selectedNodeId),
+          is_important: Boolean(n.is_important),
+          hop_distance: n.hop_distance,
+          metadata: {
+            betweenness: n.betweenness,
+            influence: n.influence,
+            complaintCount: n.complaint_count,
+            district: n.district || meta?.district || 'Khordha (Bhubaneswar)'
+          }
+        } as NetworkNode;
+      });
+    }
+
+    if (!workspaceData) return [];
+
+    // Fallback: Construct scoped case nodes from workspace metadata & extracted entities
+    const caseNodeId = `case:${workspaceData.fir_number || id || 'current'}`;
+    const nodes: NetworkNode[] = [
+      {
+        id: caseNodeId,
+        type: 'CASE',
+        label: workspaceData.fir_number || id || 'CASE FILE',
+        sublabel: workspaceData.metadata?.title || 'Primary Case Record',
+        stationId: workspaceData.metadata?.station_id || 'OP-BBSR-CAP',
+        accessStatus: 'AUTHORIZED',
+        is_focus: true,
+      }
+    ];
+
+    if (workspaceData.entities && Array.isArray(workspaceData.entities)) {
+      workspaceData.entities.forEach((ent: any, idx: number) => {
+        const entType = (ent.type || 'EVIDENCE').toUpperCase();
+        let nodeType: NodeType = 'EVIDENCE';
+        if (entType.includes('PERSON') || entType.includes('SUSPECT')) nodeType = 'PERSON';
+        else if (entType.includes('PHONE')) nodeType = 'PHONE';
+        else if (entType.includes('VEHICLE')) nodeType = 'VEHICLE';
+        else if (entType.includes('LOC')) nodeType = 'LOCATION';
+
+        const entId = `${nodeType.toLowerCase()}:${ent.value || idx}`;
+        nodes.push({
+          id: entId,
+          type: nodeType,
+          label: ent.value || ent.label || `Entity #${idx + 1}`,
+          sublabel: `Extracted ${nodeType}`,
+          stationId: workspaceData.metadata?.station_id || 'OP-BBSR-CAP',
+          accessStatus: 'AUTHORIZED',
+        });
+      });
+    }
+
+    return nodes;
+  }, [workspaceData, selectedNodeId, id]);
 
   const formattedGraphEdges = useMemo(() => {
-    if (!workspaceData?.graph_neighborhood?.edges) return [];
-    return workspaceData.graph_neighborhood.edges.map((e, idx) => ({
-      id: `edge-${idx}`,
-      source: e.source,
-      target: e.target,
-      relationship: (e.relationship || 'MATCHED_ENTITY') as any,
-      label: e.relationship ? e.relationship.replace(/_/g, ' ') : (e.weight >= 1 ? 'Linked Entity' : 'Associate'),
-      isCrossStation: Boolean(e.weight > 0.8 || e.relationship === 'CROSS_STATION_LINK'),
-      isAiDiscovered: true,
-      confidence: Math.round((e.weight || 0.9) * 100)
+    if (workspaceData?.graph_neighborhood?.edges && workspaceData.graph_neighborhood.edges.length > 0) {
+      return workspaceData.graph_neighborhood.edges.map((e, idx) => ({
+        id: `edge-${idx}`,
+        source: e.source,
+        target: e.target,
+        relationship: (e.relationship || 'MATCHED_ENTITY') as any,
+        label: e.relationship ? e.relationship.replace(/_/g, ' ') : (e.weight >= 1 ? 'Linked Entity' : 'Associate'),
+        isCrossStation: Boolean(e.weight > 0.8 || e.relationship === 'CROSS_STATION_LINK'),
+        isAiDiscovered: Boolean(e.weight > 0.5),
+        confidence: Math.round((e.weight || 0.85) * 100)
+      } as NetworkEdge));
+    }
+
+    if (!workspaceData || !formattedGraphNodes || formattedGraphNodes.length <= 1) return [];
+
+    const caseNodeId = formattedGraphNodes[0]?.id;
+    return formattedGraphNodes.slice(1).map((node, idx) => ({
+      id: `edge-fallback-${idx}`,
+      source: caseNodeId,
+      target: node.id,
+      relationship: 'EXTRACTED_ENTITY' as any,
+      label: 'Linked Entity',
+      confidence: 90,
     } as NetworkEdge));
-  }, [workspaceData]);
+  }, [workspaceData, formattedGraphNodes]);
 
   const selectedNode = useMemo(() => {
     if (!selectedNodeId) return null;
     return formattedGraphNodes.find(n => n.id === selectedNodeId) || null;
   }, [formattedGraphNodes, selectedNodeId]);
 
-  // Load Real Case Workspace Data dynamically whenever `id` changes
+
+
+  // Load Real Authoritative Case Workspace Data directly from PostgreSQL & Neo4j Aura
   const loadWorkspace = () => {
     if (!id) return;
     setLoading(true);
@@ -133,7 +196,7 @@ export function CaseWorkspace() {
     graphIntelligenceService.getCaseWorkspace(id)
       .then((data) => {
         if (!data) {
-          setError("Workspace data unavailable.");
+          setError("Authoritative database records unavailable for this case.");
           setLoading(false);
           return;
         }
@@ -148,7 +211,7 @@ export function CaseWorkspace() {
         if (err?.status === 404 || err?.message?.includes("404")) {
           setNotFound(true);
         } else {
-          setError(err.message || "Failed to load database records for requested case workspace.");
+          setError(err.message || "Failed to load authoritative database records for requested case workspace.");
         }
         setLoading(false);
       });
@@ -158,12 +221,56 @@ export function CaseWorkspace() {
     loadWorkspace();
   }, [id]);
 
-  const tabClass = (tab: string, color = 'accent') =>
-    `px-5 py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${
+  // Cross-station links must not be openable directly — only cases already present in
+  // this investigator's station-scoped case list (state.cases, loaded from the real,
+  // RBAC-filtered GET /cases) are directly accessible. Anything else requires a real,
+  // server-enforced access request (POST /api/v1/requests), never a client-side open.
+  const handleRequestCrossCaseAccess = async (targetCaseId: string, explanation: string) => {
+    setCrossCaseRequestState(prev => ({ ...prev, [targetCaseId]: 'submitting' }));
+    try {
+      const created = await requestsApi.createRequest(
+        targetCaseId,
+        `Cross-case relationship detected in Case Workspace for ${workspaceData?.fir_number || id}: ${explanation}`
+      );
+      dispatch({ type: 'ADD_ACCESS_REQUEST', payload: created });
+      setCrossCaseRequestState(prev => {
+        const next = { ...prev };
+        delete next[targetCaseId];
+        return next;
+      });
+    } catch (err) {
+      console.error('Cross-case access request failed:', err);
+      setCrossCaseRequestState(prev => ({ ...prev, [targetCaseId]: 'error' }));
+    }
+  };
+
+  // Explicit action: (re)project this case's PostgreSQL data into the Neo4j intelligence
+  // graph. Only ever runs when the investigator clicks the button below — never on load.
+  const handleGenerateIntelligence = async () => {
+    if (!id) return;
+    setIsProjecting(true);
+    setProjectError(null);
+    try {
+      await graphIntelligenceService.projectCaseToGraph(id);
+      loadWorkspace();
+    } catch (err: any) {
+      console.error("Graph projection error:", err);
+      setProjectError(err?.message || "Failed to generate case intelligence.");
+    } finally {
+      setIsProjecting(false);
+    }
+  };
+
+  const tabClass = (tab: string, color: 'accent' | 'brand' = 'accent') => {
+    const activeColorClasses = color === 'brand'
+      ? 'border-brand-bright text-brand-bright'
+      : 'border-accent-bright text-accent-bright';
+    return `px-5 py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
       activeTab === tab
-        ? `border-${color}-bright text-${color}-bright`
+        ? activeColorClasses
         : 'border-transparent text-text-dim hover:text-text'
     }`;
+  };
 
   const handleGenerateDraft = async () => {
     if (!workspaceData) return;
@@ -312,8 +419,43 @@ export function CaseWorkspace() {
         </div>
       </div>
 
+      {/* Graph Intelligence Status Banner — reflects the real, backend-computed graph_status.
+          Generation is always an explicit investigator action, never automatic. */}
+      {workspaceData.graph_status && workspaceData.graph_status !== 'available' && (
+        <div className={`glass p-4 rounded-xl border flex items-center justify-between gap-4 flex-wrap ${
+          workspaceData.graph_status === 'failed' || projectError
+            ? 'border-danger/40 bg-danger/5'
+            : 'border-warning/40 bg-warning/5'
+        }`}>
+          <div className="flex items-center gap-3">
+            {workspaceData.graph_status === 'failed' || projectError
+              ? <AlertTriangle size={20} className="text-danger-bright shrink-0" />
+              : <Cpu size={20} className="text-warning shrink-0" />}
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wider text-text">
+                {workspaceData.graph_status === 'not_projected' && 'Case Intelligence Not Yet Generated'}
+                {workspaceData.graph_status === 'stale' && 'Case Intelligence Is Stale'}
+                {workspaceData.graph_status === 'failed' && 'Case Intelligence Generation Failed'}
+              </div>
+              <p className="text-[11px] text-text-dim mt-0.5">
+                {projectError || workspaceData.graph_status_message || 'This case record has changed since the graph was last generated.'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleGenerateIntelligence}
+            disabled={isProjecting}
+            className="bg-brand text-bg px-4 py-2 rounded-lg text-xs font-bold hover:bg-brand-bright flex items-center gap-2 transition-colors disabled:opacity-50 shrink-0"
+          >
+            {isProjecting
+              ? <><RefreshCw size={14} className="animate-spin" /> Generating...</>
+              : <><Sparkles size={14} /> {workspaceData.graph_status === 'not_projected' ? 'Generate Case Intelligence' : 'Regenerate Case Intelligence'}</>}
+          </button>
+        </div>
+      )}
+
       {/* Workspace Navigation Tabs */}
-      <div className="flex border-b border-border-soft overflow-x-auto">
+      <div className="flex border-b border-border-soft overflow-x-auto flex-nowrap">
         <button onClick={() => setActiveTab('overview')} className={tabClass('overview')}>
           Overview & Timeline
         </button>
@@ -386,7 +528,7 @@ export function CaseWorkspace() {
                     <span className="text-[10px] font-mono text-brand font-bold">LIVE NEO4J OVERLAP</span>
                   </h3>
 
-                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
                     <div className="p-2.5 bg-surface-2 border border-border-soft rounded-lg">
                       <div className="text-[9px] text-text-dim uppercase font-mono">Shared Persons</div>
                       <div className="text-base font-bold text-text mt-0.5">{crossIntel.shared_counts?.persons ?? 0}</div>
@@ -407,25 +549,63 @@ export function CaseWorkspace() {
 
                   {crossIntel.related_cases.length > 0 ? (
                     <div className="space-y-3 pt-2">
-                      {crossIntel.related_cases.map((rc, idx) => (
-                        <div key={idx} className="p-3.5 bg-surface-2 border border-border-soft/80 rounded-xl flex items-center justify-between text-xs">
-                          <div>
-                            <div className="font-mono font-bold text-text flex items-center gap-2">
-                              <span>{rc.target_case_id}</span>
-                              <span className="text-[9px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded border border-brand/20">
-                                {Math.round(rc.confidence_score * 100)}% Match
-                              </span>
+                      {crossIntel.related_cases.map((rc, idx) => {
+                        // Directly accessible only if it's already in this investigator's
+                        // station-scoped case list (real backend RBAC, not a client guess).
+                        const isDirectlyAccessible = state.cases.some(c => c.id === rc.target_case_id);
+                        const existingRequest = state.accessRequests.find(r => r.targetCaseId === rc.target_case_id);
+                        const reqState = crossCaseRequestState[rc.target_case_id];
+
+                        return (
+                          <div key={idx} className="p-3.5 bg-surface-2 border border-border-soft/80 rounded-xl flex items-center justify-between text-xs gap-3">
+                            <div className="min-w-0">
+                              <div className="font-mono font-bold text-text flex items-center gap-2 flex-wrap">
+                                <span>{rc.target_case_id}</span>
+                                <span className="text-[9px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded border border-brand/20">
+                                  {Math.round(rc.confidence_score * 100)}% Match
+                                </span>
+                                {!isDirectlyAccessible && (
+                                  <span className="text-[9px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded border border-warning/30 flex items-center gap-1">
+                                    <Lock size={9} /> Cross-Station
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-text-dim mt-1 text-[11px]">{rc.explanation}</div>
+                              {reqState === 'error' && (
+                                <div className="text-danger-bright text-[10px] mt-1">Request failed — try again.</div>
+                              )}
                             </div>
-                            <div className="text-text-dim mt-1 text-[11px]">{rc.explanation}</div>
+
+                            {isDirectlyAccessible ? (
+                              <button
+                                onClick={() => navigate(`/workspace/case/${rc.target_case_id}`)}
+                                className="bg-brand text-bg font-bold px-3 py-1.5 rounded hover:bg-brand-bright transition-colors text-[10px] uppercase font-mono shrink-0"
+                              >
+                                Open Case →
+                              </button>
+                            ) : existingRequest?.status === 'APPROVED' ? (
+                              <button
+                                onClick={() => navigate(`/workspace/case/${rc.target_case_id}`)}
+                                className="bg-success/20 text-success border border-success/30 font-bold px-3 py-1.5 rounded hover:bg-success/30 transition-colors text-[10px] uppercase font-mono shrink-0"
+                              >
+                                Access Granted →
+                              </button>
+                            ) : existingRequest?.status === 'PENDING' ? (
+                              <span className="bg-warning/15 text-warning border border-warning/30 font-bold px-3 py-1.5 rounded text-[10px] uppercase font-mono shrink-0">
+                                Pending Approval
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleRequestCrossCaseAccess(rc.target_case_id, rc.explanation)}
+                                disabled={reqState === 'submitting'}
+                                className="bg-danger/20 text-danger-bright border border-danger/30 font-bold px-3 py-1.5 rounded hover:bg-danger/30 transition-colors text-[10px] uppercase font-mono shrink-0 disabled:opacity-50"
+                              >
+                                {reqState === 'submitting' ? 'Submitting…' : 'Request Access'}
+                              </button>
+                            )}
                           </div>
-                          <button
-                            onClick={() => navigate(`/workspace/case/${rc.target_case_id}`)}
-                            className="bg-brand text-bg font-bold px-3 py-1.5 rounded hover:bg-brand-bright transition-colors text-[10px] uppercase font-mono shrink-0 ml-2"
-                          >
-                            Open Case →
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="p-3 bg-surface-2 border border-border-soft rounded-lg text-xs text-text-dim italic text-center">
@@ -433,6 +613,12 @@ export function CaseWorkspace() {
                     </div>
                   )}
                 </div>
+
+                {/* Investigation Workspace: group this case with related/approved
+                    cross-station cases and run the real Central Intelligence Engine
+                    across all of them (Spring Boot InvestigationWorkspace/Trigger
+                    pipeline — previously built but never surfaced in any page). */}
+                <InvestigationWorkspacePanel caseId={workspaceData.case_id} firNumber={workspaceData.fir_number} />
 
                 {/* Pattern & MO Findings */}
                 <div className="glass p-6 rounded-xl bg-surface border border-border-soft space-y-3">
@@ -581,98 +767,19 @@ export function CaseWorkspace() {
 
         {/* KNOWLEDGE GRAPH TAB */}
         {activeTab === 'graph' && (
-          <div className="animate-fade-in space-y-4 font-sans">
-            <div className="p-3.5 bg-surface-2 border border-border-soft text-text-dim text-xs font-mono rounded-xl flex items-center justify-between shadow-xs">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-brand animate-ping" />
-                <span>BOUNDED NEO4J NEIGHBORHOOD: {graphNeighborhood.total_nodes} Nodes · {graphNeighborhood.total_edges} Relationships</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-dim">FOCUS NODE:</span>
-                <span className="text-brand font-bold bg-brand/10 px-2 py-0.5 rounded border border-brand/20">
-                  {selectedNodeId || graphNeighborhood.focus_node_id}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              <div className="lg:col-span-8 h-[640px] rounded-2xl overflow-hidden border border-border-soft relative bg-surface shadow-xs">
-                <IntelligenceGraph
-                  nodes={formattedGraphNodes}
-                  edges={formattedGraphEdges}
-                  selectedNodeId={selectedNodeId || graphNeighborhood.focus_node_id}
-                  onSelectNode={(nodeId) => setSelectedNodeId(nodeId)}
-                />
-              </div>
-
-              <div className="lg:col-span-4 space-y-4">
-                {selectedNode ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-surface-2 p-1.5 rounded-xl border border-border-soft text-xs font-mono">
-                      <button
-                        onClick={() => setShowWhyPanel(false)}
-                        className={`flex-1 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                          !showWhyPanel ? 'bg-brand text-white shadow-xs' : 'text-text-dim hover:text-text'
-                        }`}
-                      >
-                        Node Dossier
-                      </button>
-                      <button
-                        onClick={() => setShowWhyPanel(true)}
-                        className={`flex-1 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                          showWhyPanel ? 'bg-brand text-white shadow-xs' : 'text-text-dim hover:text-text'
-                        }`}
-                      >
-                        <Cpu size={13} />
-                        <span>S.I.R.I.S. Why?</span>
-                      </button>
-                    </div>
-
-                    {showWhyPanel ? (
-                      <IntelligenceExplainabilityPanel
-                        nodeId={selectedNode.id}
-                        label={selectedNode.label}
-                        entityType={selectedNode.type}
-                        onClose={() => setSelectedNodeId(null)}
-                      />
-                    ) : (
-                      <NodeDetailPanel
-                        node={selectedNode}
-                        onClose={() => setSelectedNodeId(null)}
-                        onExpandNode={(nodeId) => setSelectedNodeId(nodeId)}
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-surface border border-border-soft rounded-2xl p-4 font-mono text-xs space-y-4 shadow-xs">
-                    <div className="text-[10px] uppercase font-bold text-brand tracking-wider flex items-center justify-between border-b border-border-soft pb-2">
-                      <span className="flex items-center gap-1.5">
-                        <Radio size={12} className="text-brand animate-pulse" /> Neo4j & NetworkX Topology
-                      </span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">
-                        LIVE CASE SUBGRAPH
-                      </span>
-                    </div>
-
-                    <p className="text-text-dim text-[11px] leading-relaxed">
-                      Click any entity or case node on the interactive topology canvas to inspect police dossiers, degree centrality metrics, and S.I.R.I.S explainability paths.
-                    </p>
-
-                    <div className="border-t border-border-soft pt-3 space-y-2">
-                      <div className="text-[10px] text-text-faint uppercase font-bold tracking-wider">Entity Legend</div>
-                      <div className="grid grid-cols-2 gap-2 text-[10px]">
-                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#2563EB]" /><span className="text-text-dim">Case</span></div>
-                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#DB2777]" /><span className="text-text-dim">Person</span></div>
-                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#059669]" /><span className="text-text-dim">Phone</span></div>
-                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#7C3AED]" /><span className="text-text-dim">Vehicle</span></div>
-                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#EA580C]" /><span className="text-text-dim">Location</span></div>
-                        <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#C08A18]" /><span className="text-text-dim">Station</span></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="w-full h-[700px] rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl bg-[#070b14]">
+            <KnowledgeGraph
+              nodes={formattedGraphNodes}
+              edges={formattedGraphEdges}
+              selectedNodeId={selectedNodeId || workspaceData?.graph_neighborhood?.focus_node_id || formattedGraphNodes[0]?.id}
+              onSelectNode={(nodeId) => setSelectedNodeId(nodeId)}
+              onExpandNode={(nodeId) => setSelectedNodeId(nodeId)}
+              mode="workspace"
+              title={`INVESTIGATION GRAPH // CASE ${workspaceData?.fir_number || id}`}
+              subtitle={workspaceData?.metadata?.title || workspaceData?.metadata?.description || 'Case Entity Relationship Network'}
+              isLoading={loading}
+              error={null}
+            />
           </div>
         )}
 

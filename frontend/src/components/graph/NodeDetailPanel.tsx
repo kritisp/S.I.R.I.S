@@ -1,7 +1,12 @@
-import React from 'react';
-import { X, Lock, ExternalLink, Shield, TrendingUp, Eye, Radio } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  X, Lock, ExternalLink, Shield, TrendingUp, Eye, Radio, 
+  AlertTriangle, User, Phone, Car, Building2, MapPin, 
+  Database, ArrowUpRight, ShieldAlert 
+} from 'lucide-react';
 import { NetworkNode, getNodeEdges, getNode, NETWORK_NODES, NETWORK_EDGES } from '../../mockServices/networkGraphData';
 import { useMockState } from '../../mockServices/MockStateContext';
+import { requestsApi } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 
 interface NodeDetailPanelProps {
@@ -13,13 +18,13 @@ interface NodeDetailPanelProps {
 // Type color badge
 function TypeBadge({ type }: { type: NetworkNode['type'] }) {
   const styles: Record<string, string> = {
-    CASE: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-    PERSON: 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 border-pink-200 dark:border-pink-800',
-    PHONE: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-    VEHICLE: 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200 dark:border-purple-800',
-    LOCATION: 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 border-orange-200 dark:border-orange-800',
-    EVIDENCE: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
-    STATION: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+    CASE: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
+    PERSON: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
+    PHONE: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+    VEHICLE: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    LOCATION: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30',
+    EVIDENCE: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/30',
+    STATION: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
   };
   return (
     <span className={`text-[9px] font-bold uppercase tracking-[0.15em] px-2 py-0.5 rounded border ${styles[type] || 'bg-surface-2 text-text-dim border-border'}`}>
@@ -46,230 +51,219 @@ export function NodeDetailPanel({ node, onClose, onExpandNode }: NodeDetailPanel
   const hasPendingRequest = existingRequest?.status === 'PENDING';
   const hasApprovedRequest = existingRequest?.status === 'APPROVED';
 
-  const handleRequestAccess = () => {
-    if (!node.caseId || !node.stationId) return;
-    dispatch({
-      type: 'ADD_ACCESS_REQUEST',
-      payload: {
-        id: `REQ-NET-${Date.now()}`,
-        requestingStationId: state.currentUser?.stationId || '',
-        requestingOfficerId: state.currentUser?.id || '',
-        targetStationId: node.stationId,
-        targetCaseId: node.caseId,
-        reason: `Cross-station entity match detected via Network Explorer. Requesting intelligence sharing.`,
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-      },
-    });
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
+
+  // Cross-station confidence from the edges connecting this node
+  const crossEdge = NETWORK_EDGES.find(e =>
+    (e.source === node.id || e.target === node.id) && e.isCrossStation
+  );
+  const confidence = crossEdge?.confidence ?? (node.metadata?.confidence as number) ?? 88;
+
+  const handleRequestAccess = async () => {
+    if (!node.caseId) return;
+    setRequestSubmitting(true);
+    setRequestError(null);
+    try {
+      const created = await requestsApi.createRequest(
+        node.caseId,
+        `Cross-station entity match detected via Network Explorer (confidence: ${confidence}%).`
+      );
+      dispatch({ type: 'ADD_ACCESS_REQUEST', payload: created });
+    } catch (err: any) {
+      console.error('Access request submission failed:', err);
+      setRequestError(err?.message || 'Failed to submit access request.');
+    } finally {
+      setRequestSubmitting(false);
+    }
   };
 
   const handleOpenCase = () => {
     if (node.caseId) navigate(`/cases/${node.caseId}?from=network`);
   };
 
-  // Cross-station confidence from the edges connecting this node
-  const crossEdge = NETWORK_EDGES.find(e =>
-    (e.source === node.id || e.target === node.id) && e.isCrossStation
-  );
-  const confidence = crossEdge?.confidence ?? (node.metadata?.confidence as number);
+  const riskScore = node.type === 'PERSON' ? 92 : node.type === 'VEHICLE' ? 75 : 65;
 
   return (
-    <div className="w-80 bg-surface border-l border-border-soft flex flex-col h-full animate-slide-in overflow-hidden">
-      <style>{`
-        @keyframes slideInLeft {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        .animate-slide-in { animation: slideInLeft 0.2s ease-out; }
-      `}</style>
-
-      {/* Header */}
-      <div className="px-4 py-4 border-b border-border-soft bg-surface">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <TypeBadge type={node.type} />
-            {node.isCrossStation && (
-              <span className="text-[9px] font-bold uppercase tracking-wider text-warning bg-warning/10 border border-warning/30 px-1.5 py-0.5 rounded">Cross-Station</span>
-            )}
-            {node.isAiDiscovered && (
-              <span className="text-[9px] font-bold uppercase tracking-wider text-accent-bright bg-accent/10 border border-accent/30 px-1.5 py-0.5 rounded">AI Discovered</span>
-            )}
-            {isRestricted && (
-              <span className="text-[9px] font-bold uppercase tracking-wider text-danger-bright bg-danger/10 border border-danger/30 px-1.5 py-0.5 rounded flex items-center gap-1">
-                <Lock size={8} /> Restricted
-              </span>
-            )}
-          </div>
-          <button onClick={onClose} className="shrink-0 p-1 rounded hover:bg-surface-hover text-text-dim hover:text-text transition-colors" aria-label="Close panel">
-            <X size={16} />
+    <div className="w-80 sm:w-96 bg-surface dark:bg-[#0B0F17] border-l border-border-soft dark:border-[#1E293B] flex flex-col h-full font-sans select-none overflow-hidden animate-in slide-in-from-right duration-200">
+      
+      {/* Top Header */}
+      <div className="p-3.5 border-b border-border-soft dark:border-[#1E293B] bg-surface-2 dark:bg-[#0E1422] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+          <span className="text-[10px] font-mono font-bold text-accent dark:text-[#38BDF8] uppercase tracking-wider">
+            ENTITY DOSSIER DETAILS
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-mono font-bold text-text-dim dark:text-[#64748B] px-2 py-0.5 rounded bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B]">
+            ID: {node.id}
+          </span>
+          <button onClick={onClose} className="p-1 rounded hover:bg-surface-hover text-text-dim hover:text-text transition-colors">
+            <X size={14} />
           </button>
         </div>
-
-        <h3 className="text-base font-bold text-text mt-2 font-display">{node.label}</h3>
-        {node.sublabel && <p className="text-xs text-text-dim mt-0.5">{node.sublabel}</p>}
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-xs">
+        {/* Profile Card */}
+        <div className="flex items-start gap-3">
+          <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 shrink-0 shadow-sm">
+            {node.type === 'PERSON' && <User size={22} />}
+            {node.type === 'PHONE' && <Phone size={22} />}
+            {node.type === 'VEHICLE' && <Car size={22} />}
+            {node.type === 'LOCATION' && <MapPin size={22} />}
+            {node.type === 'CASE' && <ShieldAlert size={22} />}
+            {['FINANCIAL', 'BANK_ACCOUNT', 'UPI'].includes(node.type) && <Building2 size={22} />}
+          </div>
 
-        {/* Restricted notice */}
-        {isRestricted && (
-          <div className="bg-danger/10 border border-danger/30 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Lock size={14} className="text-danger-bright" />
-              <span className="text-xs font-bold text-danger-bright uppercase tracking-wide">Restricted Intelligence Record</span>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-bold text-text dark:text-[#F8FAFC] tracking-tight truncate uppercase">
+              {node.label}
+            </h3>
+            <div className="mt-1 flex items-center gap-2 flex-wrap">
+              <TypeBadge type={node.type} />
+              {node.isCrossStation && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-warning/10 border border-warning/30 text-warning uppercase">
+                  Cross-Station
+                </span>
+              )}
             </div>
-            <p className="text-[11px] text-text-dim leading-relaxed">
-              Related record detected by S.I.R.I.S Intelligence Engine. Sensitive case details are restricted
-              until access is authorized by the target station.
-            </p>
-            {confidence && (
-              <div className="flex items-center gap-2 text-[11px]">
-                <TrendingUp size={11} className="text-warning" />
-                <span className="text-text-dim">Entity match confidence:</span>
-                <span className="font-bold text-warning">{confidence}%</span>
-              </div>
-            )}
-            {crossEdge && (
-              <div className="text-[10px] text-text-faint font-mono border-t border-border-soft pt-2 mt-1">
-                Relationship: {crossEdge.label}
-              </div>
-            )}
           </div>
-        )}
+        </div>
 
-        {/* Station info */}
-        {node.stationId && (
-          <div>
-            <div className="text-[10px] uppercase font-bold text-text-faint tracking-wider mb-1.5">Station</div>
-            <div className="text-xs font-semibold text-text bg-surface-2 border border-border rounded-lg px-3 py-2 font-mono">{node.stationId}</div>
+        {/* Structured Metadata Field List */}
+        <div className="space-y-2 border-t border-b border-border-soft dark:border-[#1E293B] py-3 text-[11px]">
+          {node.stationId && (
+            <div className="flex justify-between items-center py-0.5">
+              <span className="text-text-dim dark:text-[#64748B] uppercase">Station Code</span>
+              <span className="text-text dark:text-[#E2E8F0] font-semibold">{node.stationId}</span>
+            </div>
+          )}
+
+          <div className="flex justify-between items-center py-0.5">
+            <span className="text-text-dim dark:text-[#64748B] uppercase">Connected Links</span>
+            <span className="text-accent dark:text-[#38BDF8] font-bold">{edges.length} Graph Relationships</span>
           </div>
-        )}
 
-        {/* Metadata */}
-        {node.metadata && Object.keys(node.metadata).length > 0 && !isRestricted && (
-          <div>
-            <div className="text-[10px] uppercase font-bold text-text-faint tracking-wider mb-2">Entity Intelligence</div>
-            <div className="space-y-2">
-              {Object.entries(node.metadata).map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between text-xs">
-                  <span className="text-text-dim capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</span>
-                  <span className="font-semibold text-text font-mono">{String(v)}</span>
+          <div className="flex justify-between items-center py-0.5">
+            <span className="text-text-dim dark:text-[#64748B] uppercase">Linked Cases</span>
+            <span className="text-amber-600 dark:text-amber-400 font-bold">
+              {connectedNodes.filter(n => n.type === 'CASE').length || 1} Active Dockets
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center py-0.5">
+            <span className="text-text-dim dark:text-[#64748B] uppercase">Sublabel / Role</span>
+            <span className="text-text-dim truncate max-w-[180px]">{node.sublabel || 'Active Surveillance'}</span>
+          </div>
+        </div>
+
+        {/* Risk Score Gauge */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-text-dim dark:text-[#64748B] uppercase font-bold tracking-wider">
+              CRIMINAL RISK SCORE
+            </span>
+            <span className="text-sm font-bold text-rose-500">{riskScore}%</span>
+          </div>
+
+          <div className="h-2 w-full bg-surface-2 dark:bg-[#1E293B] rounded-full overflow-hidden flex border border-border-soft dark:border-transparent">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-600 transition-all duration-500 rounded-full"
+              style={{ width: `${riskScore}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[8px] text-text-dim dark:text-[#64748B]">
+            <span>0% (LOW)</span>
+            <span>50% (MODERATE)</span>
+            <span>100% (CRITICAL)</span>
+          </div>
+        </div>
+
+        {/* Top Syndicate / Associate Connections */}
+        {connectedNodes.length > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] font-bold text-text-dim dark:text-[#64748B] uppercase">
+              <span>CONNECTED TOPOLOGY NODES</span>
+              <span>TYPE</span>
+            </div>
+
+            <div className="space-y-1 text-[11px]">
+              {connectedNodes.slice(0, 5).map((cn, idx) => (
+                <div
+                  key={cn.id}
+                  className="flex items-center justify-between p-1.5 rounded bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B]/60 hover:border-accent/40 dark:hover:border-[#38BDF8]/40 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[10px] text-text-dim dark:text-[#64748B] w-3">{idx + 1}</span>
+                    <span className="font-bold text-text dark:text-[#E2E8F0] truncate max-w-[140px]">{cn.label}</span>
+                  </div>
+                  <span className="text-[9px] font-bold text-accent dark:text-[#38BDF8] uppercase px-1 rounded bg-accent/10 border border-accent/20">
+                    {cn.type}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Relationship stats */}
-        <div>
-          <div className="text-[10px] uppercase font-bold text-text-faint tracking-wider mb-2">Relationships</div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-surface-2 border border-border rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-text">{edges.length}</div>
-              <div className="text-[10px] text-text-faint">Links</div>
+        {/* Recent Intelligence Activities */}
+        <div className="space-y-1.5 pt-1">
+          <span className="text-[10px] font-bold text-text-dim dark:text-[#64748B] uppercase block">
+            RECENT INTELLIGENCE ACTIVITIES
+          </span>
+          <div className="space-y-1.5 text-[10px]">
+            <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
+              <span className="text-accent dark:text-[#38BDF8] font-bold shrink-0">20:47</span>
+              <span>Linked to case by Hybrid NLP Entity Resolver</span>
             </div>
-            <div className="bg-surface-2 border border-border rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-text">{connectedNodes.filter(n => n.type === 'CASE').length}</div>
-              <div className="text-[10px] text-text-faint">Cases</div>
+            <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
+              <span className="text-rose-500 dark:text-rose-400 font-bold shrink-0">20:31</span>
+              <span>Anomaly detected: Cross-station vehicle correlation</span>
             </div>
-            <div className="bg-surface-2 border border-border rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-text">
-                {new Set(connectedNodes.map(n => n.stationId).filter(Boolean)).size + (node.stationId ? 1 : 0)}
-              </div>
-              <div className="text-[10px] text-text-faint">Stations</div>
+            <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">19:58</span>
+              <span>Entity projected to Cloud Neo4j Aura Graph</span>
             </div>
           </div>
         </div>
-
-        {/* Connected records */}
-        {connectedNodes.length > 0 && (
-          <div>
-            <div className="text-[10px] uppercase font-bold text-text-faint tracking-wider mb-2 flex items-center gap-1.5">
-              <Radio size={10} className="text-brand" /> Connected Records
-            </div>
-            <div className="space-y-1.5">
-              {connectedNodes.slice(0, 6).map(cn => {
-                const edge = edges.find(e => e.source === cn.id || e.target === cn.id);
-                return (
-                  <div key={cn.id} className="flex items-center justify-between text-xs bg-surface-2 border border-border rounded-lg px-3 py-2">
-                    <div>
-                      <div className="font-mono font-semibold text-text truncate max-w-[140px]">{cn.label}</div>
-                      <div className="text-text-faint text-[10px]">{edge?.label}</div>
-                    </div>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                      cn.accessStatus === 'RESTRICTED'
-                        ? 'text-danger-bright bg-danger/10 border-danger/30'
-                        : cn.accessStatus === 'PENDING'
-                        ? 'text-warning bg-warning/10 border-warning/30'
-                        : 'text-success bg-success/10 border-success/30'
-                    }`}>
-                      {cn.accessStatus === 'RESTRICTED' ? '🔒 Restricted' : '✓ Authorized'}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* AI Discovery info */}
-        {crossEdge?.isAiDiscovered && (
-          <div className="bg-accent/10 border border-accent/30 rounded-xl p-3">
-            <div className="text-[10px] font-bold text-accent-bright uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Shield size={10} /> AI-Discovered Link
-            </div>
-            <p className="text-[11px] text-text-dim leading-relaxed">
-              Same entity identifier detected in independently registered cases across multiple stations. Confidence: {crossEdge.confidence}%.
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Actions */}
-      <div className="px-4 py-4 border-t border-border-soft space-y-2">
+      {/* Footer Actions */}
+      <div className="p-3 border-t border-border-soft dark:border-[#1E293B] bg-surface-2 dark:bg-[#0E1422] space-y-2">
         {node.type === 'CASE' && !isRestricted && (
           <button
             onClick={handleOpenCase}
-            className="w-full bg-accent text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-xs"
+            className="w-full py-2 rounded-lg bg-brand dark:bg-[#38BDF8] hover:bg-brand-bright dark:hover:bg-[#0284C7] text-bg dark:text-[#0B0F17] font-mono font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <ExternalLink size={13} /> Open Case Workspace
+            <span>OPEN CASE WORKSPACE</span>
+            <ArrowUpRight size={13} />
           </button>
         )}
 
         {node.type === 'CASE' && isRestricted && (
-          <>
-            {hasPendingRequest ? (
-              <div className="w-full bg-warning/15 text-warning text-xs font-bold px-4 py-2.5 rounded-lg border border-warning/30 text-center">
-                ⏳ Access Request Pending
-              </div>
-            ) : hasApprovedRequest ? (
-              <button
-                onClick={handleOpenCase}
-                className="w-full bg-success/20 text-success text-xs font-bold px-4 py-2.5 rounded-lg border border-success/30 hover:bg-success/30 transition-colors flex items-center justify-center gap-2"
-              >
-                <Eye size={13} /> Access Granted — Open Case
-              </button>
-            ) : (
-              <button
-                onClick={handleRequestAccess}
-                className="w-full bg-danger/20 text-danger-bright text-xs font-bold px-4 py-2.5 rounded-lg border border-danger/30 hover:bg-danger/30 transition-colors flex items-center justify-center gap-2"
-              >
-                <Lock size={13} /> Request Access
-              </button>
-            )}
-          </>
+          <button
+            onClick={handleRequestAccess}
+            disabled={requestSubmitting}
+            className="w-full py-2 rounded-lg bg-danger/20 text-danger-bright border border-danger/30 hover:bg-danger/30 text-xs font-mono font-bold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            <Lock size={13} />
+            <span>{requestSubmitting ? 'SUBMITTING...' : 'REQUEST CROSS-STATION ACCESS'}</span>
+          </button>
         )}
 
         {onExpandNode && (
           <button
             onClick={() => onExpandNode(node.id)}
-            className="w-full bg-surface-2 border border-border text-text text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-surface-hover transition-colors"
+            className="w-full py-1.5 rounded-lg bg-surface dark:bg-[#1E293B] border border-border-soft dark:border-transparent text-text dark:text-[#E2E8F0] font-mono font-bold text-xs hover:bg-surface-hover transition-colors"
           >
-            Expand Relationships
+            EXPAND NEIGHBORHOOD
           </button>
         )}
       </div>
+
     </div>
   );
 }

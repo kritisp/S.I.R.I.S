@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { processAiraQuery, processAiraQueryAsync } from '../../services/airaService';
 import { useDrishtiVoice } from '../../hooks/useDrishtiVoice';
+import { useMockState } from '../../mockServices/MockStateContext';
 
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
@@ -40,15 +41,16 @@ interface AiraContextType {
 const AiraContext = createContext<AiraContextType | undefined>(undefined);
 
 export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { state } = useMockState();
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
   const [isThinking, setIsThinking] = useState<boolean>(false);
-  const [response, setResponse] = useState<string>('S.I.R.I.S. AI Co-Pilot ready. Hold mic or type a query to analyze cases, ANPR vehicle trails, or AML money flow.');
+  const [response, setResponse] = useState<string>('S.I.R.I.S. Investigation Support active. Query case dockets, cross-station FIR records, or legal section references.');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: 'S.I.R.I.S. AI Co-Pilot ready. Hold mic or type a query to analyze cases, ANPR vehicle trails, or AML money flow.',
+      content: 'S.I.R.I.S. Investigation Support active. Query case dockets, cross-station FIR records, or legal section references.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       suggestions: ["Show vehicle trail OD-02-AB-1234", "Analyze AML Money Trail", "Scan Anomaly Radar"]
     }
@@ -97,7 +99,12 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsThinking(true);
 
     try {
-      const res = await processAiraQueryAsync(query, { currentUser: 'Comm. Mahapatra' });
+      const activeOfficer = state.currentUser?.name || 'Officer';
+      const res = await processAiraQueryAsync(query, { 
+        currentUser: activeOfficer,
+        station: state.currentUser?.station,
+        role: state.currentUser?.role
+      });
       const botResponseText = res.response;
       const botSuggestions = res.actions ? res.actions.map(a => a.label) : [];
 

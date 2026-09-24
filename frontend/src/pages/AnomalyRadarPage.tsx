@@ -12,21 +12,21 @@ export function AnomalyRadarPage() {
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-16 select-none font-sans">
       {/* Header Bar */}
-      <div className="glass p-6 rounded-2xl bg-surface border border-border-soft flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-surface border border-border-soft flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-[10px] font-mono font-bold bg-danger/10 text-danger-bright px-2.5 py-0.5 rounded border border-danger/30 uppercase flex items-center gap-1">
-              <Activity size={12} className="animate-pulse" /> STATISTICAL ANOMALY RADAR
+              <Activity size={12} /> STATISTICAL ANOMALY DETECTION
             </span>
-            <span className="text-[10px] font-mono text-brand font-bold">
-              AUTOMATIC SCANNER ACTIVE
+            <span className="text-[10px] font-mono text-brand font-bold px-2 py-0.5 rounded bg-brand/10 border border-brand/20">
+              ACTIVE CCTNS SCANNER
             </span>
           </div>
           <h1 className="text-2xl font-bold font-mono text-text flex items-center gap-2">
-            <TrendingUp className="text-brand" /> Anomaly Radar & Pattern Scanner
+            <TrendingUp className="text-brand" /> Statistical Crime Pattern & Anomaly Analysis
           </h1>
           <p className="text-xs text-text-dim mt-1">
-            S.I.R.I.S. deterministic statistical scan · Detects surges, offender activity bursts, emerging patterns & timing clusters
+            Deterministic statistical analysis · Detects incidence surges, repeat offender clusters, and temporal frequency anomalies
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@ export function AnomalyRadarPage() {
       {/* Anomalies List */}
       <div className="grid md:grid-cols-2 gap-5">
         {anomalies.map(item => (
-          <div key={item.id} className="glass p-6 rounded-2xl bg-surface border border-border-soft space-y-4 shadow-sm hover:border-brand transition-all flex flex-col justify-between">
+          <div key={item.id} className="p-6 rounded-2xl bg-surface border border-border-soft space-y-4 shadow-2xs hover:border-brand/60 transition-all flex flex-col justify-between">
             <div className="space-y-3">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-border-soft pb-2.5">

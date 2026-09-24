@@ -13,6 +13,12 @@ class Settings(BaseSettings):
     # Supabase PostgreSQL Configuration
     DATABASE_URL: Optional[str] = None
 
+    # Hybrid NLP Entity Extraction (spaCy NER + Deterministic Regex)
+    ENABLE_SPACY_NER: bool = True
+    SPACY_MODEL_NAME: str = "en_core_web_sm"
+    SPACY_CONFIDENCE_THRESHOLD: float = 0.50
+    SPACY_FALLBACK_ON_ERROR: bool = True
+
     # Neo4j Configuration
     NEO4J_URI: str = "bolt://127.0.0.1:7687"
     NEO4J_USERNAME: str = "neo4j"

@@ -140,14 +140,17 @@ export const MockStateProvider = ({ children }: { children: ReactNode }) => {
           dispatch({ type: 'SET_EVIDENCE', payload: evidence });
         }
 
+        // Unconditionally replace the seeded demo access requests with whatever the
+        // backend actually returns — including an empty array. A guard like
+        // `if (combinedRequests.length > 0)` would let fabricated seed data
+        // (REQ-2026-00301 etc., see initialData.ts) persist indefinitely for any
+        // station with zero real requests, indistinguishable from live data.
         const [incoming, outgoing] = await Promise.all([
           requestsApi.getIncomingRequests().catch(() => []),
           requestsApi.getOutgoingRequests().catch(() => []),
         ]);
         const combinedRequests = [...incoming, ...outgoing];
-        if (combinedRequests.length > 0) {
-          dispatch({ type: 'SET_ACCESS_REQUESTS', payload: combinedRequests });
-        }
+        dispatch({ type: 'SET_ACCESS_REQUESTS', payload: combinedRequests });
 
         const users = await usersApi.getUsers().catch(() => []);
         if (users && users.length > 0) {

@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, Mic, Send, Volume2, VolumeX, Sparkles, Bot, Shield, 
-  Layers, Activity, FileText, CheckCircle2, Radio, Search, Users, Car
+  Layers, Activity, FileText, CheckCircle2, Radio, Search, Users, Car,
+  Database, Network, Scale
 } from 'lucide-react';
 import { useAira } from '../components/Aira/AiraProvider';
+import { useMockState } from '../mockServices/MockStateContext';
 
 export function InvestigationAssistant() {
+  const { state } = useMockState();
   const { 
     orbState, isListening, isSpeaking, isMuted, toggleMute,
     language, setLanguage, chatHistory, startListening, stopListening,
@@ -14,6 +17,11 @@ export function InvestigationAssistant() {
 
   const [inputText, setInputText] = useState<string>('');
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const activeCasesCount = state.cases?.filter(c => c.status === 'ACTIVE' || c.status === 'PENDING').length || state.cases?.length || 0;
+  const stationsCount = state.stations?.length || 0;
+  const alertsCount = state.alerts?.filter(a => !a.isRead).length || 0;
+  const evidenceCount = state.evidence?.length || 0;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -37,14 +45,14 @@ export function InvestigationAssistant() {
         {/* Header Bar */}
         <div className="p-5 border-b border-border-soft flex items-center justify-between bg-surface-2">
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full bg-brand animate-pulse" />
+            <div className="w-3 h-3 rounded-full bg-brand" />
             <div>
               <div className="flex items-center gap-2 font-mono font-bold text-lg text-text">
-                <span>S.I.R.I.S. AI CO-PILOT</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">v2.4 (ODISHA)</span>
+                <span>INVESTIGATION INTELLIGENCE DESK</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">S.I.R.I.S. ODISHA</span>
               </div>
               <span className="text-xs font-mono text-text-dim uppercase tracking-wider">
-                {orbState === 'listening' ? 'Listening to voice…' : orbState === 'thinking' ? 'Analyzing intelligence…' : 'System Ready'}
+                {orbState === 'listening' ? 'Listening to voice query…' : orbState === 'thinking' ? 'Querying state knowledge graph…' : 'Statutory Assistance Ready'}
               </span>
             </div>
           </div>
@@ -77,23 +85,23 @@ export function InvestigationAssistant() {
           </div>
         </div>
 
-        {/* Telemetry Strip */}
+        {/* Live System State Telemetry Strip */}
         <div className="grid grid-cols-4 gap-4 p-4 border-b border-border-soft bg-surface-2/60 text-center font-mono">
           <div className="p-3 rounded-xl bg-surface border border-border-soft">
-            <div className="text-lg font-bold text-danger-bright">1,420</div>
-            <div className="text-xs text-text-dim uppercase mt-1">Active FIRs</div>
+            <div className="text-lg font-bold text-brand">{activeCasesCount}</div>
+            <div className="text-xs text-text-dim uppercase mt-1">Active Cases</div>
           </div>
           <div className="p-3 rounded-xl bg-surface border border-border-soft">
-            <div className="text-lg font-bold text-amber-400">49</div>
-            <div className="text-xs text-text-dim uppercase mt-1">Hotspots</div>
+            <div className="text-lg font-bold text-amber-500">{alertsCount}</div>
+            <div className="text-xs text-text-dim uppercase mt-1">Open Alerts</div>
           </div>
           <div className="p-3 rounded-xl bg-surface border border-border-soft">
-            <div className="text-lg font-bold text-brand">12</div>
-            <div className="text-xs text-text-dim uppercase mt-1">Repeaters</div>
+            <div className="text-lg font-bold text-text">{evidenceCount}</div>
+            <div className="text-xs text-text-dim uppercase mt-1">Vault Items</div>
           </div>
           <div className="p-3 rounded-xl bg-surface border border-border-soft">
-            <div className="text-lg font-bold text-success">98%</div>
-            <div className="text-xs text-text-dim uppercase mt-1">ANPR Feed</div>
+            <div className="text-lg font-bold text-emerald-500">{stationsCount}</div>
+            <div className="text-xs text-text-dim uppercase mt-1">Jurisdictions</div>
           </div>
         </div>
 

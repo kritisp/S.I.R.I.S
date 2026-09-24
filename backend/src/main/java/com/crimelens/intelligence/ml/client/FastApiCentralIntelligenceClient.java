@@ -58,7 +58,13 @@ public class FastApiCentralIntelligenceClient implements MlClientInterface {
 
     @Override
     public String transcribeVoice(byte[] audioData) {
-        throw new UnsupportedOperationException("transcribeVoice is not wired to FastAPI yet. No mocks allowed.");
+        // No STT endpoint exists in central-intelligence (ml/query-ai has faster-whisper
+        // STT, but is not part of the wired/running architecture — see audit notes).
+        // IntelligenceController actively calls this; throwing here would turn a working
+        // (if mocked) endpoint into a hard 500 for every request, which is a regression,
+        // not a fix. Delegate to the mock like chatResponse/generateFirDraft until a real
+        // speech-to-text service is actually wired up.
+        return fallbackMockClient.transcribeVoice(audioData);
     }
 
     @Override

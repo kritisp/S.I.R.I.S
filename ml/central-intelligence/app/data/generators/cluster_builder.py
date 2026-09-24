@@ -73,7 +73,7 @@ def build_synthetic_dataset_v2(
     track_style(s3)
 
     for c in [c_a1, c_a2, c_a3]:
-        c.vehicle_associations.append(CaseVehicle(case_id=c.id, vehicle_id=veh_a1.id, role=VehicleRole.SUSPECT_VEHICLE))
+        c.vehicle_associations.append(CaseVehicle(case_id=c.id, vehicle_id=veh_a1.id, vehicle=veh_a1.registration_number, role=VehicleRole.SUSPECT_VEHICLE))
         c.phone_associations.append(CasePhone(case_id=c.id, phone_id=phone_a1.id))
         cases.append(c)
 
@@ -187,7 +187,7 @@ def build_synthetic_dataset_v2(
         # Randomly attach additional vehicle/phone/evidence
         if rng.random() > 0.4:
             v = rng.choice(vehicles)
-            c_rem.vehicle_associations.append(CaseVehicle(case_id=c_rem.id, vehicle_id=v.id, role=VehicleRole.SUSPECT_VEHICLE))
+            c_rem.vehicle_associations.append(CaseVehicle(case_id=c_rem.id, vehicle_id=v.id, vehicle=v.registration_number, role=VehicleRole.SUSPECT_VEHICLE))
 
         if rng.random() > 0.3:
             ph = rng.choice(phones)

@@ -101,17 +101,17 @@ export function LiveNews() {
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-4 border-b border-border-soft">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="h-2 w-2 rounded-full bg-brand animate-ping" />
-            <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-brand">● LIVE ODISHA BROADCAST</span>
+            <span className="h-2 w-2 rounded-full bg-brand" />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-brand">STATE POLICE INTELLIGENCE DESK</span>
           </div>
           <h1 className="text-2xl font-bold font-display text-text flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
               <Newspaper size={20} />
             </div>
-            Live Crime & Police Intelligence Feed
+            State Crime Bulletins & Advisories
           </h1>
           <p className="text-xs text-text-dim mt-1 font-medium">
-            Real-time automated incident and law enforcement surveillance stream for Odisha State Police Command.
+            Verified district bulletins and inter-station advisories archived for Odisha State Police Command.
           </p>
         </div>
 
@@ -143,8 +143,8 @@ export function LiveNews() {
           </button>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 border border-border-soft text-xs text-text-dim font-mono">
-            <Radio size={14} className="text-success animate-pulse" />
-            <span>Last updated: just now</span>
+            <Radio size={14} className="text-emerald-500" />
+            <span>Archive Status: Active</span>
           </div>
 
           <div className="px-3 py-1.5 rounded-lg bg-brand/10 border border-brand/20 text-xs font-semibold text-brand font-mono">

@@ -74,15 +74,25 @@ def test_unit_related_to_self_link_rejection():
 
 
 def test_unit_relationship_contracts_validation():
-    """Tests H, I & T: Verifies role validation and UUID validation in relationship contracts."""
+    """
+    Tests H, I & T (revised): Verifies role validation and non-empty identifier
+    validation in relationship contracts.
+
+    Not UUID-format-restricted: case_id may be a Spring Boot case_records ID
+    (verified authoritative — see Case Identity Fix) rather than a UUID.
+    """
     c_uuid = str(uuid.uuid4())
     p_uuid = str(uuid.uuid4())
 
     cp_rel = CasePersonRelContract(case_id=c_uuid, person_id=p_uuid, role="ACCUSED")
     assert cp_rel.role == "ACCUSED"
 
+    # A real Spring Boot case ID must be accepted, not rejected.
+    cp_rel_spring = CasePersonRelContract(case_id="CR-BBSR001-2026-A1B2C3", person_id=p_uuid, role="ACCUSED")
+    assert cp_rel_spring.case_id == "CR-BBSR001-2026-A1B2C3"
+
     with pytest.raises(ValueError):
-        CasePersonRelContract(case_id="invalid-uuid", person_id=p_uuid)
+        CasePersonRelContract(case_id="", person_id=p_uuid)
 
 
 def test_live_controlled_single_case_graph_projection_and_idempotency():

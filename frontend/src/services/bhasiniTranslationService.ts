@@ -26,10 +26,22 @@ export interface TtsResponse {
   provider: 'BHASINI_TTS_API' | 'LOCAL_TTS_SYNTHESIS';
 }
 
-const BHASINI_API_KEY = import.meta.env.VITE_BHASINI_API_KEY || '';
-const BHASINI_UDYAT_KEY = import.meta.env.VITE_BHASINI_UDYAT_KEY || '';
-const BHASINI_API_URL = import.meta.env.VITE_BHASINI_API_URL || 'https://dhruva-api.bhasini.gov.in/services/inference/pipeline';
+// Calls are proxied through the voice-gateway server's /api/bhasini/pipeline endpoint,
+// which holds BHASINI_API_KEY/BHASINI_UDYAT_KEY server-side. Previously called the
+// Bhasini API directly from the browser with VITE_BHASINI_API_KEY/VITE_BHASINI_UDYAT_KEY
+// exposed in the built bundle — removed for security.
+const VOICE_GATEWAY_URL = (import.meta.env.VITE_GEMINI_TOKEN_URL as string || 'http://localhost:3001/api/gemini/live-token').replace(/\/api\/gemini\/live-token$/, '');
+const BHASINI_PROXY_URL = `${VOICE_GATEWAY_URL}/api/bhasini/pipeline`;
+const BHASINI_PIPELINE_URL = 'https://dhruva-api.bhasini.gov.in/services/inference/pipeline';
 const BHASINI_TRANSLATION_URL = 'https://dhruva-api.bhasini.gov.in/services/inference/translation';
+
+async function callBhasiniProxy(pipelineUrl: string, payload: unknown): Promise<Response> {
+  return fetch(BHASINI_PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pipelineUrl, payload }),
+  });
+}
 
 // Local offline translation dictionary for Indian Languages (Crime & Legal Terminology)
 const CRIME_TRANSLATION_DICTIONARY: Record<SupportedLanguage, Record<string, string>> = {
@@ -122,30 +134,21 @@ export const bhasiniTranslationService = {
     }
 
     try {
-      const response = await fetch(BHASINI_TRANSLATION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': BHASINI_API_KEY,
-          'ulcaApiKey': BHASINI_UDYAT_KEY,
-          'userID': BHASINI_UDYAT_KEY,
-        },
-        body: JSON.stringify({
-          pipelineTasks: [
-            {
-              taskType: 'translation',
-              config: {
-                language: {
-                  sourceLanguage,
-                  targetLanguage,
-                },
+      const response = await callBhasiniProxy(BHASINI_TRANSLATION_URL, {
+        pipelineTasks: [
+          {
+            taskType: 'translation',
+            config: {
+              language: {
+                sourceLanguage,
+                targetLanguage,
               },
             },
-          ],
-          inputData: {
-            input: [{ source: text }],
           },
-        }),
+        ],
+        inputData: {
+          input: [{ source: text }],
+        },
       });
 
       if (response.ok) {
@@ -190,32 +193,23 @@ export const bhasiniTranslationService = {
     sourceLanguage: SupportedLanguage = 'hi'
   ): Promise<AsrResponse> {
     try {
-      const response = await fetch(BHASINI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': BHASINI_API_KEY,
-          'ulcaApiKey': BHASINI_UDYAT_KEY,
-          'userID': BHASINI_UDYAT_KEY,
-        },
-        body: JSON.stringify({
-          pipelineTasks: [
-            {
-              taskType: 'asr',
-              config: {
-                language: {
-                  sourceLanguage,
-                },
-                serviceId: '',
-                audioFormat: 'wav',
-                samplingRate: 16000,
+      const response = await callBhasiniProxy(BHASINI_PIPELINE_URL, {
+        pipelineTasks: [
+          {
+            taskType: 'asr',
+            config: {
+              language: {
+                sourceLanguage,
               },
+              serviceId: '',
+              audioFormat: 'wav',
+              samplingRate: 16000,
             },
-          ],
-          inputData: {
-            audio: [{ audioContent: audioBase64 }],
           },
-        }),
+        ],
+        inputData: {
+          audio: [{ audioContent: audioBase64 }],
+        },
       });
 
       if (response.ok) {
@@ -260,30 +254,21 @@ export const bhasiniTranslationService = {
     gender: 'female' | 'male' = 'female'
   ): Promise<TtsResponse> {
     try {
-      const response = await fetch(BHASINI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': BHASINI_API_KEY,
-          'ulcaApiKey': BHASINI_UDYAT_KEY,
-          'userID': BHASINI_UDYAT_KEY,
-        },
-        body: JSON.stringify({
-          pipelineTasks: [
-            {
-              taskType: 'tts',
-              config: {
-                language: {
-                  sourceLanguage: targetLanguage,
-                },
-                gender,
+      const response = await callBhasiniProxy(BHASINI_PIPELINE_URL, {
+        pipelineTasks: [
+          {
+            taskType: 'tts',
+            config: {
+              language: {
+                sourceLanguage: targetLanguage,
               },
+              gender,
             },
-          ],
-          inputData: {
-            input: [{ source: text }],
           },
-        }),
+        ],
+        inputData: {
+          input: [{ source: text }],
+        },
       });
 
       if (response.ok) {

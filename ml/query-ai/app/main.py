@@ -106,4 +106,8 @@ app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    # Default changed from 8000 to 8002 — 8000 collides with the central-intelligence
+    # service (ml/central-intelligence), which is the one actually wired into
+    # start_siris_services.bat/docker-compose.yml. Override with PORT if needed.
+    port = int(os.environ.get("PORT", 8002))
+    uvicorn.run("app.main:app", host="127.0.0.1", port=port, reload=True)
