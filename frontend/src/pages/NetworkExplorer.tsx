@@ -73,22 +73,22 @@ function GraphLegend() {
   );
 }
 
-// ─── Real Neo4j & NetworkX Graph Summary Component ─────────────────────────────
+// ─── State Intelligence Graph Summary Component ─────────────────────────────
 function SummaryPanel({ summary, stats }: { summary: Record<string, number>; stats?: Record<string, any> }) {
   const items = [
-    { label: 'Subgraph Nodes', value: stats?.subgraph_total_nodes ?? summary.totalEntities + summary.totalCases },
-    { label: 'Subgraph Edges', value: stats?.subgraph_total_edges ?? summary.crossStationLinks + summary.aiDiscoveredLinks },
-    { label: 'Connected Components', value: stats?.subgraph_components ?? 1, highlight: 'text-brand' },
-    { label: 'Global Neo4j Nodes', value: stats?.global_total_nodes ?? '263', highlight: 'text-emerald-500' },
-    { label: 'Global Neo4j Edges', value: stats?.global_total_edges ?? '559', highlight: 'text-emerald-500' },
-    { label: 'Analytics Engine', value: stats?.analytics_engine ?? 'NetworkX Python', highlight: 'text-accent-bright' },
+    { label: 'Workspace Entities', value: stats?.subgraph_total_nodes ?? summary.totalEntities + summary.totalCases },
+    { label: 'Active Linkages', value: stats?.subgraph_total_edges ?? summary.crossStationLinks + summary.aiDiscoveredLinks },
+    { label: 'Syndicate Clusters', value: stats?.subgraph_components ?? 1, highlight: 'text-brand' },
+    { label: 'Statewide Entities', value: stats?.global_total_nodes ?? '263', highlight: 'text-emerald-500' },
+    { label: 'Statewide Linkages', value: stats?.global_total_edges ?? '559', highlight: 'text-emerald-500' },
+    { label: 'Link Analysis Engine', value: stats?.analytics_engine ?? 'Graph Centrality Matrix', highlight: 'text-accent-bright' },
   ];
 
   return (
     <div className="bg-surface border border-border-soft rounded-xl p-3 font-mono">
       <div className="text-[10px] uppercase font-bold text-text-faint tracking-wider mb-2 flex items-center justify-between">
-        <span className="flex items-center gap-1.5"><Radio size={10} className="text-brand" /> Neo4j & NetworkX Topology</span>
-        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">REAL NEO4J</span>
+        <span className="flex items-center gap-1.5"><Radio size={10} className="text-brand" /> State Intelligence Topology</span>
+        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">GRAPH CONNECTED</span>
       </div>
       <div className="space-y-1.5">
         {items.map(item => (
@@ -614,7 +614,7 @@ export function NetworkExplorer() {
             </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Neo4j Aura Linked
+              State Graph Online
             </span>
           </div>
           <h1 className="text-2xl font-bold font-mono text-text">

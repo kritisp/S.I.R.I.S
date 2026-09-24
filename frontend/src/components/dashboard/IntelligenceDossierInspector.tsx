@@ -175,7 +175,7 @@ export function IntelligenceDossierInspector({
           <div className="space-y-1.5 text-[10px]">
             <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
               <span className="text-accent dark:text-[#38BDF8] font-bold shrink-0">20:47</span>
-              <span>Linked to case FIR_2026_118 by Hybrid NLP NER</span>
+              <span>Linked to case FIR_2026_118 via Incident Extraction</span>
             </div>
             <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
               <span className="text-rose-500 dark:text-rose-400 font-bold shrink-0">20:31</span>
@@ -183,11 +183,11 @@ export function IntelligenceDossierInspector({
             </div>
             <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
               <span className="text-accent dark:text-[#38BDF8] font-bold shrink-0">20:15</span>
-              <span>New CDR phone records ingested into Neo4j graph</span>
+              <span>New CDR cellular records linked to investigation dossier</span>
             </div>
             <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
               <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">19:58</span>
-              <span>Entity resolved: R.V. ↔ Rahul Verma by Entity Resolver</span>
+              <span>Identity resolved: R.V. ↔ Rahul Verma via Alias Matcher</span>
             </div>
           </div>
         </div>

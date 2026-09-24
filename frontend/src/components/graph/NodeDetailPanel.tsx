@@ -217,7 +217,7 @@ export function NodeDetailPanel({ node, onClose, onExpandNode }: NodeDetailPanel
           <div className="space-y-1.5 text-[10px]">
             <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
               <span className="text-accent dark:text-[#38BDF8] font-bold shrink-0">20:47</span>
-              <span>Linked to case by Hybrid NLP Entity Resolver</span>
+              <span>Linked to case via Intelligence Entity Resolution</span>
             </div>
             <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
               <span className="text-rose-500 dark:text-rose-400 font-bold shrink-0">20:31</span>
@@ -225,7 +225,7 @@ export function NodeDetailPanel({ node, onClose, onExpandNode }: NodeDetailPanel
             </div>
             <div className="flex items-start gap-2 text-text-dim dark:text-[#94A3B8]">
               <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">19:58</span>
-              <span>Entity projected to Cloud Neo4j Aura Graph</span>
+              <span>Record mapped to State Investigation Graph</span>
             </div>
           </div>
         </div>

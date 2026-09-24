@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 
 export function BlockchainAuditTerminal() {
   const terminalLines = [
-    { text: '>> Ingesting file: FIR_2026_118.pdf [SHA-256: a3f6d...b7e9c] SUCCESS', color: 'text-emerald-600 dark:text-emerald-400' },
-    { text: '>> Extracting entities using Hybrid NLP (Regex + spaCy NER model)... 23 entities found', color: 'text-text dark:text-[#E2E8F0]' },
-    { text: '>> Resolving aliases and deduplicating cross-station records... 2 merges completed', color: 'text-accent dark:text-[#38BDF8]' },
-    { text: '>> Updating knowledge graph in Cloud Neo4j Aura... 102 nodes, 231 relationships committed', color: 'text-text dark:text-[#E2E8F0]' },
-    { text: '>> Running centrality and PageRank analysis... DONE', color: 'text-text dark:text-[#E2E8F0]' },
-    { text: '>> Checking anomaly detection rules: Mule Account Spike detected [ALERT ALT-001]', color: 'text-amber-600 dark:text-amber-400 font-bold' },
-    { text: '>> Section 63 BSA evidentiary audit log written to tamper-evident blockchain ledger... TXN: 0x7a8b9c...e2f3d4', color: 'text-emerald-600 dark:text-emerald-400' },
+    { text: '>> Ingesting case docket: FIR_2026_118.pdf [SHA-256: a3f6d...b7e9c] VERIFIED', color: 'text-emerald-600 dark:text-emerald-400' },
+    { text: '>> Extracting case entities via Multi-Source Extraction Pipeline... 23 entities identified', color: 'text-text dark:text-[#E2E8F0]' },
+    { text: '>> Resolving suspect aliases and deduplicating cross-station records... 2 profiles linked', color: 'text-accent dark:text-[#38BDF8]' },
+    { text: '>> Updating state investigation graph... 102 nodes, 231 relationships committed', color: 'text-text dark:text-[#E2E8F0]' },
+    { text: '>> Running network centrality & link analysis... COMPLETE', color: 'text-text dark:text-[#E2E8F0]' },
+    { text: '>> Evaluating anomaly risk heuristics: Mule Account Velocity detected [ALERT ALT-001]', color: 'text-amber-600 dark:text-amber-400 font-bold' },
+    { text: '>> Section 63 BSA evidentiary audit record written to tamper-evident custody ledger... TXN: 0x7a8b9c...e2f3d4', color: 'text-emerald-600 dark:text-emerald-400' },
   ];
 
   return (
@@ -37,7 +37,7 @@ export function BlockchainAuditTerminal() {
 
         <div className="pt-2 border-t border-border-soft dark:border-[#1E293B]/70 mt-1 flex items-center justify-between text-[10px] text-text-dim dark:text-[#64748B]">
           <span>STATUS: ALL SUBSYSTEMS NOMINAL</span>
-          <span className="text-accent dark:text-[#38BDF8]">SPACY + CHROMADB + NEO4J ACTIVE</span>
+          <span className="text-accent dark:text-[#38BDF8]">CENTRAL INTELLIGENCE ENGINE ONLINE</span>
         </div>
       </div>
 

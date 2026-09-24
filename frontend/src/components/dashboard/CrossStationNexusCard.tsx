@@ -111,7 +111,7 @@ export function CrossStationNexusCard() {
       <div className="pt-1 text-[10px] font-mono text-text-dim flex items-center justify-between">
         <span className="flex items-center gap-1">
           <ShieldCheck size={12} className="text-emerald-500" />
-          <span>Neo4j Aura Remote Cluster Connected</span>
+          <span>Statewide Intelligence Graph Connected</span>
         </span>
         <Link to="/requests" className="text-amber-600 dark:text-amber-400 font-bold hover:underline">
           File Access Request

@@ -525,7 +525,7 @@ export function CaseWorkspace() {
                 <div className="glass p-6 rounded-xl bg-surface border border-border-soft space-y-4">
                   <h3 className="text-xs font-bold text-text uppercase tracking-wider border-b border-border-soft pb-2 flex items-center justify-between">
                     <span>Cross-Case Intelligence ({crossIntel.related_cases.length} Related Cases)</span>
-                    <span className="text-[10px] font-mono text-brand font-bold">LIVE NEO4J OVERLAP</span>
+                    <span className="text-[10px] font-mono text-brand font-bold">STATEWIDE OVERLAP</span>
                   </h3>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
