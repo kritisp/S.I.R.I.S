@@ -426,75 +426,82 @@ export function GeoTrailPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-20 select-none font-sans">
-      {/* Header Bar */}
-      <div className="glass p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border-soft">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-mono bg-danger/10 text-danger-bright px-2.5 py-0.5 rounded border border-danger/30 font-bold flex items-center gap-1">
-              <Navigation size={12} /> VEHICLE GEO-TRAIL RECONSTRUCTION
-            </span>
-            <span className="text-[10px] font-mono text-success font-bold flex items-center gap-1">
-              <Activity size={10} className="animate-pulse" /> SPATIAL VECTOR ACTIVE
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold font-mono text-text flex items-center gap-2">
-            Trajectory Reconstruction Matrix
-          </h1>
-          <p className="text-xs text-text-dim mt-1">
-            Odisha Police optical ANPR surveillance corridor · Camera hop timeline telemetry & flight path projection
-          </p>
-        </div>
-
-        {/* Action Controls & Search Input */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={14} className="text-text-dim absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search Plate (e.g. OD-02-MJ-8821)..."
-                className="pl-9 pr-3 py-2 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono font-bold text-text outline-none focus:border-brand w-52"
-              />
+    <div className="max-w-[1520px] mx-auto space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
+      {/* ── 1. COMMAND HEADER & GEO-TRAIL HUB ── */}
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 sm:p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs">
+              <Navigation className="w-5 h-5" />
             </div>
-            <button
-              type="submit"
-              className="px-3.5 py-2 rounded-xl bg-brand text-bg text-xs font-bold font-mono hover:bg-brand-bright transition-colors shadow-xs"
-            >
-              SEARCH
-            </button>
-          </form>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold font-mono tracking-tight text-text dark:text-[#F8FAFC] uppercase">
+                  VEHICLE GEO-TRAIL RECONSTRUCTION
+                </h1>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-accent/15 dark:bg-[#38BDF8]/15 border border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]">
+                  ANPR MATRIX
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1">
+                  <Activity size={10} className="animate-pulse" /> SPATIAL VECTOR ACTIVE
+                </span>
+              </div>
+              <p className="text-xs text-text-dim dark:text-[#94A3B8] font-mono mt-0.5">
+                Odisha Police optical ANPR surveillance corridor · Camera hop timeline telemetry & flight path projection
+              </p>
+            </div>
+          </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleExportReport}
-              className="p-2 rounded-xl bg-surface-2 border border-border-soft text-text hover:text-brand transition-colors"
-              title="Download Tactical Report (.txt)"
-            >
-              <Download size={16} />
-            </button>
-            <button
-              onClick={handleCopySummary}
-              className="p-2 rounded-xl bg-surface-2 border border-border-soft text-text hover:text-brand transition-colors"
-              title="Copy Briefing Summary"
-            >
-              <Share2 size={16} />
-            </button>
+          {/* Action Controls & Search Input */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 font-mono">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-1.5">
+              <div className="relative">
+                <Search size={13} className="text-text-dim dark:text-[#94A3B8] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search Plate (OD-02-MJ-8821)..."
+                  className="pl-8 pr-2.5 py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-xs font-bold text-text dark:text-[#F8FAFC] outline-none focus:border-accent dark:focus:border-[#38BDF8] w-48"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-lg bg-accent text-bg hover:bg-accent-bright dark:bg-[#38BDF8] dark:text-[#070A0F] dark:hover:bg-[#0284C7] text-xs font-bold transition-colors shadow-xs cursor-pointer uppercase"
+              >
+                SEARCH
+              </button>
+            </form>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleExportReport}
+                className="p-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-accent dark:text-[#38BDF8] hover:bg-surface-hover transition-colors cursor-pointer"
+                title="Download Tactical Report (.txt)"
+              >
+                <Download size={14} />
+              </button>
+              <button
+                onClick={handleCopySummary}
+                className="p-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-accent dark:text-[#38BDF8] hover:bg-surface-hover transition-colors cursor-pointer"
+                title="Copy Briefing Summary"
+              >
+                <Share2 size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {copyToast && (
-        <div className="px-4 py-2 rounded-xl bg-success/20 border border-success/40 text-success text-xs font-mono font-bold animate-fade-in flex items-center gap-2">
-          <Check size={14} /> Tactical Summary copied to clipboard!
+        <div className="px-3.5 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold animate-fade-in flex items-center gap-2">
+          <Check size={13} /> Tactical Summary copied to clipboard!
         </div>
       )}
 
       {/* Target Presets Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 font-mono text-xs">
-        <span className="text-text-dim text-[11px] font-bold uppercase shrink-0">Preset Targets:</span>
+        <span className="text-text-dim dark:text-[#94A3B8] text-[11px] font-bold uppercase shrink-0">Preset Targets:</span>
         {[
           { plate: 'OD-02-MJ-8821', label: 'Robbery Escape (4 Hops)', status: 'HIGH RISK' },
           { plate: 'OD-02-AB-1234', label: 'Cargo Hijack (5 Hops)', status: 'ANPR MATCH' },
@@ -506,13 +513,13 @@ export function GeoTrailPage() {
               setSearchQuery(item.plate);
               setSelectedPlate(item.plate);
             }}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
               selectedPlate === item.plate
-                ? 'bg-brand/15 border-brand text-brand shadow-xs'
-                : 'bg-surface border-border-soft text-text-dim hover:text-text'
+                ? 'bg-accent/15 dark:bg-[#38BDF8]/15 border-accent dark:border-[#38BDF8] text-accent dark:text-[#38BDF8] shadow-xs'
+                : 'bg-surface-2 dark:bg-[#0E1422] border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
             }`}
           >
-            <Car size={13} />
+            <Car size={12} />
             <span>{item.plate}</span>
             <span className="opacity-75 text-[10px]">({item.label})</span>
           </button>
@@ -522,37 +529,37 @@ export function GeoTrailPage() {
       {trailData && (
         <>
           {/* Top Telemetry KPI Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono">
-            <div className="glass p-4 rounded-2xl bg-surface border border-border-soft space-y-1">
-              <div className="text-[10px] text-text-dim uppercase tracking-wider">Total Hops Flagged</div>
-              <div className="text-2xl font-bold text-brand">{trailData.trail.length} Cameras</div>
-              <div className="text-[10px] text-text-faint">Avg Match: {averageMatchPercent}%</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
+            <div className="bg-surface dark:bg-[#0B0F17] p-3.5 rounded-xl border border-border-soft dark:border-[#1E293B] shadow-xs space-y-0.5">
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase tracking-wider">Total Hops Flagged</div>
+              <div className="text-xl sm:text-2xl font-bold text-accent dark:text-[#38BDF8]">{trailData.trail.length} Cameras</div>
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8]">Avg Match: {averageMatchPercent}%</div>
             </div>
 
-            <div className="glass p-4 rounded-2xl bg-surface border border-border-soft space-y-1">
-              <div className="text-[10px] text-text-dim uppercase tracking-wider">Distance Traversed</div>
-              <div className="text-2xl font-bold text-text">{trailData.totalDistanceKm} km</div>
-              <div className="text-[10px] text-text-faint">NH-16 Surveillance Corridor</div>
+            <div className="bg-surface dark:bg-[#0B0F17] p-3.5 rounded-xl border border-border-soft dark:border-[#1E293B] shadow-xs space-y-0.5">
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase tracking-wider">Distance Traversed</div>
+              <div className="text-xl sm:text-2xl font-bold text-text dark:text-[#F8FAFC]">{trailData.totalDistanceKm} km</div>
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8]">NH-16 Corridor</div>
             </div>
 
-            <div className="glass p-4 rounded-2xl bg-surface border border-border-soft space-y-1">
-              <div className="text-[10px] text-text-dim uppercase tracking-wider">Flight Duration</div>
-              <div className="text-2xl font-bold text-text">{trailData.durationMinutes} mins</div>
-              <div className="text-[10px] text-text-faint">Active Trajectory</div>
+            <div className="bg-surface dark:bg-[#0B0F17] p-3.5 rounded-xl border border-border-soft dark:border-[#1E293B] shadow-xs space-y-0.5">
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase tracking-wider">Flight Duration</div>
+              <div className="text-xl sm:text-2xl font-bold text-text dark:text-[#F8FAFC]">{trailData.durationMinutes} mins</div>
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8]">Active Trajectory</div>
             </div>
 
-            <div className="glass p-4 rounded-2xl bg-surface border border-border-soft space-y-1">
-              <div className="text-[10px] text-text-dim uppercase tracking-wider">Target Suspect</div>
-              <div className="text-sm font-bold text-danger-bright truncate">{trailData.target}</div>
-              <div className="text-[10px] text-text-dim truncate">{trailData.vehicleType}</div>
+            <div className="bg-surface dark:bg-[#0B0F17] p-3.5 rounded-xl border border-border-soft dark:border-[#1E293B] shadow-xs space-y-0.5">
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase tracking-wider">Target Suspect</div>
+              <div className="text-xs sm:text-sm font-bold text-rose-400 truncate">{trailData.target}</div>
+              <div className="text-[10px] text-text-dim dark:text-[#94A3B8] truncate">{trailData.vehicleType}</div>
             </div>
           </div>
 
           {/* Main Map & Hop Controls Section */}
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid lg:grid-cols-3 gap-4">
             {/* Left 2 Cols: Leaflet GIS Map */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="h-[460px] glass rounded-2xl overflow-hidden border border-border-soft relative shadow-2xl">
+            <div className="lg:col-span-2 space-y-3">
+              <div className="h-[460px] rounded-xl overflow-hidden border border-border-soft dark:border-[#1E293B] relative shadow-xs dark:shadow-2xl">
                 <TacticalTrailMapView
                   targetPlate={selectedPlate}
                   totalDistanceKm={trailData.totalDistanceKm}
@@ -574,14 +581,14 @@ export function GeoTrailPage() {
               </div>
 
               {/* Replay Controls & Timeline Scrubber Bar */}
-              <div className="glass p-4 rounded-xl bg-surface border border-border-soft space-y-3 font-mono">
+              <div className="bg-surface dark:bg-[#0B0F17] p-3.5 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-2.5 font-mono shadow-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setIsPlaying(!isPlaying)}
-                      className="px-4 py-2 rounded-xl bg-brand text-bg font-bold text-xs hover:bg-brand-bright transition-colors flex items-center gap-1.5 shadow-sm"
+                      className="px-3 py-1.5 rounded-lg bg-accent text-bg hover:bg-accent-bright dark:bg-[#38BDF8] dark:text-[#070A0F] dark:hover:bg-[#0284C7] font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer uppercase"
                     >
-                      {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                      {isPlaying ? <Pause size={13} /> : <Play size={13} />}
                       <span>{isPlaying ? 'PAUSE REPLAY' : 'PLAY TRAJECTORY REPLAY'}</span>
                     </button>
 
@@ -591,15 +598,15 @@ export function GeoTrailPage() {
                         setScrubberPercent(0);
                         setSelectedHop(1);
                       }}
-                      className="p-2 rounded-xl bg-surface-2 border border-border text-text-dim hover:text-text transition-colors"
+                      className="p-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] transition-colors cursor-pointer"
                       title="Reset Replay"
                     >
-                      <RotateCcw size={15} />
+                      <RotateCcw size={14} />
                     </button>
                   </div>
 
-                  <span className="text-xs text-text-dim">
-                    REPLAY PROGRESS: <strong className="text-brand">{Math.round(scrubberPercent)}%</strong>
+                  <span className="text-xs text-text-dim dark:text-[#94A3B8]">
+                    REPLAY PROGRESS: <strong className="text-accent dark:text-[#38BDF8]">{Math.round(scrubberPercent)}%</strong>
                   </span>
                 </div>
 
@@ -618,21 +625,21 @@ export function GeoTrailPage() {
                     );
                     setSelectedHop(trailData.trail[idx].hop);
                   }}
-                  className="w-full h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-brand"
+                  className="w-full h-1.5 bg-surface-2 dark:bg-[#0E1422] rounded-lg appearance-none cursor-pointer accent-accent dark:accent-[#38BDF8]"
                 />
               </div>
             </div>
 
             {/* Right Col: Hop Sequence List & AI Prediction Panels */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Hop Sequence List */}
-              <div className="glass p-5 rounded-2xl bg-surface border border-border-soft space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider border-b border-border-soft pb-2 text-text font-mono flex items-center justify-between">
+              <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3 shadow-xs font-mono">
+                <h3 className="text-xs font-bold uppercase tracking-wider border-b border-border-soft dark:border-[#1E293B] pb-2 text-text dark:text-[#F8FAFC] flex items-center justify-between">
                   <span>Camera Hop Sequence</span>
-                  <span className="text-[10px] text-brand">NH-16 CORRIDOR</span>
+                  <span className="text-[10px] text-accent dark:text-[#38BDF8]">NH-16 CORRIDOR</span>
                 </h3>
 
-                <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1 font-mono">
+                <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                   {trailData.trail.map((hop, idx) => {
                     const prev = idx > 0 ? trailData.trail[idx - 1] : null;
                     const { anomaly } = analyzeHopInsights(hop, prev);
@@ -641,43 +648,43 @@ export function GeoTrailPage() {
                       <div
                         key={hop.hop}
                         onClick={() => setSelectedHop(hop.hop)}
-                        className={`p-3.5 rounded-xl border transition-all cursor-pointer space-y-2 ${
+                        className={`p-2.5 rounded-lg border transition-all cursor-pointer space-y-1.5 ${
                           selectedHop === hop.hop
-                            ? 'border-brand bg-brand/10 shadow-sm'
-                            : 'border-border-soft bg-surface-2 hover:bg-surface-hover'
+                            ? 'border-accent dark:border-[#38BDF8] bg-accent/15 dark:bg-[#38BDF8]/15 shadow-xs'
+                            : 'border-border-soft dark:border-[#1E293B] bg-surface-2 dark:bg-[#0E1422] hover:border-accent/40'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                            hop.hop === 1 ? 'bg-danger/20 text-danger-bright border-danger/30' :
-                            hop.hop === trailData.trail.length ? 'bg-success/20 text-success border-success/30' :
-                            'bg-brand/20 text-brand border-brand/30'
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                            hop.hop === 1 ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' :
+                            hop.hop === trailData.trail.length ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                            'bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] border-accent/20 dark:border-[#38BDF8]/20'
                           }`}>
                             {hop.hop === 1 ? 'INCIDENT ORIGIN' : hop.hop === trailData.trail.length ? 'LAST KNOWN SIGHTING' : `HOP #${hop.hop}`}
                           </span>
 
-                          <span className="text-[10px] text-success font-bold">
+                          <span className="text-[9px] text-emerald-400 font-bold">
                             {hop.confidence}% MATCH
                           </span>
                         </div>
 
-                        <div className="text-xs font-bold text-text">
+                        <div className="text-xs font-bold text-text dark:text-[#F8FAFC]">
                           {hop.cameraId} · {hop.cameraName}
                         </div>
 
-                        <div className="text-[11px] text-text-dim flex items-center justify-between">
+                        <div className="text-[10px] text-text-dim dark:text-[#94A3B8] flex items-center justify-between">
                           <span>Time: {new Date(hop.timestamp).toLocaleTimeString()}</span>
                           <span>Dist: {hop.distanceFromCrimeKm} km</span>
                         </div>
 
                         {/* Anomaly Badge if present */}
                         {anomaly && (
-                          <div className={`p-2 rounded-lg text-[10px] font-bold flex items-center gap-1.5 ${
+                          <div className={`p-1.5 rounded text-[10px] font-bold flex items-center gap-1.5 ${
                             anomaly.variant === 'critical'
-                              ? 'bg-danger/10 text-danger-bright border border-danger/20'
-                              : 'bg-warning/10 text-warning-bright border border-warning/20'
+                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}>
-                            <AlertTriangle size={12} className="shrink-0" />
+                            <AlertTriangle size={11} className="shrink-0" />
                             <span>{anomaly.label}: {anomaly.detail}</span>
                           </div>
                         )}
@@ -689,57 +696,57 @@ export function GeoTrailPage() {
 
               {/* AI Potential CCTV Sensor Suggestions Card */}
               {trailData.potentialCctvSuggestions && trailData.potentialCctvSuggestions.length > 0 && (
-                <div className="glass p-5 rounded-2xl bg-surface border border-border-soft space-y-3 font-mono">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-brand flex items-center gap-1.5 border-b border-border-soft pb-2">
-                    <Zap size={14} className="animate-pulse text-brand" />
+                <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-2.5 font-mono shadow-xs">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-accent dark:text-[#38BDF8] flex items-center gap-1.5 border-b border-border-soft dark:border-[#1E293B] pb-2">
+                    <Zap size={13} className="animate-pulse text-accent dark:text-[#38BDF8]" />
                     Potential Next CCTV Sensors (AI Prediction)
                   </h4>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {trailData.potentialCctvSuggestions.map((sug) => (
                       <div
                         key={sug.cameraId}
-                        className="p-3 rounded-xl bg-brand/5 border border-brand/20 space-y-1 hover:border-brand/40 transition-colors"
+                        className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] space-y-0.5 hover:border-accent/40 transition-colors"
                       >
                         <div className="flex items-center justify-between text-xs font-bold">
-                          <span className="text-brand">{sug.cameraId} · {sug.cameraName}</span>
-                          <span className="text-success text-[10px]">{sug.probability}% ETA: +{sug.etaMinutes}m</span>
+                          <span className="text-accent dark:text-[#38BDF8]">{sug.cameraId} · {sug.cameraName}</span>
+                          <span className="text-emerald-400 text-[10px]">{sug.probability}% ETA: +{sug.etaMinutes}m</span>
                         </div>
-                        <p className="text-[11px] text-text-dim">{sug.location} ({sug.distanceKm} km along escape vector)</p>
+                        <p className="text-[10px] text-text-dim dark:text-[#94A3B8]">{sug.location} ({sug.distanceKm} km along escape vector)</p>
                       </div>
                     ))}
                   </div>
 
                   <button
                     onClick={() => navigate('/cctv')}
-                    className="w-full py-2 bg-brand text-bg rounded-xl font-bold text-xs hover:bg-brand-bright transition-colors flex items-center justify-center gap-1.5 mt-2"
+                    className="w-full py-2 bg-accent text-bg hover:bg-accent-bright dark:bg-[#38BDF8] dark:text-[#070A0F] dark:hover:bg-[#0284C7] rounded-lg font-bold text-xs transition-colors flex items-center justify-center gap-1.5 mt-1 cursor-pointer uppercase"
                   >
-                    <Eye size={13} /> INSPECT CCTV MATRIX FEEDS
+                    <Eye size={12} /> INSPECT CCTV MATRIX FEEDS
                   </button>
                 </div>
               )}
 
               {/* Active Hop Detailed Dossier */}
               {activeHop && (
-                <div className="glass p-5 rounded-2xl bg-surface border border-border-soft space-y-3 font-mono">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-brand border-b border-border-soft pb-2">
+                <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-2 font-mono shadow-xs">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-accent dark:text-[#38BDF8] border-b border-border-soft dark:border-[#1E293B] pb-2">
                     Active Hop Telemetry — Hop #{activeHop.hop}
                   </h4>
-                  <div className="space-y-1.5 text-xs">
+                  <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-text-dim">Camera ID:</span>
-                      <span className="font-bold text-text">{activeHop.cameraId}</span>
+                      <span className="text-text-dim dark:text-[#94A3B8]">Camera ID:</span>
+                      <span className="font-bold text-text dark:text-[#F8FAFC]">{activeHop.cameraId}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-dim">Sensor Name:</span>
-                      <span className="font-bold text-text truncate max-w-[180px]">{activeHop.cameraName}</span>
+                      <span className="text-text-dim dark:text-[#94A3B8]">Sensor Name:</span>
+                      <span className="font-bold text-text dark:text-[#F8FAFC] truncate max-w-[180px]">{activeHop.cameraName}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-dim">Timestamp:</span>
-                      <span className="font-bold text-text">{new Date(activeHop.timestamp).toLocaleTimeString()} IST</span>
+                      <span className="text-text-dim dark:text-[#94A3B8]">Timestamp:</span>
+                      <span className="font-bold text-text dark:text-[#F8FAFC]">{new Date(activeHop.timestamp).toLocaleTimeString()} IST</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-dim">Distance:</span>
-                      <span className="font-bold text-text">{activeHop.distanceFromCrimeKm} km from origin</span>
+                      <span className="text-text-dim dark:text-[#94A3B8]">Distance:</span>
+                      <span className="font-bold text-text dark:text-[#F8FAFC]">{activeHop.distanceFromCrimeKm} km from origin</span>
                     </div>
                   </div>
                 </div>

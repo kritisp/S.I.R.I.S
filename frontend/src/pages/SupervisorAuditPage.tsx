@@ -134,62 +134,64 @@ export function SupervisorAuditPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 font-sans bg-bg min-h-screen text-text select-none">
+    <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
       
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass p-4 rounded-2xl bg-surface/90 border border-border-strong shadow-xl">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-brand/20 border border-brand/40 flex items-center justify-center text-brand">
-              <History size={18} />
-            </div>
-            <h1 className="text-xl font-bold font-mono text-text uppercase tracking-wider">
-              AUDIT & COMPLIANCE LOGS
-            </h1>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-brand/20 text-brand border border-brand/30">
-              SHA-256 VERIFIED STREAM
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs">
+            <History size={20} />
           </div>
-          <p className="text-xs text-text-dim">
-            Odisha State Police · Cryptographically Verified Officer Activity Trail &amp; Evidence Custody Ledger
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold font-mono text-text dark:text-[#F8FAFC] uppercase tracking-wider">
+                Audit & Compliance Ledger
+              </h1>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                SHA-256 VERIFIED
+              </span>
+            </div>
+            <p className="text-xs text-text-dim dark:text-[#94A3B8]">
+              Odisha State Police · Cryptographically Verified Officer Activity Trail &amp; Evidence Custody Ledger
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Tab Switcher */}
-          <div className="flex rounded-xl p-1 bg-surface-2 border border-border-soft font-mono text-xs font-bold mr-2">
+          <div className="flex rounded-lg p-1 bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] font-mono text-xs font-bold">
             <button
               onClick={() => setActiveTab('stream')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeTab === 'stream' ? 'bg-brand text-bg shadow' : 'text-text-dim hover:text-text'
+              className={`px-3 py-1.5 rounded-md transition-all ${
+                activeTab === 'stream' ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs' : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
               }`}
             >
-              EVENT STREAM
+              Event Stream
             </button>
             <button
               onClick={() => setActiveTab('chain')}
-              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-                activeTab === 'chain' ? 'bg-emerald-600 text-white shadow' : 'text-emerald-400 hover:text-emerald-300'
+              className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-all ${
+                activeTab === 'chain' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-400 hover:text-emerald-300'
               }`}
             >
               <Lock size={12} />
-              <span>HASH CHAIN AUDITOR</span>
+              <span>Hash Chain</span>
             </button>
           </div>
 
           <button
             onClick={() => handleExport('csv')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-2 hover:bg-surface-hover text-text text-xs font-mono font-bold border border-border-soft transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] hover:bg-surface-hover text-text dark:text-[#F8FAFC] text-xs font-mono font-bold border border-border-soft dark:border-[#1E293B] transition-colors cursor-pointer"
           >
             <Download size={14} />
-            <span>EXPORT CSV</span>
+            <span>Export CSV</span>
           </button>
         </div>
       </div>
 
       {/* TOAST NOTIFICATION */}
       {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2">
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold flex items-center gap-2">
           <CheckCircle2 size={16} className="text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
@@ -201,24 +203,24 @@ export function SupervisorAuditPage() {
           <AuditChainViewer scope="GLOBAL" />
         </div>
       ) : (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {/* SEARCH & FILTER CONTROLS */}
           <div className="flex flex-col sm:flex-row items-center gap-3 font-mono">
             <div className="relative flex-1 w-full">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim" />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim dark:text-[#94A3B8]" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Filter audit logs by officer, station, action keyword, or Log ID..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs text-text placeholder:text-text-faint outline-none focus:border-brand"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] text-xs text-text dark:text-[#F8FAFC] placeholder:text-text-dim dark:placeholder:text-[#94A3B8] outline-none focus:border-accent dark:focus:border-[#38BDF8]"
               />
             </div>
 
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono text-text outline-none"
+              className="px-3.5 py-2 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] text-xs font-mono text-text dark:text-[#F8FAFC] outline-none focus:border-accent dark:focus:border-[#38BDF8]"
             >
               <option value="ALL">All Event Types ({AUDIT_LOGS.length})</option>
               <option value="AI_QUERY">AI Co-Pilot Queries</option>
@@ -230,58 +232,58 @@ export function SupervisorAuditPage() {
           </div>
 
           {/* AUDIT LOGS TABLE CONSOLE */}
-          <div className="glass p-5 sm:p-6 rounded-2xl bg-surface/90 border border-border-soft space-y-4 shadow-xl font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-border-soft pb-2.5">
-              <h3 className="text-xs font-bold text-brand uppercase tracking-wider flex items-center gap-2">
-                <History size={14} /> VERIFIED EVENT LOG ({filteredLogs.length} RECORDS)
+          <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3 shadow-xs font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-border-soft dark:border-[#1E293B] pb-2.5">
+              <h3 className="text-xs font-bold text-accent dark:text-[#38BDF8] uppercase tracking-wider flex items-center gap-2">
+                <History size={14} /> Verified Event Log ({filteredLogs.length} Records)
               </h3>
-              <span className="text-[10px] text-text-faint">SHA-256 Hash Chained</span>
+              <span className="text-[10px] text-text-dim dark:text-[#94A3B8]">SHA-256 Hash Chained</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border-soft text-text-dim font-bold text-[10px]">
-                    <th className="pb-3">TIMESTAMP / LOG ID</th>
-                    <th className="pb-3">EVENT TYPE</th>
-                    <th className="pb-3">USER &amp; STATION</th>
-                    <th className="pb-3">ACTION DESCRIPTION</th>
-                    <th className="pb-3">IP ADDRESS</th>
-                    <th className="pb-3">STATUS</th>
+                  <tr className="border-b border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] font-bold text-[10px] uppercase">
+                    <th className="pb-2.5">Timestamp / Log ID</th>
+                    <th className="pb-2.5">Event Type</th>
+                    <th className="pb-2.5">User &amp; Station</th>
+                    <th className="pb-2.5">Action Description</th>
+                    <th className="pb-2.5">IP Address</th>
+                    <th className="pb-2.5">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border-soft/60">
+                <tbody className="divide-y divide-border-soft/60 dark:divide-[#1E293B]">
                   {filteredLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-surface-hover/50 transition-colors">
-                      <td className="py-3">
-                        <span className="text-text font-bold block">{log.timestamp}</span>
-                        <span className="text-[10px] text-text-faint">{log.id}</span>
+                    <tr key={log.id} className="hover:bg-surface-2 dark:hover:bg-[#0E1422] transition-colors">
+                      <td className="py-2.5">
+                        <span className="text-text dark:text-[#F8FAFC] font-bold block">{log.timestamp}</span>
+                        <span className="text-[10px] text-text-dim dark:text-[#94A3B8]">{log.id}</span>
                       </td>
 
-                      <td className="py-3">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                          log.type === 'AI_QUERY' ? 'bg-brand/20 text-brand' :
-                          log.type === 'SANCTION_APPROVAL' ? 'bg-emerald-500/20 text-emerald-400' :
-                          log.type === 'STATUTORY_DIRECTIVE' ? 'bg-warning/20 text-warning' : 'bg-purple-500/20 text-purple-400'
+                      <td className="py-2.5">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                          log.type === 'AI_QUERY' ? 'bg-accent/10 dark:bg-[#38BDF8]/10 border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]' :
+                          log.type === 'SANCTION_APPROVAL' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
+                          log.type === 'STATUTORY_DIRECTIVE' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-violet-500/10 border-violet-500/30 text-violet-400'
                         }`}>
                           {log.type}
                         </span>
                       </td>
 
-                      <td className="py-3">
-                        <span className="text-text font-bold block">{log.user}</span>
-                        <span className="text-[10px] text-text-dim">{log.station}</span>
+                      <td className="py-2.5">
+                        <span className="text-text dark:text-[#F8FAFC] font-bold block">{log.user}</span>
+                        <span className="text-[10px] text-text-dim dark:text-[#94A3B8]">{log.station}</span>
                       </td>
 
-                      <td className="py-3 max-w-md">
-                        <p className="text-text text-[11px] leading-snug">{log.action}</p>
+                      <td className="py-2.5 max-w-md">
+                        <p className="text-text dark:text-[#F8FAFC] text-[11px] leading-snug font-sans">{log.action}</p>
                       </td>
 
-                      <td className="py-3 text-text-faint text-[10px]">{log.ip_address}</td>
+                      <td className="py-2.5 text-text-dim dark:text-[#94A3B8] text-[10px]">{log.ip_address}</td>
 
-                      <td className="py-3">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                          log.status === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-warning/20 text-warning'
+                      <td className="py-2.5">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                          log.status === 'SUCCESS' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                         }`}>
                           {log.status}
                         </span>

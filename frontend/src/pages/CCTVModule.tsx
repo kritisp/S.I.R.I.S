@@ -305,66 +305,73 @@ export function CCTVModule() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-16 select-none font-sans">
-      {/* Header Bar */}
-      <div className="glass p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border-soft">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono font-bold bg-danger/10 text-danger-bright px-2.5 py-0.5 rounded border border-danger/30 flex items-center gap-1">
-              <Radio size={11} className="animate-pulse" /> S.I.R.I.S. CCTV SURVEILLANCE MATRIX
-            </span>
-            <span className="text-[10px] font-mono text-success font-bold">
-              {SURVEILLANCE_CAMERAS.filter(c => c.is_active).length} FEEDS ONLINE
-            </span>
+    <div className="max-w-[1520px] mx-auto space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
+      {/* ── UNIFIED COMMAND-CENTER HEADER ── */}
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 sm:p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs shrink-0">
+              <Video size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-accent dark:text-[#38BDF8]">
+                  SURVEILLANCE COMMAND
+                </span>
+                <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {SURVEILLANCE_CAMERAS.filter(c => c.is_active).length} FEEDS ONLINE
+                </span>
+                <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8]">
+                  ANPR & BIOMETRIC AI
+                </span>
+              </div>
+              <h1 className="text-base sm:text-lg font-bold font-mono tracking-tight text-text dark:text-[#F8FAFC] mt-0.5">
+                CCTV & Optical Surveillance Command Matrix
+              </h1>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold font-mono text-text flex items-center gap-2">
-            <Video className="text-brand" /> CCTV & Optical Surveillance Command
-          </h1>
-          <p className="text-xs text-text-dim mt-1">
-            Odisha Police Surveillance Matrix · Biometric facial recognition & Automated License Plate Readers (ANPR)
-          </p>
-        </div>
 
-
-        {/* Header Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setShowGeoTrailModal(true)}
-            className="bg-danger/10 border border-danger/30 text-danger-bright px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-danger/20 transition-colors flex items-center gap-1.5 shadow-sm"
-          >
-            <Navigation size={14} /> RECONSTRUCT GEO-TRAIL
-          </button>
-
-          <div className="flex bg-surface-2 p-1 rounded-xl border border-border-soft text-xs">
+          {/* Header Controls */}
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => setViewMode('focused')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${viewMode === 'focused' ? 'bg-surface text-brand shadow-sm' : 'text-text-dim hover:text-text'}`}
+              onClick={() => setShowGeoTrailModal(true)}
+              className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-3 py-1.5 rounded-lg text-xs font-mono font-bold hover:bg-rose-500/20 transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
-              Single Feed
+              <Navigation size={13} /> RECONSTRUCT GEO-TRAIL
             </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${viewMode === 'grid' ? 'bg-surface text-brand shadow-sm' : 'text-text-dim hover:text-text'}`}
-            >
-              Multi-Grid View
-            </button>
+
+            <div className="flex bg-surface-2 dark:bg-[#0E1422] p-1 rounded-xl border border-border-soft dark:border-[#1E293B] text-xs font-mono">
+              <button
+                onClick={() => setViewMode('focused')}
+                className={`px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer ${viewMode === 'focused' ? 'bg-accent text-bg dark:bg-[#38BDF8] dark:text-[#070A0F] shadow-xs' : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'}`}
+              >
+                Single Feed
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer ${viewMode === 'grid' ? 'bg-accent text-bg dark:bg-[#38BDF8] dark:text-[#070A0F] shadow-xs' : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'}`}
+              >
+                Multi-Grid
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Query Context Banner if present */}
       {(caseIdParam || plateParam) && (
-        <div className="p-3.5 rounded-2xl bg-brand/10 border border-brand/30 flex items-center justify-between gap-3 text-xs font-mono animate-fade-in">
-          <div className="flex items-center gap-2 text-brand">
+        <div className="p-3.5 rounded-xl bg-accent/10 dark:bg-[#38BDF8]/10 border border-accent/30 dark:border-[#38BDF8]/30 flex items-center justify-between gap-3 text-xs font-mono animate-fade-in">
+          <div className="flex items-center gap-2 text-accent dark:text-[#38BDF8]">
             <ShieldAlert size={16} />
             <span>
               <strong>SURVEILLANCE CONTEXT:</strong> Filtered cameras & feeds linked to{' '}
-              <strong className="text-text">{caseIdParam || plateParam}</strong>
+              <strong className="text-text dark:text-[#F8FAFC]">{caseIdParam || plateParam}</strong>
             </span>
           </div>
           <button
             onClick={() => navigate('/cctv')}
-            className="text-[10px] font-bold text-text-dim hover:text-text underline"
+            className="text-[10px] font-bold text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] underline cursor-pointer"
           >
             Clear Filter
           </button>
@@ -372,8 +379,8 @@ export function CCTVModule() {
       )}
 
       {/* Camera Filters Strip */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-surface-2 border border-border-soft text-xs">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-xs font-mono">
           {[
             { id: 'all', label: 'All Feeds' },
             { id: 'anpr', label: 'ANPR Readers' },
@@ -382,10 +389,10 @@ export function CCTVModule() {
             <button
               key={t.id}
               onClick={() => setFilterType(t.id as 'all' | 'anpr' | 'face')}
-              className={`px-3.5 py-1.5 rounded-xl font-bold transition-all ${
+              className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                 filterType === t.id
-                  ? 'bg-surface text-brand shadow-sm'
-                  : 'text-text-dim hover:text-text'
+                  ? 'bg-surface dark:bg-[#0B0F17] text-accent dark:text-[#38BDF8] shadow-xs border border-border-soft dark:border-[#1E293B]'
+                  : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
               }`}
             >
               {t.label}
@@ -394,23 +401,23 @@ export function CCTVModule() {
         </div>
 
         {/* Vision Filter Mode Switcher */}
-        <div className="flex items-center gap-2 bg-surface-2 p-1 rounded-xl border border-border-soft text-xs">
-          <span className="text-[10px] font-mono text-text-dim px-2">VISION FILTER:</span>
+        <div className="flex items-center gap-1.5 bg-surface-2 dark:bg-[#0E1422] p-1 rounded-xl border border-border-soft dark:border-[#1E293B] text-xs font-mono">
+          <span className="text-[10px] text-text-dim dark:text-[#94A3B8] px-2 uppercase font-bold">Vision:</span>
           <button
             onClick={() => setVisionMode('standard')}
-            className={`px-2.5 py-1 rounded-lg font-bold transition-colors ${visionMode === 'standard' ? 'bg-surface text-brand shadow-sm' : 'text-text-dim'}`}
+            className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${visionMode === 'standard' ? 'bg-surface dark:bg-[#0B0F17] text-accent dark:text-[#38BDF8] shadow-xs border border-border-soft dark:border-[#1E293B]' : 'text-text-dim dark:text-[#94A3B8]'}`}
           >
             Standard
           </button>
           <button
             onClick={() => setVisionMode('night')}
-            className={`px-2.5 py-1 rounded-lg font-bold transition-colors ${visionMode === 'night' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/40 shadow-sm' : 'text-text-dim'}`}
+            className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${visionMode === 'night' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/40 shadow-xs' : 'text-text-dim dark:text-[#94A3B8]'}`}
           >
             Night IR
           </button>
           <button
             onClick={() => setVisionMode('thermal')}
-            className={`px-2.5 py-1 rounded-lg font-bold transition-colors ${visionMode === 'thermal' ? 'bg-orange-950 text-orange-400 border border-orange-800/40 shadow-sm' : 'text-text-dim'}`}
+            className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${visionMode === 'thermal' ? 'bg-orange-950 text-orange-400 border border-orange-800/40 shadow-xs' : 'text-text-dim dark:text-[#94A3B8]'}`}
           >
             Thermal
           </button>
@@ -419,9 +426,9 @@ export function CCTVModule() {
 
       {/* MULTI-GRID VIEW MODE */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCameras.map(cam => (
-            <div key={cam.id} className="glass bg-surface border border-border-soft rounded-2xl overflow-hidden shadow-sm hover:border-brand transition-all flex flex-col group">
+            <div key={cam.id} className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl overflow-hidden shadow-xs hover:border-accent/50 dark:hover:border-[#38BDF8]/50 transition-all flex flex-col group">
               {/* 16:9 Stream Card */}
               <div 
                 onClick={() => {
@@ -495,38 +502,38 @@ export function CCTVModule() {
         </div>
       ) : (
         /* SINGLE FOCUSED FEED VIEW MODE */
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid lg:grid-cols-4 gap-4">
           {/* Feed Selector Sidebar */}
           <div className="lg:col-span-1 space-y-3">
-            <div className="glass p-4 rounded-2xl bg-surface border border-border-soft space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim font-mono flex items-center justify-between">
-                <span>Select Surveillance Camera</span>
-                <span className="text-brand">ONLINE ({SURVEILLANCE_CAMERAS.filter(c=>c.is_active).length})</span>
+            <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim dark:text-[#94A3B8] font-mono flex items-center justify-between">
+                <span>Select Camera</span>
+                <span className="text-accent dark:text-[#38BDF8]">ONLINE ({SURVEILLANCE_CAMERAS.filter(c=>c.is_active).length})</span>
               </h3>
 
-              <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-[460px] overflow-y-auto pr-1">
                 {filteredCameras.map(c => (
                   <div
                     key={c.id}
                     onClick={() => setSelectedCamId(c.id)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer space-y-1 ${
+                    className={`p-2.5 rounded-lg border transition-all cursor-pointer space-y-1 ${
                       selectedCamId === c.id
-                        ? 'border-brand bg-brand/10 shadow-sm'
-                        : 'border-border-soft bg-surface-2 hover:bg-surface-hover'
+                        ? 'border-accent/50 dark:border-[#38BDF8]/50 bg-accent/10 dark:bg-[#38BDF8]/10 shadow-xs'
+                        : 'border-border-soft dark:border-[#1E293B] bg-surface-2 dark:bg-[#0E1422] hover:bg-surface-hover dark:hover:bg-[#151D2E]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-brand">{c.id}</span>
+                      <span className="text-[10px] font-mono font-bold text-accent dark:text-[#38BDF8]">{c.id}</span>
                       <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
                         c.type === 'face_recognition' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
                         c.type === 'anpr' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' :
-                        'bg-surface-2 text-text-dim border-border'
+                        'bg-surface-2 dark:bg-[#0E1422] text-text-dim dark:text-[#94A3B8] border-border-soft dark:border-[#1E293B]'
                       }`}>
                         {c.type === 'face_recognition' ? 'FACE AI' : c.type === 'anpr' ? 'ANPR' : 'CCTV'}
                       </span>
                     </div>
-                    <div className="text-xs font-bold text-text truncate">{c.name}</div>
-                    <div className="text-[10px] text-text-dim font-mono truncate">{c.location}</div>
+                    <div className="text-xs font-bold text-text dark:text-[#F8FAFC] truncate">{c.name}</div>
+                    <div className="text-[10px] text-text-dim dark:text-[#94A3B8] font-mono truncate">{c.location}</div>
                   </div>
                 ))}
               </div>
@@ -535,12 +542,12 @@ export function CCTVModule() {
 
           {/* Main Focused Video Viewport */}
           <div className="lg:col-span-3 space-y-4">
-            <div className="glass bg-[#070b14] border border-border-soft rounded-2xl overflow-hidden relative h-[440px] flex flex-col justify-between shadow-2xl">
+            <div className="bg-[#070b14] border border-border-soft dark:border-[#1E293B] rounded-xl overflow-hidden relative h-[440px] flex flex-col justify-between shadow-2xl">
               {/* OSD Header Overlay */}
               <div className="p-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent flex justify-between items-start z-20 pointer-events-none">
                 <div className="font-mono text-xs text-white/90 space-y-0.5 bg-black/70 p-2.5 rounded-xl backdrop-blur-md border border-white/10">
-                  <div className="text-brand font-bold flex items-center gap-2">
-                    <Radio size={12} className="animate-pulse text-danger-bright" />
+                  <div className="text-accent dark:text-[#38BDF8] font-bold flex items-center gap-2">
+                    <Radio size={12} className="animate-pulse text-rose-400" />
                     {activeCam.id} · {activeCam.name.toUpperCase()}
                   </div>
                   <div className="text-[10px] text-white/70">LOC: {activeCam.location}</div>
@@ -548,8 +555,8 @@ export function CCTVModule() {
                 </div>
 
                 <div className="font-mono text-xs text-white/90 text-right bg-black/70 p-2.5 rounded-xl backdrop-blur-md border border-white/10">
-                  <div className="text-danger-bright font-bold flex items-center gap-1.5 justify-end">
-                    <span className="h-2.5 w-2.5 rounded-full bg-danger-bright animate-ping" /> REC ● LIVE FEED
+                  <div className="text-rose-400 font-bold flex items-center gap-1.5 justify-end">
+                    <span className="h-2.5 w-2.5 rounded-full bg-rose-400 animate-ping" /> REC ● LIVE FEED
                   </div>
                   <div className="text-xs font-mono font-bold text-white mt-1">2026-08-21 {systemTime}</div>
                   <div className="text-[10px] text-white/60">FPS: 30 · CODEC: H.265</div>
@@ -571,9 +578,9 @@ export function CCTVModule() {
                     }`}
                   />
                 ) : (
-                  <div className="text-center space-y-2 text-text-dim font-mono">
-                    <AlertTriangle size={36} className="mx-auto text-warning animate-bounce" />
-                    <div className="text-sm font-bold text-text">CAM-05 STREAM OFFLINE</div>
+                  <div className="text-center space-y-2 text-text-dim dark:text-[#94A3B8] font-mono">
+                    <AlertTriangle size={36} className="mx-auto text-amber-400 animate-bounce" />
+                    <div className="text-sm font-bold text-text dark:text-[#F8FAFC]">CAM STREAM OFFLINE</div>
                     <div className="text-xs">Optical Sensor Interrupted · Patrol Unit Dispatched</div>
                   </div>
                 )}
@@ -590,13 +597,13 @@ export function CCTVModule() {
               {/* Bounding Box AI Tracking Reticle */}
               {activeCam.suspectName && showBoundingBoxes && isPlaying && activeCam.is_active && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                  <div className="relative border-2 border-danger-bright w-72 h-44 rounded flex flex-col justify-between p-2 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-                    <div className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 border-t-2 border-l-2 border-danger-bright" />
-                    <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 border-t-2 border-r-2 border-danger-bright" />
-                    <div className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 border-b-2 border-l-2 border-danger-bright" />
-                    <div className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 border-b-2 border-r-2 border-danger-bright" />
+                  <div className="relative border-2 border-rose-500 w-72 h-44 rounded flex flex-col justify-between p-2 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+                    <div className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 border-t-2 border-l-2 border-rose-500" />
+                    <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 border-t-2 border-r-2 border-rose-500" />
+                    <div className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 border-b-2 border-l-2 border-rose-500" />
+                    <div className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 border-b-2 border-r-2 border-rose-500" />
 
-                    <div className="absolute -top-7 left-0 bg-danger-bright text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow flex items-center gap-1.5">
+                    <div className="absolute -top-7 left-0 bg-rose-500 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow flex items-center gap-1.5">
                       <Crosshair size={12} className="animate-spin" />
                       TARGET HIT: {activeCam.suspectName} ({activeCam.confidence}%)
                     </div>
@@ -609,13 +616,13 @@ export function CCTVModule() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsPlaying(!isPlaying)}
-                    className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                    className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                   >
                     {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                   </button>
                   <button
                     onClick={() => setShowBoundingBoxes(!showBoundingBoxes)}
-                    className={`px-3 py-1 rounded-lg text-xs font-mono font-bold border transition-colors ${showBoundingBoxes ? 'bg-brand/20 text-brand border-brand/40' : 'bg-white/10 text-white/60 border-white/20'}`}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono font-bold border transition-colors cursor-pointer ${showBoundingBoxes ? 'bg-accent/20 text-accent border-accent/40 dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] dark:border-[#38BDF8]/40' : 'bg-white/10 text-white/60 border-white/20'}`}
                   >
                     AI TRACKING: {showBoundingBoxes ? 'ON' : 'OFF'}
                   </button>
@@ -623,7 +630,7 @@ export function CCTVModule() {
 
                 <button
                   onClick={() => setInspectionCam(activeCam)}
-                  className="px-3.5 py-1.5 rounded-xl bg-danger text-white font-mono font-bold text-xs hover:bg-danger-bright transition-colors flex items-center gap-1.5 shadow"
+                  className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-xs transition-colors flex items-center gap-1.5 shadow cursor-pointer"
                 >
                   <Maximize2 size={13} /> INSPECT FORENSIC DOSSIER
                 </button>
@@ -634,50 +641,50 @@ export function CCTVModule() {
       )}
 
       {/* ANPR QUICK LOOKUP ENGINE */}
-      <div className="glass p-6 rounded-2xl bg-surface border border-border-soft space-y-4">
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-text uppercase tracking-wider font-mono">
+            <h3 className="text-xs font-bold text-text dark:text-[#F8FAFC] uppercase tracking-wider font-mono">
               ANPR Hotlist Plate Search & Verification
             </h3>
-            <p className="text-xs text-text-dim">
+            <p className="text-[11px] text-text-dim dark:text-[#94A3B8]">
               Query optical recognition archives across Odisha toll plazas & city cameras
             </p>
           </div>
-          <span className="text-xs font-mono text-text-faint">S.I.R.I.S. ANPR MATRIX</span>
+          <span className="text-[10px] font-mono text-text-dim dark:text-[#94A3B8]">S.I.R.I.S. ANPR MATRIX</span>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-text-dim absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-text-dim dark:text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={plateQuery}
               onChange={(e) => setPlateQuery(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleSearchPlate()}
               placeholder="Enter Vehicle Plate Number (e.g., KLO5AN6247, OD-02-AB-1234, OD-02-HA-4410)..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border text-xs font-mono font-bold text-text outline-none focus:border-brand"
+              className="w-full pl-9 pr-4 py-2 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-xs font-mono font-bold text-text dark:text-[#F8FAFC] outline-none focus:border-accent dark:focus:border-[#38BDF8]"
             />
           </div>
 
           <button
             onClick={handleSearchPlate}
-            className="px-5 py-2.5 rounded-xl bg-brand text-bg font-bold text-xs hover:bg-brand-bright transition-colors shadow-sm"
+            className="px-4 py-2 rounded-lg bg-accent text-bg dark:bg-[#38BDF8] dark:text-[#070A0F] font-mono font-bold text-xs hover:bg-accent-bright dark:hover:bg-[#0284C7] transition-colors shadow-xs cursor-pointer uppercase"
           >
             SCAN HOTLIST
           </button>
         </div>
 
         {plateResult && (
-          <div className="p-4 rounded-xl bg-surface-2 border border-border-soft flex items-center justify-between gap-4 animate-fade-in">
+          <div className="p-3.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] flex items-center justify-between gap-4 animate-fade-in">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-success/10 text-success border border-success/30">
-                <CheckCircle2 size={20} />
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <CheckCircle2 size={18} />
               </div>
               <div>
-                <span className="font-mono text-sm font-bold text-text">{plateResult.plate_number}</span>
-                <p className="text-xs text-text-dim">
-                  Vehicle: {plateResult.vehicle_details} · Status: <strong className="text-danger-bright">{plateResult.status}</strong> · Case: {plateResult.case_id}
+                <span className="font-mono text-xs font-bold text-text dark:text-[#F8FAFC]">{plateResult.plate_number}</span>
+                <p className="text-[11px] text-text-dim dark:text-[#94A3B8]">
+                  Vehicle: {plateResult.vehicle_details} · Status: <strong className="text-rose-400">{plateResult.status}</strong> · Case: {plateResult.case_id}
                 </p>
               </div>
             </div>
@@ -687,54 +694,54 @@ export function CCTVModule() {
                 setActivePlate(plateResult.plate_number);
                 setShowVehicleModal(true);
               }}
-              className="px-4 py-2 rounded-xl bg-brand text-bg text-xs font-bold hover:bg-brand-bright transition-colors"
+              className="px-3.5 py-1.5 rounded-lg bg-accent text-bg dark:bg-[#38BDF8] dark:text-[#070A0F] text-xs font-mono font-bold hover:bg-accent-bright dark:hover:bg-[#0284C7] transition-colors cursor-pointer uppercase"
             >
-              VIEW VEHICLE INTEL
+              VIEW INTEL
             </button>
           </div>
         )}
       </div>
 
       {/* LIVE SURVEILLANCE AUDIT LOG */}
-      <div className="glass p-6 rounded-2xl bg-surface border border-border-soft space-y-4">
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-text uppercase tracking-wider font-mono">
+          <h3 className="text-xs font-bold text-text dark:text-[#F8FAFC] uppercase tracking-wider font-mono">
             Live Surveillance Audit Log
           </h3>
-          <span className="text-xs font-mono text-text-dim">Telemetry stream auto-updating</span>
+          <span className="text-[10px] font-mono text-text-dim dark:text-[#94A3B8]">Telemetry stream auto-updating</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse font-sans">
             <thead>
-              <tr className="border-b border-border-soft text-text-dim font-mono text-[10px] uppercase">
-                <th className="pb-3">Timestamp</th>
-                <th className="pb-3">Camera Sensor</th>
-                <th className="pb-3">Type</th>
-                <th className="pb-3">Severity</th>
-                <th className="pb-3">Detection Summary</th>
+              <tr className="border-b border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] font-mono text-[10px] uppercase">
+                <th className="pb-2.5">Timestamp</th>
+                <th className="pb-2.5">Camera Sensor</th>
+                <th className="pb-2.5">Type</th>
+                <th className="pb-2.5">Severity</th>
+                <th className="pb-2.5">Detection Summary</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border-soft/60">
+            <tbody className="divide-y divide-border-soft/60 dark:divide-[#1E293B]">
               {auditLog.map((ev, idx) => (
-                <tr key={idx} className="hover:bg-surface-hover transition-colors">
-                  <td className="py-3 font-mono text-text-dim">{ev.time}</td>
-                  <td className="py-3 font-mono font-bold text-text">{ev.cam}</td>
-                  <td className="py-3">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-surface-2 text-text">
+                <tr key={idx} className="hover:bg-surface-hover dark:hover:bg-[#151D2E] transition-colors">
+                  <td className="py-2.5 font-mono text-text-dim dark:text-[#94A3B8] text-[11px]">{ev.time}</td>
+                  <td className="py-2.5 font-mono font-bold text-text dark:text-[#F8FAFC] text-[11px]">{ev.cam}</td>
+                  <td className="py-2.5">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-surface-2 dark:bg-[#0E1422] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#1E293B]">
                       {ev.type}
                     </span>
                   </td>
-                  <td className="py-3">
+                  <td className="py-2.5">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
-                      ev.severity === 'critical' ? 'text-danger-bright font-bold' :
-                      ev.severity === 'warn' ? 'text-warning-bright font-bold' :
-                      'text-text-dim'
+                      ev.severity === 'critical' ? 'text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20' :
+                      ev.severity === 'warn' ? 'text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20' :
+                      'text-text-dim dark:text-[#94A3B8]'
                     }`}>
                       {ev.severity.toUpperCase()}
                     </span>
                   </td>
-                  <td className="py-3 text-text font-medium">{ev.desc}</td>
+                  <td className="py-2.5 text-text dark:text-[#F8FAFC] font-medium text-[11px]">{ev.desc}</td>
                 </tr>
               ))}
             </tbody>
@@ -820,17 +827,17 @@ function ForensicInspectionModal({
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 select-none">
-      <div className="bg-surface border border-border-soft rounded-2xl max-w-5xl w-full overflow-hidden shadow-2xl flex flex-col text-text max-h-[90vh]">
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl max-w-5xl w-full overflow-hidden shadow-2xl flex flex-col text-text dark:text-[#F8FAFC] max-h-[90vh]">
         {/* Top Header */}
-        <div className="p-4 bg-surface-2 border-b border-border-soft flex items-center justify-between">
+        <div className="p-3.5 bg-surface-2 dark:bg-[#0E1422] border-b border-border-soft dark:border-[#1E293B] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-danger-bright animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
             <div>
-              <h3 className="text-base font-bold text-text font-mono">{cam.name}</h3>
-              <p className="text-xs text-text-dim font-mono">{cam.id} · {cam.location}</p>
+              <h3 className="text-sm font-bold text-text dark:text-[#F8FAFC] font-mono">{cam.name}</h3>
+              <p className="text-[11px] text-text-dim dark:text-[#94A3B8] font-mono">{cam.id} · {cam.location}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-hover text-text-dim hover:text-text">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-[#151D2E] text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -840,8 +847,8 @@ function ForensicInspectionModal({
           {/* Left 2 Cols: Video Stream */}
           <div className="lg:col-span-2 bg-black relative flex items-center justify-center min-h-[340px]">
             <video src={cam.videoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-            <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-mono text-white flex items-center gap-2">
-              <Target size={14} className="text-brand animate-spin" />
+            <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-xs font-mono text-white flex items-center gap-2">
+              <Target size={14} className="text-accent dark:text-[#38BDF8] animate-spin" />
               <span>
                 {stage === 'scan' && 'Searching Video Stream...'}
                 {stage === 'lock' && 'Biometric Face Alignment in Progress...'}
@@ -851,41 +858,40 @@ function ForensicInspectionModal({
           </div>
 
           {/* Right Col: Forensic Dossier Panel */}
-          <div className="p-5 bg-surface-2 border-l border-border-soft space-y-4 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="border-b border-border-soft pb-3">
-                <span className="text-[10px] font-mono font-bold text-danger-bright uppercase">CRITICAL MATCH HIT</span>
-                <h4 className="text-xl font-bold font-mono text-text mt-0.5">{cam.suspectName || 'OD-02-AB-1234'}</h4>
-
-                <p className="text-xs text-text-dim mt-0.5">Alias: “{cam.suspectAlias || 'Target'}”</p>
+          <div className="p-4 bg-surface-2 dark:bg-[#0E1422] border-l border-border-soft dark:border-[#1E293B] space-y-3.5 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="border-b border-border-soft dark:border-[#1E293B] pb-2.5">
+                <span className="text-[10px] font-mono font-bold text-rose-400 uppercase bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">CRITICAL MATCH HIT</span>
+                <h4 className="text-lg font-bold font-mono text-text dark:text-[#F8FAFC] mt-1.5">{cam.suspectName || 'OD-02-AB-1234'}</h4>
+                <p className="text-[11px] text-text-dim dark:text-[#94A3B8] mt-0.5">Alias: “{cam.suspectAlias || 'Target'}”</p>
               </div>
 
               {cam.incidentBriefing && (
-                <div className="p-3 rounded-xl bg-surface border border-border-soft space-y-1">
-                  <span className="text-[10px] font-bold text-brand uppercase font-mono flex items-center gap-1">
+                <div className="p-2.5 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] space-y-1">
+                  <span className="text-[10px] font-bold text-accent dark:text-[#38BDF8] uppercase font-mono flex items-center gap-1">
                     <FileText size={12} /> Synopsis
                   </span>
-                  <p className="text-xs text-text-dim leading-relaxed">{cam.incidentBriefing}</p>
+                  <p className="text-[11px] text-text-dim dark:text-[#94A3B8] leading-relaxed">{cam.incidentBriefing}</p>
                 </div>
               )}
 
               {cam.legalSection && (
-                <div className="p-3 rounded-xl bg-surface border border-border-soft space-y-1">
-                  <span className="text-[10px] font-bold text-danger-bright uppercase font-mono">Applicable IPC Sections</span>
-                  <p className="text-xs text-text font-bold font-mono">{cam.legalSection}</p>
+                <div className="p-2.5 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] space-y-1">
+                  <span className="text-[10px] font-bold text-rose-400 uppercase font-mono">Applicable Sections</span>
+                  <p className="text-[11px] text-text dark:text-[#F8FAFC] font-bold font-mono">{cam.legalSection}</p>
                 </div>
               )}
             </div>
 
-            <div className="space-y-2 pt-3 border-t border-border-soft">
+            <div className="space-y-2 pt-3 border-t border-border-soft dark:border-[#1E293B]">
               <button
                 onClick={handleDispatch}
                 disabled={dispatched}
-                className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase font-mono tracking-wider flex items-center justify-center gap-2 transition-all ${
-                  dispatched ? 'bg-success text-bg' : 'bg-danger text-white hover:bg-danger-bright shadow-md'
+                className={`w-full py-2 rounded-lg text-xs font-bold uppercase font-mono tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  dispatched ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white hover:bg-rose-500 shadow-xs'
                 }`}
               >
-                {dispatched ? <><CheckCircle2 size={15} /> PATROL INTERCEPT UNIT DISPATCHED</> : <><ShieldAlert size={15} /> DISPATCH IMMEDIATE PATROL UNIT</>}
+                {dispatched ? <><CheckCircle2 size={14} /> PATROL INTERCEPT UNIT DISPATCHED</> : <><ShieldAlert size={14} /> DISPATCH IMMEDIATE PATROL UNIT</>}
               </button>
 
               <button
@@ -893,14 +899,14 @@ function ForensicInspectionModal({
                   onClose();
                   window.location.href = `/trail?plate=${encodeURIComponent(cam.suspectName || 'OD-02-AB-1234')}`;
                 }}
-                className="w-full py-2 rounded-xl text-xs font-bold font-mono bg-brand/10 border border-brand/30 text-brand hover:bg-brand/20 transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2 rounded-lg text-xs font-bold font-mono bg-accent/10 border border-accent/30 text-accent dark:bg-[#38BDF8]/10 dark:border-[#38BDF8]/30 dark:text-[#38BDF8] hover:bg-accent/20 transition-colors flex items-center justify-center gap-1.5 cursor-pointer uppercase"
               >
-                <Navigation size={13} /> RECONSTRUCT GEO-TRAIL & SUGGEST CCTV HOPS
+                <Navigation size={13} /> RECONSTRUCT GEO-TRAIL
               </button>
 
               <button
                 onClick={onClose}
-                className="w-full py-2 rounded-xl text-xs font-bold bg-surface border border-border text-text-dim hover:text-text transition-colors"
+                className="w-full py-1.5 rounded-lg text-xs font-mono font-bold bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] transition-colors cursor-pointer"
               >
                 Close Dossier
               </button>

@@ -163,59 +163,61 @@ export function SupervisorFleetDispatchPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 font-sans bg-bg min-h-screen text-text select-none">
+    <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
       
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass p-4 rounded-2xl bg-surface/90 border border-border-strong shadow-xl">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-brand/20 border border-brand/40 flex items-center justify-center text-brand">
-              <Navigation size={18} />
-            </div>
-            <h1 className="text-xl font-bold font-mono text-text uppercase tracking-wider">
-              FLEET & PATROL DISPATCH
-            </h1>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-brand/20 text-brand border border-brand/30">
-              STATE COMMAND GPS VECTORING
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs">
+            <Navigation size={20} />
           </div>
-          <p className="text-xs text-text-dim">
-            Odisha State Police · Live 2-Second Moving Patrol Fleet & Dark Zone Predictive Dispatch
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold font-mono text-text dark:text-[#F8FAFC] uppercase tracking-wider">
+                Fleet & Patrol Dispatch
+              </h1>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] border border-accent/20 dark:border-[#38BDF8]/20">
+                STATE GPS VECTORING
+              </span>
+            </div>
+            <p className="text-xs text-text-dim dark:text-[#94A3B8]">
+              Odisha State Police · Live Moving Patrol Fleet & Dark Zone Predictive Dispatch Engine
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono font-bold text-brand flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-brand animate-ping" />
-            <span>2s Satellite Stream #{tick}</span>
+          <span className="px-3 py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-xs font-mono font-bold text-accent dark:text-[#38BDF8] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-accent dark:bg-[#38BDF8] animate-ping" />
+            <span>2s Telemetry #{tick}</span>
           </span>
         </div>
       </div>
 
       {/* TOAST NOTIFICATION */}
       {dispatchToast && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2">
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold flex items-center gap-2">
           <CheckCircle2 size={16} className="text-emerald-400" />
           <span>{dispatchToast}</span>
         </div>
       )}
 
       {/* MAIN CONSOLE GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* LEFT 8 COLS: LEAFLET MOVING FLEET MAP + DARK ZONE RECOMMENDATIONS */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-4">
           
-          <div className="glass p-5 rounded-2xl bg-surface/90 border border-border-soft space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-border-soft pb-2.5">
-              <span className="text-xs font-mono font-bold text-brand uppercase tracking-wider flex items-center gap-1.5">
-                <Navigation size={14} /> LIVE MOVING VECTOR PATROL MAP ({filteredUnits.length} UNITS)
+          <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border-soft dark:border-[#1E293B] pb-2.5">
+              <span className="text-xs font-mono font-bold text-accent dark:text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5">
+                <Navigation size={14} /> Live Moving Vector Patrol Map ({filteredUnits.length} Units)
               </span>
 
               <select
                 value={selectedDistrict}
                 onChange={(e) => setSelectedDistrict(e.target.value)}
-                className="bg-surface-2 border border-border-soft rounded-xl px-3 py-1 text-xs font-mono text-text outline-none"
+                className="bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] rounded-lg px-3 py-1.5 text-xs font-mono text-text dark:text-[#F8FAFC] outline-none focus:border-accent dark:focus:border-[#38BDF8]"
               >
                 <option value="ALL">All Districts</option>
                 <option value="Bhubaneswar">Bhubaneswar Urban</option>
@@ -226,49 +228,49 @@ export function SupervisorFleetDispatchPage() {
             </div>
 
             {/* LEAFLET MAP CONTAINER */}
-            <div ref={mapContainerRef} className="w-full h-[450px] rounded-xl border border-border-soft overflow-hidden relative z-0" />
+            <div ref={mapContainerRef} className="w-full h-[440px] rounded-lg border border-border-soft dark:border-[#1E293B] overflow-hidden relative z-0" />
 
             {/* MAP LEGEND */}
-            <div className="flex items-center justify-between pt-2 border-t border-border-soft text-[10px] font-mono text-text-dim">
+            <div className="flex items-center justify-between pt-2 border-t border-border-soft dark:border-[#1E293B] text-[10px] font-mono text-text-dim dark:text-[#94A3B8]">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-brand" /> PCR Van</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-accent dark:bg-[#38BDF8]" /> PCR Van</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" /> Cheetah Bike</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning" /> QRT Interceptor</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" /> QRT Interceptor</span>
               </div>
               <span className="text-emerald-400 font-bold">● Dashed Line = 2s Real-Time Vector Trail</span>
             </div>
           </div>
 
           {/* DARK ZONE HOTSPOT RECOMMENDATIONS */}
-          <div className="glass p-5 rounded-2xl bg-surface/90 border border-amber-500/30 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-border-soft pb-2.5">
+          <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-amber-500/30 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border-soft dark:border-[#1E293B] pb-2.5">
               <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                <AlertTriangle size={14} /> JURISDICTION DARK ZONE HOTSPOTS & DISPATCH GUIDANCE
+                <AlertTriangle size={14} /> Jurisdiction Dark Zone Hotspots & Dispatch Guidance
               </span>
-              <span className="text-[10px] font-mono text-text-dim">AI Predictive Night Grid</span>
+              <span className="text-[10px] font-mono text-text-dim dark:text-[#94A3B8]">AI Predictive Night Grid</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {DARK_ZONES.map((zone, idx) => (
-                <div key={idx} className="p-3.5 rounded-xl bg-surface-2 border border-border-soft flex flex-col justify-between gap-2 font-mono text-xs">
+                <div key={idx} className="p-3 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] flex flex-col justify-between gap-2 font-mono text-xs">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-danger/20 text-danger-bright">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400">
                         {zone.risk_level}
                       </span>
-                      <span className="text-[9px] text-text-faint">{zone.window}</span>
+                      <span className="text-[9px] text-text-dim dark:text-[#94A3B8]">{zone.window}</span>
                     </div>
 
-                    <h4 className="font-bold text-text text-xs">{zone.corridor}</h4>
-                    <p className="text-[10px] text-text-dim mt-1">{zone.crime_vector}</p>
-                    <p className="text-[10px] text-brand bg-brand/10 p-2 rounded-lg border border-brand/20 mt-2">
+                    <h4 className="font-bold text-text dark:text-[#F8FAFC] text-xs">{zone.corridor}</h4>
+                    <p className="text-[10px] text-text-dim dark:text-[#94A3B8] mt-1 font-sans">{zone.crime_vector}</p>
+                    <p className="text-[10px] text-accent dark:text-[#38BDF8] bg-accent/5 dark:bg-[#38BDF8]/5 p-2 rounded-lg border border-accent/20 dark:border-[#38BDF8]/20 mt-2 font-sans">
                       💡 {zone.recommended_patrol}
                     </p>
                   </div>
 
                   <button
                     onClick={() => handleQuickDeploy(zone.corridor)}
-                    className="w-full py-1.5 rounded-lg bg-brand text-bg font-bold text-[10px] hover:bg-brand-bright transition-colors shadow-sm cursor-pointer"
+                    className="w-full py-1.5 rounded-lg bg-accent hover:bg-accent-bright dark:bg-[#38BDF8] dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] font-bold font-mono text-[10px] uppercase transition-colors shadow-xs cursor-pointer"
                   >
                     Deploy {selectedUnit.callsign} Here →
                   </button>
@@ -280,81 +282,81 @@ export function SupervisorFleetDispatchPage() {
         </div>
 
         {/* RIGHT 4 COLS: SELECTED UNIT TELEMETRY & RADIO DISPATCH DIRECTIVE */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-4">
           
-          <div className="glass p-5 rounded-2xl bg-surface/90 border border-border-strong space-y-4 shadow-xl font-mono text-xs">
-            <div className="border-b border-border-soft pb-3 flex items-center justify-between">
+          <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3 shadow-xs font-mono text-xs">
+            <div className="border-b border-border-soft dark:border-[#1E293B] pb-2.5 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-brand uppercase tracking-wider block">SELECTED UNIT TELEMETRY</span>
-                <h3 className="text-base font-bold text-text mt-0.5">{selectedUnit.callsign}</h3>
+                <span className="text-[10px] font-bold text-accent dark:text-[#38BDF8] uppercase tracking-wider block">Unit Telemetry</span>
+                <h3 className="text-sm font-bold text-text dark:text-[#F8FAFC] mt-0.5">{selectedUnit.callsign}</h3>
               </div>
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[10px]">
                 {selectedUnit.status}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2.5 rounded-xl bg-surface-2 border border-border-soft">
-                <span className="text-text-dim text-[9px] block">UNIT TYPE</span>
-                <span className="font-bold text-text">{selectedUnit.type}</span>
+              <div className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B]">
+                <span className="text-text-dim dark:text-[#94A3B8] text-[9px] block uppercase">Unit Type</span>
+                <span className="font-bold text-text dark:text-[#F8FAFC]">{selectedUnit.type}</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-surface-2 border border-border-soft">
-                <span className="text-text-dim text-[9px] block">OFFICER IN CHARGE</span>
-                <span className="font-bold text-text truncate block">{selectedUnit.officer}</span>
+              <div className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B]">
+                <span className="text-text-dim dark:text-[#94A3B8] text-[9px] block uppercase">Officer In Charge</span>
+                <span className="font-bold text-text dark:text-[#F8FAFC] truncate block">{selectedUnit.officer}</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-surface-2 border border-border-soft">
-                <span className="text-text-dim text-[9px] block">MOVING SPEED</span>
-                <span className="font-bold text-brand text-sm">{selectedUnit.speedKmH} km/h</span>
+              <div className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B]">
+                <span className="text-text-dim dark:text-[#94A3B8] text-[9px] block uppercase">Moving Speed</span>
+                <span className="font-bold text-accent dark:text-[#38BDF8] text-sm">{selectedUnit.speedKmH} km/h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-surface-2 border border-border-soft">
-                <span className="text-text-dim text-[9px] block">FUEL RESERVES</span>
+              <div className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B]">
+                <span className="text-text-dim dark:text-[#94A3B8] text-[9px] block uppercase">Fuel Reserves</span>
                 <span className="font-bold text-emerald-400 text-sm">{selectedUnit.fuel}%</span>
               </div>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-surface-2 border border-border-soft space-y-1 text-[11px]">
-              <span className="text-text-dim text-[9px] block">ACTIVE BEAT PRECINCT</span>
-              <span className="font-bold text-text block">{selectedUnit.precinct}</span>
-              <span className="text-text-faint text-[10px]">District: {selectedUnit.district}</span>
+            <div className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] space-y-1 text-[11px]">
+              <span className="text-text-dim dark:text-[#94A3B8] text-[9px] block uppercase">Active Beat Precinct</span>
+              <span className="font-bold text-text dark:text-[#F8FAFC] block">{selectedUnit.precinct}</span>
+              <span className="text-text-dim dark:text-[#94A3B8] text-[10px]">District: {selectedUnit.district}</span>
             </div>
 
             {/* RADIO DISPATCH TRANSMIT FORM */}
-            <form onSubmit={handleRedeploy} className="space-y-2.5 pt-2 border-t border-border-soft">
-              <span className="font-bold text-text text-xs block">DISPATCH NEW BEAT TARGET:</span>
+            <form onSubmit={handleRedeploy} className="space-y-2.5 pt-2 border-t border-border-soft dark:border-[#1E293B]">
+              <span className="font-bold text-text dark:text-[#F8FAFC] text-xs block uppercase tracking-wider">Dispatch New Target:</span>
               <input
                 type="text"
                 value={newTarget}
                 onChange={(e) => setNewTarget(e.target.value)}
                 placeholder="e.g. Khandagiri Square, Master Canteen..."
-                className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border-soft text-text placeholder:text-text-faint outline-none focus:border-brand text-xs font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] placeholder:text-text-dim dark:placeholder:text-[#94A3B8] outline-none focus:border-accent dark:focus:border-[#38BDF8] text-xs font-mono"
               />
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-brand text-bg font-bold font-mono text-xs hover:bg-brand-bright transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                className="w-full py-2.5 rounded-lg bg-accent hover:bg-accent-bright dark:bg-[#38BDF8] dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] font-bold font-mono text-xs uppercase flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <Send size={14} />
-                <span>TRANSMIT RADIO DISPATCH ORDER</span>
+                <span>Transmit Dispatch Order</span>
               </button>
             </form>
           </div>
 
           {/* UNIT ROSTER QUICK SWITCHER */}
-          <div className="glass p-5 rounded-2xl bg-surface/90 border border-border-soft space-y-3 font-mono text-xs">
-            <span className="font-bold text-text block">SELECT PATROL UNIT:</span>
+          <div className="bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-2.5 font-mono text-xs shadow-xs">
+            <span className="font-bold text-text dark:text-[#F8FAFC] block uppercase tracking-wider text-xs">Select Patrol Unit:</span>
             <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
               {filteredUnits.map(unit => (
                 <button
                   key={unit.id}
                   onClick={() => setSelectedUnit(unit)}
-                  className={`w-full p-2.5 rounded-xl text-left border transition-all flex items-center justify-between cursor-pointer ${
+                  className={`w-full p-2.5 rounded-lg text-left border transition-all flex items-center justify-between cursor-pointer ${
                     selectedUnit.id === unit.id
-                      ? 'bg-brand/20 border-brand text-text'
-                      : 'bg-surface-2 border-border-soft text-text-dim hover:text-text'
+                      ? 'bg-accent/10 dark:bg-[#38BDF8]/10 border-accent dark:border-[#38BDF8] text-text dark:text-[#F8FAFC]'
+                      : 'bg-surface-2 dark:bg-[#0E1422] border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
                   }`}
                 >
                   <div>
-                    <span className="font-bold block text-text">{unit.callsign}</span>
-                    <span className="text-[10px] text-text-dim">{unit.precinct}</span>
+                    <span className="font-bold block text-text dark:text-[#F8FAFC]">{unit.callsign}</span>
+                    <span className="text-[10px] text-text-dim dark:text-[#94A3B8]">{unit.precinct}</span>
                   </div>
                   <span className="text-[10px] font-bold text-emerald-400">{unit.speedKmH} km/h</span>
                 </button>

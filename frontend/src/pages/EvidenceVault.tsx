@@ -210,148 +210,167 @@ export function EvidenceVault() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12 font-sans select-none">
+    <div className="max-w-[1520px] mx-auto space-y-4 animate-fade-in pb-24 font-sans select-none text-text">
       
-      {/* Top Banner & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-6 rounded-2xl border border-border-soft shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand border border-brand/30 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
-              <Sparkles size={12} /> CCTNS 2.0 INTELLIGENCE PIPELINE
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
-              {workspaceQuery}
-            </span>
+      {/* ── 1. TOP BANNER & HEADER ── */}
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 sm:p-4 shadow-xs dark:shadow-2xl font-sans transition-colors">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shrink-0 shadow-xs">
+              <FolderCheck size={20} />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-accent dark:text-[#38BDF8]">
+                  EVIDENCE CUSTODY &amp; INGESTION VAULT
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  WORKSPACE: {workspaceQuery}
+                </span>
+                <span className="text-[9px] font-mono font-medium text-text-dim dark:text-[#94A3B8] px-1.5 py-0.2 rounded bg-surface-2 dark:bg-[#131B2E] border border-border-soft dark:border-[#1E293B]">
+                  SEC 63 BSA COMPLIANT
+                </span>
+              </div>
+
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold font-mono text-text dark:text-[#F8FAFC] tracking-tight">
+                  Cryptographic Evidence Vault &amp; Custody Pipeline
+                </h1>
+                <span className="text-xs text-text-dim dark:text-[#94A3B8] font-sans">
+                  — Multi-modal exhibit processing, SHA-256 tamper-evident verification, and graph extraction.
+                </span>
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl font-display font-bold text-text tracking-tight flex items-center gap-2">
-            EVIDENCE VAULT
-          </h1>
-          <p className="text-xs text-text-dim mt-1 font-sans">
-            &quot;Cryptographically hashed evidence handling and tamper-evident custody pipeline.&quot;
-          </p>
-        </div>
 
-        {/* Header Action Buttons */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={handleLoadDemoEvidence}
-            className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-hover text-bg font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer font-mono uppercase tracking-wider"
-          >
-            <Download size={15} />
-            <span>LOAD DEMO EVIDENCE PRESETS</span>
-          </button>
+          {/* Header Action Buttons */}
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <button
+              onClick={handleLoadDemoEvidence}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-surface-2 dark:bg-[#0E1422] hover:bg-surface-hover dark:hover:bg-[#131B2E] border border-border-soft dark:border-[#1E293B] text-accent dark:text-[#38BDF8] font-mono font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+            >
+              <Download size={13} />
+              <span>LOAD 5 DEMO PRESETS</span>
+            </button>
 
-          <button
-            onClick={() => setIsInitModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-surface-2 hover:bg-surface-hover text-text font-bold text-xs rounded-xl border border-border-soft transition-all cursor-pointer font-mono"
-          >
-            <Plus size={15} className="text-brand" />
-            <span>NEW WORKSPACE</span>
-          </button>
+            <button
+              onClick={() => setIsInitModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-accent dark:bg-[#38BDF8] hover:bg-accent-bright dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] font-mono font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>NEW WORKSPACE</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Workspace Context Info Card */}
-      <div className="p-4 rounded-xl bg-surface-2/80 border border-border-soft flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3 font-mono text-xs">
-          <div className="w-8 h-8 rounded-lg bg-brand/15 border border-brand/30 flex items-center justify-center text-brand shrink-0">
-            <Layers size={16} />
+      {/* ── 2. WORKSPACE CONTEXT & TAB STRIP ── */}
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3 shadow-xs dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3 font-mono text-xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] flex items-center justify-center text-accent dark:text-[#38BDF8] shrink-0">
+            <Layers size={14} />
           </div>
           <div>
-            <div className="text-text font-bold uppercase flex items-center gap-2">
-              <span>ACTIVE WORKSPACE: {workspaceQuery}</span>
-              <span className="text-[10px] text-text-dim font-normal">[{PRIMARY_DEMO_CASE.firNumber}]</span>
-            </div>
-            <p className="text-[11px] text-text-dim">Khandagiri PS Jurisdiction • Objective: Vehicle Theft Syndicate Resolution</p>
+            <span className="text-text dark:text-[#F8FAFC] font-bold uppercase">
+              ACTIVE CASE TARGET: {workspaceQuery}
+            </span>
+            <span className="text-text-dim dark:text-[#64748B] text-[11px] ml-2">[{PRIMARY_DEMO_CASE.firNumber}] · Khandagiri PS</span>
           </div>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-2 font-mono text-xs">
-          <div className="flex rounded-lg p-0.5 bg-surface border border-border-soft">
-            <button
-              onClick={() => setActiveTab('queue')}
-              className={`px-3 py-1.5 rounded-md font-bold transition-all cursor-pointer ${
-                activeTab === 'queue' ? 'bg-brand text-bg' : 'text-text-dim hover:text-text'
-              }`}
-            >
-              EVIDENCE QUEUE ({evidenceItems.length})
-            </button>
+        <div className="flex items-center gap-1 bg-surface-2 dark:bg-[#0E1422] p-1 rounded-xl border border-border-soft dark:border-[#1E293B]">
+          <button
+            onClick={() => setActiveTab('queue')}
+            className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+              activeTab === 'queue'
+                ? 'bg-accent/15 dark:bg-[#38BDF8]/15 border border-accent dark:border-[#38BDF8] text-accent dark:text-[#38BDF8] shadow-xs'
+                : 'text-text-dim dark:text-[#94A3B8] hover:text-text border border-transparent'
+            }`}
+          >
+            EXHIBIT QUEUE ({evidenceItems.length})
+          </button>
 
-            <button
-              onClick={() => setActiveTab('custom')}
-              className={`px-3 py-1.5 rounded-md font-bold transition-all cursor-pointer ${
-                activeTab === 'custom' ? 'bg-brand text-bg' : 'text-text-dim hover:text-text'
-              }`}
-            >
-              MANUAL TEXT ENTRY
-            </button>
+          <button
+            onClick={() => setActiveTab('custom')}
+            className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+              activeTab === 'custom'
+                ? 'bg-accent/15 dark:bg-[#38BDF8]/15 border border-accent dark:border-[#38BDF8] text-accent dark:text-[#38BDF8] shadow-xs'
+                : 'text-text-dim dark:text-[#94A3B8] hover:text-text border border-transparent'
+            }`}
+          >
+            MANUAL ENTRY
+          </button>
 
-            <button
-              onClick={() => setActiveTab('audit-chain')}
-              className={`px-3 py-1.5 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'audit-chain' ? 'bg-emerald-600 text-white shadow-sm' : 'text-emerald-400 hover:text-emerald-300'
-              }`}
-            >
-              <FolderCheck size={13} />
-              <span>CRYPTOGRAPHIC HASH CHAIN</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setActiveTab('audit-chain')}
+            className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'audit-chain'
+                ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                : 'text-emerald-600/70 dark:text-emerald-400/70 hover:text-emerald-400 border border-transparent'
+            }`}
+          >
+            <FolderCheck size={12} />
+            <span>HASH AUDIT CHAIN</span>
+          </button>
         </div>
       </div>
 
-      {/* TABS CONTENT */}
+      {/* ── 3. TABS CONTENT ── */}
       {activeTab === 'audit-chain' ? (
-        <div className="animate-fade-in my-4">
+        <div className="animate-fade-in my-2">
           <AuditChainViewer caseId={workspaceQuery} />
         </div>
       ) : activeTab === 'queue' ? (
         evidenceItems.length === 0 ? (
           /* UNPOPULATED QUEUE INITIAL VIEW */
-          <div className="bg-surface p-10 rounded-3xl border border-dashed border-border-strong text-center space-y-6 animate-fade-in my-4">
-            <div className="w-16 h-16 rounded-2xl bg-brand/15 border border-brand/30 flex items-center justify-center text-brand mx-auto shadow-inner">
-              <FolderCheck size={32} />
+          <div className="bg-surface dark:bg-[#0B0F17] p-10 rounded-xl border border-dashed border-border-soft dark:border-[#1E293B] text-center space-y-4 animate-fade-in my-2">
+            <div className="w-12 h-12 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] mx-auto shadow-xs">
+              <FolderCheck size={24} />
             </div>
 
-            <div className="max-w-md mx-auto space-y-2">
-              <h2 className="text-base font-mono font-bold text-text uppercase tracking-wider">
+            <div className="max-w-md mx-auto space-y-1.5">
+              <h2 className="text-sm font-mono font-bold text-text dark:text-[#F8FAFC] uppercase tracking-wider">
                 {evidenceLoadError ? 'EVIDENCE VAULT UNAVAILABLE' : 'EVIDENCE QUEUE IS CURRENTLY EMPTY'}
               </h2>
               {evidenceLoadError && (
-                <p className="text-xs text-danger-bright font-mono">{evidenceLoadError}</p>
+                <p className="text-xs text-rose-500 font-mono">{evidenceLoadError}</p>
               )}
-              <p className="text-xs text-text-dim font-sans leading-relaxed">
-                Click <strong className="text-brand">&quot;LOAD DEMO EVIDENCE PRESETS&quot;</strong> to populate the 5 multi-modal investigation feeds (FIR Report, CDR Extracts, CCTV ANPR, Geo Trail, Financial Transactions) for <strong className="text-brand font-mono">{workspaceQuery}</strong>.
+              <p className="text-xs text-text-dim dark:text-[#94A3B8] font-sans leading-relaxed">
+                Click below to load the 5 multi-source investigation exhibits (FIR Docket, CDR Cellular Extracts, CCTV ANPR, Geo Route Trail, and Financial Transcripts) for <strong className="text-accent dark:text-[#38BDF8] font-mono">{workspaceQuery}</strong>.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <button
                 onClick={handleLoadDemoEvidence}
-                className="px-6 py-3 bg-brand hover:bg-brand-hover text-bg font-bold text-xs rounded-xl shadow-lg transition-all cursor-pointer font-mono flex items-center gap-2 uppercase tracking-wider scale-105 animate-pulse"
+                className="px-5 py-2.5 bg-accent dark:bg-[#38BDF8] hover:bg-accent-bright dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] font-mono font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wider"
               >
-                <Download size={16} />
-                <span>LOAD DEMO EVIDENCE PRESETS (5 FEEDS)</span>
+                <Download size={14} />
+                <span>LOAD 5 MULTI-MODAL PRESETS</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('custom')}
-                className="px-5 py-3 bg-surface-2 hover:bg-surface-hover text-text font-bold text-xs rounded-xl border border-border-soft transition-all cursor-pointer font-mono flex items-center gap-2 uppercase tracking-wider"
+                className="px-4 py-2.5 bg-surface-2 dark:bg-[#0E1422] hover:bg-surface-hover dark:hover:bg-[#131B2E] text-text dark:text-[#F8FAFC] font-mono font-bold text-xs rounded-xl border border-border-soft dark:border-[#1E293B] transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <Edit3 size={16} className="text-brand" />
-                <span>INPUT CUSTOM EVIDENCE TEXT</span>
+                <Edit3 size={14} className="text-accent dark:text-[#38BDF8]" />
+                <span>INPUT CUSTOM TRANSCRIPT</span>
               </button>
             </div>
           </div>
         ) : (
           /* POPULATED EVIDENCE QUEUE */
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-mono font-bold text-text uppercase tracking-wider flex items-center gap-2">
-                <FileText size={14} className="text-brand" /> MULTI-MODAL EVIDENCE INGESTION QUEUE ({selectedIds.length} / {evidenceItems.length} SELECTED)
+          <div className="space-y-3 animate-fade-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h2 className="text-xs font-mono font-bold text-text dark:text-[#F8FAFC] uppercase tracking-wider flex items-center gap-2">
+                <FileText size={13} className="text-accent dark:text-[#38BDF8]" />
+                MULTI-MODAL EVIDENCE INGESTION QUEUE ({selectedIds.length} / {evidenceItems.length} SELECTED)
                 {isDemoData && (
-                  <span className="text-[9px] font-bold text-warning bg-warning/10 border border-warning/30 px-2 py-0.5 rounded normal-case tracking-normal">
-                    Demo Data — Not From Case Records
+                  <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.2 rounded normal-case font-mono">
+                    Demo Dataset
                   </span>
                 )}
               </h2>
@@ -359,20 +378,20 @@ export function EvidenceVault() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleSelectAll}
-                  className="px-3 py-1 rounded-lg bg-surface border border-border-soft text-text-dim hover:text-text font-bold text-[11px] font-mono cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] hover:text-text font-bold text-[10px] font-mono cursor-pointer"
                 >
                   {selectedIds.length === evidenceItems.length ? 'DESELECT ALL' : 'SELECT ALL'}
                 </button>
                 <button
                   onClick={handleLoadDemoEvidence}
-                  className="px-3 py-1 rounded-lg bg-surface-2 border border-border-soft text-brand font-bold text-[11px] font-mono cursor-pointer flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-accent dark:text-[#38BDF8] font-bold text-[10px] font-mono cursor-pointer flex items-center gap-1"
                 >
-                  <RefreshCw size={12} /> RESET PRESETS
+                  <RefreshCw size={11} /> RESET
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {evidenceItems.map((item) => {
                 const isSelected = selectedIds.includes(item.id);
                 const IconComp = ICON_MAP[item.iconName] || FileText;
@@ -381,51 +400,51 @@ export function EvidenceVault() {
                   <div
                     key={item.id}
                     onClick={() => toggleSelect(item.id)}
-                    className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
+                    className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 font-sans shadow-xs ${
                       isSelected
-                        ? 'bg-surface border-brand ring-2 ring-brand/20 shadow-md'
-                        : 'bg-surface-2/60 border-border-soft opacity-60 hover:opacity-100'
+                        ? 'bg-surface dark:bg-[#0B0F17] border-accent dark:border-[#38BDF8] ring-1 ring-accent/30 dark:ring-[#38BDF8]/30'
+                        : 'bg-surface-2/60 dark:bg-[#0E1422]/60 border-border-soft dark:border-[#1E293B] opacity-75 hover:opacity-100'
                     }`}
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
-                            isSelected ? 'bg-brand/15 text-brand border-brand/30' : 'bg-surface text-text-dim border-border-soft'
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center border ${
+                            isSelected ? 'bg-accent/15 dark:bg-[#38BDF8]/15 text-accent dark:text-[#38BDF8] border-accent/30 dark:border-[#38BDF8]/30' : 'bg-surface dark:bg-[#070A0F] text-text-dim dark:text-[#64748B] border-border-soft dark:border-[#1E293B]'
                           }`}>
-                            <IconComp size={16} />
+                            <IconComp size={14} />
                           </div>
                           <div>
-                            <span className="text-[10px] font-mono font-bold text-brand uppercase tracking-wider block">{item.type}</span>
-                            <span className="text-xs font-mono font-bold text-text truncate block max-w-[180px]">{item.source}</span>
+                            <span className="text-[10px] font-mono font-bold text-accent dark:text-[#38BDF8] uppercase tracking-wider block">{item.type}</span>
+                            <span className="text-xs font-mono font-bold text-text dark:text-[#F8FAFC] truncate block max-w-[170px]">{item.source}</span>
                           </div>
                         </div>
 
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border ${
                           item.status === 'SEALED'
-                            ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                            : 'bg-success/20 text-success border-success/30'
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                            : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                         }`}>
                           {item.status}
                         </span>
                       </div>
 
-                      <p className="text-xs text-text-dim font-sans leading-relaxed">{item.details}</p>
+                      <p className="text-xs text-text-dim dark:text-[#94A3B8] font-sans leading-relaxed line-clamp-3">{item.details}</p>
                     </div>
 
-                    <div className="pt-3 border-t border-border-soft/60 flex items-center justify-between text-[10px] font-mono text-text-dim">
+                    <div className="pt-2.5 border-t border-border-soft/60 dark:border-[#1E293B]/60 flex items-center justify-between text-[10px] font-mono text-text-dim dark:text-[#64748B]">
                       <button
                         onClick={(e) => handleVerifyIntegrity(item, e)}
-                        className="px-2 py-1 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-400 border border-emerald-500/30 rounded flex items-center gap-1 font-bold"
+                        className="px-2 py-0.5 bg-surface-2 dark:bg-[#0E1422] hover:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-border-soft dark:border-[#1E293B] hover:border-emerald-500/40 rounded flex items-center gap-1 font-bold cursor-pointer transition-colors"
                       >
-                        <ShieldCheck size={12} />
+                        <ShieldCheck size={11} />
                         <span>Verify Chain</span>
                       </button>
 
-                      <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${
-                        isSelected ? 'bg-brand text-bg border-brand' : 'border-border-soft bg-surface'
+                      <div className={`w-4 h-4 rounded flex items-center justify-center border ${
+                        isSelected ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] border-accent dark:border-[#38BDF8]' : 'border-border-soft dark:border-[#1E293B] bg-surface dark:bg-[#070A0F]'
                       }`}>
-                        {isSelected && <CheckCircle2 size={14} />}
+                        {isSelected && <CheckCircle2 size={12} />}
                       </div>
                     </div>
                   </div>
@@ -433,13 +452,13 @@ export function EvidenceVault() {
               })}
             </div>
 
-            <div className="pt-4 flex justify-end">
+            <div className="pt-3 flex justify-end">
               <button
                 onClick={handleIngest}
                 disabled={selectedIds.length === 0}
-                className="px-6 py-3 bg-brand hover:bg-brand-hover text-bg font-bold text-xs rounded-xl shadow-lg transition-all cursor-pointer font-mono flex items-center gap-2 uppercase tracking-wider disabled:opacity-50"
+                className="px-5 py-2.5 bg-accent dark:bg-[#38BDF8] hover:bg-accent-bright dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] font-mono font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wider disabled:opacity-50"
               >
-                <Sparkles size={16} />
+                <Sparkles size={15} />
                 <span>INGEST ALL {selectedIds.length} FEEDS &amp; CONSTRUCT KNOWLEDGE GRAPH</span>
               </button>
             </div>
@@ -447,13 +466,14 @@ export function EvidenceVault() {
         )
       ) : (
         /* MANUAL CUSTOM TEXT ENTRY TAB */
-        <div className="bg-surface p-6 rounded-2xl border border-border-soft shadow-sm space-y-4 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border-soft pb-3">
+        <div className="bg-surface dark:bg-[#0B0F17] p-5 rounded-xl border border-border-soft dark:border-[#1E293B] shadow-xs dark:shadow-2xl space-y-3 animate-fade-in font-sans">
+          <div className="flex items-center justify-between border-b border-border-soft dark:border-[#1E293B] pb-2.5">
             <div>
-              <h3 className="text-xs font-mono font-bold text-text uppercase tracking-wider flex items-center gap-2">
-                <Upload size={14} className="text-brand" /> CUSTOM EVIDENCE TEXT / TRANSCRIPT INGESTION
+              <h3 className="text-xs font-mono font-bold text-text dark:text-[#F8FAFC] uppercase tracking-wider flex items-center gap-2">
+                <Upload size={13} className="text-accent dark:text-[#38BDF8]" />
+                CUSTOM EVIDENCE TEXT &amp; TRANSCRIPT INGESTION
               </h3>
-              <p className="text-[11px] text-text-dim">Provide custom officer notes, witness transcriptions, or receipt details for AI extraction</p>
+              <p className="text-[11px] text-text-dim dark:text-[#94A3B8]">Provide custom officer notes, witness transcriptions, or receipt details for automated extraction</p>
             </div>
           </div>
 
@@ -461,25 +481,25 @@ export function EvidenceVault() {
             rows={5}
             value={customEvidenceText}
             onChange={e => setCustomEvidenceText(e.target.value)}
-            className="w-full bg-surface-2 border border-border-soft rounded-xl p-4 text-xs font-mono text-text outline-none focus:border-brand leading-relaxed"
+            className="w-full bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 text-xs font-mono text-text dark:text-[#F8FAFC] outline-none focus:border-accent dark:focus:border-[#38BDF8] leading-relaxed"
             placeholder="Enter case evidence text..."
           />
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-1">
             <button
               type="button"
               onClick={handleLoadDemoEvidence}
-              className="text-xs font-mono text-brand hover:underline font-bold flex items-center gap-1"
+              className="text-xs font-mono text-accent dark:text-[#38BDF8] hover:underline font-bold flex items-center gap-1 cursor-pointer"
             >
-              <Download size={13} /> Load 5 Multi-Modal Demo Presets
+              <Download size={12} /> Load 5 Multi-Modal Demo Presets
             </button>
 
             <button
               onClick={handleIngest}
               disabled={!customEvidenceText.trim()}
-              className="px-6 py-2.5 bg-brand hover:bg-brand-hover text-bg font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer font-mono flex items-center gap-2 uppercase tracking-wider disabled:opacity-50"
+              className="px-5 py-2.5 bg-accent dark:bg-[#38BDF8] hover:bg-accent-bright dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] font-mono font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wider disabled:opacity-50"
             >
-              <Sparkles size={15} />
+              <Sparkles size={14} />
               <span>INGEST CUSTOM EVIDENCE &amp; CONSTRUCT GRAPH</span>
             </button>
           </div>

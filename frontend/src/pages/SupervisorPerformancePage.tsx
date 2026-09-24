@@ -123,29 +123,31 @@ export function SupervisorPerformancePage() {
   });
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 font-sans bg-bg min-h-screen text-text select-none">
+    <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
       
       {/* ── HEADER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass p-4 rounded-2xl bg-surface/90 border border-border-strong shadow-xl">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-brand/20 border border-brand/40 flex items-center justify-center text-brand">
-              <Users size={18} />
-            </div>
-            <h1 className="text-xl font-bold font-mono text-text uppercase tracking-wider">
-              OFFICER & STATION PERFORMANCE MATRIX
-            </h1>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-brand/20 text-brand border border-brand/30">
-              STATE COMMAND METRICS
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs">
+            <Users size={20} />
           </div>
-          <p className="text-xs text-text-dim">
-            Odisha State Police · Sector 4 Officer Clearances, Active Caseloads & SLA Compliance
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold font-mono text-text dark:text-[#F8FAFC] uppercase tracking-wider">
+                Officer & Station Performance Matrix
+              </h1>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] border border-accent/20 dark:border-[#38BDF8]/20">
+                STATE COMMAND
+              </span>
+            </div>
+            <p className="text-xs text-text-dim dark:text-[#94A3B8]">
+              Odisha State Police · Sector 4 Officer Clearances, Active Caseloads & SLA Compliance Tracking
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono font-bold text-emerald-400 flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-xs font-mono font-bold text-emerald-400 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>4 Inspectors Synced</span>
           </span>
@@ -153,73 +155,61 @@ export function SupervisorPerformancePage() {
       </div>
 
       {/* ── 4 KEY EXECUTIVE KPI CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
-        <div className="glass p-5 rounded-2xl bg-surface/90 border border-border-soft space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-              <Award size={20} />
-            </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Above Target</span>
+            <span className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase">Avg Clearance Rate</span>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">Above Target</span>
           </div>
-          <span className="text-xs text-text-dim block">Avg Clearance Rate</span>
-          <p className="text-2xl font-extrabold text-text">92.4%</p>
-          <span className="text-[10px] text-text-faint pt-2 border-t border-border-soft/60 block">Benchmark: &gt;75%</span>
+          <p className="text-xl font-mono font-bold text-text dark:text-[#F8FAFC] mt-1">92.4%</p>
+          <span className="text-[9px] text-text-dim dark:text-[#94A3B8] pt-1 border-t border-border-soft dark:border-[#1E293B] block">Benchmark: &gt;75%</span>
         </div>
 
-        <div className="glass p-5 rounded-2xl bg-surface/90 border border-border-soft space-y-2">
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-brand/20 text-brand border border-brand/30 flex items-center justify-center">
-              <Clock size={20} />
-            </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-brand/20 text-brand">Fast Velocity</span>
+            <span className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase">Average 112 Response</span>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-accent/10 dark:bg-[#38BDF8]/10 border border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]">Fast Velocity</span>
           </div>
-          <span className="text-xs text-text-dim block">Average 112 Response</span>
-          <p className="text-2xl font-extrabold text-text">4m 12s</p>
-          <span className="text-[10px] text-text-faint pt-2 border-t border-border-soft/60 block">Sector 4 urban average</span>
+          <p className="text-xl font-mono font-bold text-accent dark:text-[#38BDF8] mt-1">4m 12s</p>
+          <span className="text-[9px] text-text-dim dark:text-[#94A3B8] pt-1 border-t border-border-soft dark:border-[#1E293B] block">Sector 4 urban average</span>
         </div>
 
-        <div className="glass p-5 rounded-2xl bg-surface/90 border border-border-soft space-y-2">
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
-              <Users size={20} />
-            </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-400">Active Queue</span>
+            <span className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase">Division Caseload</span>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-400">Active Queue</span>
           </div>
-          <span className="text-xs text-text-dim block">Division Caseload</span>
-          <p className="text-2xl font-extrabold text-text">61 Active FIRs</p>
-          <span className="text-[10px] text-text-faint pt-2 border-t border-border-soft/60 block">15.2 FIRs / officer avg</span>
+          <p className="text-xl font-mono font-bold text-text dark:text-[#F8FAFC] mt-1">61 Active FIRs</p>
+          <span className="text-[9px] text-text-dim dark:text-[#94A3B8] pt-1 border-t border-border-soft dark:border-[#1E293B] block">15.2 FIRs / officer avg</span>
         </div>
 
-        <div className="glass p-5 rounded-2xl bg-surface/90 border border-border-soft space-y-2">
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
-              <Shield size={20} />
-            </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">92.0% On-Time</span>
+            <span className="text-[10px] text-text-dim dark:text-[#94A3B8] uppercase">Charge Sheet SLA</span>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">92.0% On-Time</span>
           </div>
-          <span className="text-xs text-text-dim block">Charge Sheet SLA</span>
-          <p className="text-2xl font-extrabold text-text">92.0%</p>
-          <span className="text-[10px] text-text-faint pt-2 border-t border-border-soft/60 block">60-day statutory quota</span>
+          <p className="text-xl font-mono font-bold text-amber-400 mt-1">92.0%</p>
+          <span className="text-[9px] text-text-dim dark:text-[#94A3B8] pt-1 border-t border-border-soft dark:border-[#1E293B] block">60-day statutory quota</span>
         </div>
       </div>
 
       {/* ── SEARCH & FILTER CONTROLS ── */}
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim dark:text-[#94A3B8]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search inspector by name, badge ID, station or specialization..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs text-text placeholder:text-text-faint outline-none focus:border-brand font-mono"
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] text-xs text-text dark:text-[#F8FAFC] placeholder:text-text-dim dark:placeholder:text-[#94A3B8] outline-none focus:border-accent dark:focus:border-[#38BDF8] font-mono"
           />
         </div>
 
         <select
           value={stationFilter}
           onChange={(e) => setStationFilter(e.target.value)}
-          className="px-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono text-text outline-none"
+          className="px-3.5 py-2 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] text-xs font-mono text-text dark:text-[#F8FAFC] outline-none focus:border-accent dark:focus:border-[#38BDF8]"
         >
           <option value="ALL">All Stations (4)</option>
           <option value="Khandagiri">Khandagiri PS</option>
@@ -230,15 +220,15 @@ export function SupervisorPerformancePage() {
       </div>
 
       {/* ── MAIN 2-COLUMN INSPECTOR ROSTER & CASE BACKLOG DETAILS ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-mono">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start font-mono">
         
         {/* Left Column: Officer Scorecards List (7 cols) */}
-        <div className="lg:col-span-7 glass p-5 rounded-2xl bg-surface/90 border border-border-soft space-y-4 shadow-xl">
-          <h3 className="text-xs font-mono font-bold text-brand uppercase tracking-wider flex items-center gap-2 border-b border-border-soft pb-2.5">
-            <Users size={14} /> INSPECTOR DUTY ROSTER & WORKLOAD SCORECARDS
+        <div className="lg:col-span-7 bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3 shadow-xs">
+          <h3 className="text-xs font-mono font-bold text-accent dark:text-[#38BDF8] uppercase tracking-wider flex items-center gap-2 border-b border-border-soft dark:border-[#1E293B] pb-2.5">
+            <Users size={14} /> Inspector Duty Roster & Workload Scorecards
           </h3>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {filteredOfficers.map((officer) => {
               const isSelected = selectedOfficer.officer_id === officer.officer_id;
 
@@ -246,61 +236,61 @@ export function SupervisorPerformancePage() {
                 <div
                   key={officer.officer_id}
                   onClick={() => setSelectedOfficer(officer)}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer space-y-3 ${
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer space-y-2.5 ${
                     isSelected
-                      ? 'bg-brand/20 border-brand shadow-md'
-                      : 'bg-surface-2 border-border-soft hover:bg-surface-hover'
+                      ? 'bg-accent/10 dark:bg-[#38BDF8]/10 border-accent dark:border-[#38BDF8] shadow-xs'
+                      : 'bg-surface-2 dark:bg-[#0E1422] border-border-soft dark:border-[#1E293B] hover:border-accent/50 dark:hover:border-[#38BDF8]/50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-brand/20 text-brand font-bold text-xs flex items-center justify-center border border-brand/30">
+                      <div className="w-9 h-9 rounded-lg bg-surface dark:bg-[#0B0F17] text-accent dark:text-[#38BDF8] font-bold text-xs flex items-center justify-center border border-accent/30 dark:border-[#38BDF8]/30">
                         {officer.name.split(' ').map((n) => n[0]).join('')}
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-text flex items-center gap-2">
+                        <h4 className="text-xs sm:text-sm font-bold text-text dark:text-[#F8FAFC] flex items-center gap-2">
                           {officer.name}
-                          <span className="text-[10px] text-text-dim">({officer.officer_id})</span>
+                          <span className="text-[10px] text-text-dim dark:text-[#94A3B8]">({officer.officer_id})</span>
                         </h4>
-                        <p className="text-[11px] text-text-dim flex items-center gap-1 mt-0.5">
-                          <Building2 size={12} className="text-brand" />
+                        <p className="text-[11px] text-text-dim dark:text-[#94A3B8] flex items-center gap-1 mt-0.5">
+                          <Building2 size={12} className="text-accent dark:text-[#38BDF8]" />
                           {officer.station} · {officer.specialization}
                         </p>
                       </div>
                     </div>
 
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md ${
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       officer.status.includes('Optimal')
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'bg-amber-500/20 text-amber-400'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                     }`}>
                       {officer.status}
                     </span>
                   </div>
 
                   {/* Performance Progress Bars */}
-                  <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border-soft/60 text-xs">
+                  <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border-soft dark:border-[#1E293B] text-xs">
                     <div>
-                      <span className="text-[9px] text-text-dim block">CLEARANCE RATE</span>
+                      <span className="text-[9px] text-text-dim dark:text-[#94A3B8] block uppercase">Clearance Rate</span>
                       <span className="font-bold text-emerald-400">{officer.clearance_rate}%</span>
-                      <div className="w-full h-1.5 rounded-full bg-surface-hover mt-1 overflow-hidden">
+                      <div className="w-full h-1.5 rounded-full bg-surface dark:bg-[#0B0F17] mt-1 overflow-hidden border border-border-soft dark:border-[#1E293B]">
                         <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${officer.clearance_rate}%` }} />
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-[9px] text-text-dim block">ACTIVE FIRS</span>
-                      <span className="font-bold text-brand">{officer.active_cases} / 20</span>
-                      <div className="w-full h-1.5 rounded-full bg-surface-hover mt-1 overflow-hidden">
-                        <div className={`h-full rounded-full ${officer.active_cases > 18 ? 'bg-danger' : 'bg-brand'}`} style={{ width: `${(officer.active_cases / 20) * 100}%` }} />
+                      <span className="text-[9px] text-text-dim dark:text-[#94A3B8] block uppercase">Active FIRs</span>
+                      <span className="font-bold text-accent dark:text-[#38BDF8]">{officer.active_cases} / 20</span>
+                      <div className="w-full h-1.5 rounded-full bg-surface dark:bg-[#0B0F17] mt-1 overflow-hidden border border-border-soft dark:border-[#1E293B]">
+                        <div className={`h-full rounded-full ${officer.active_cases > 18 ? 'bg-rose-400' : 'bg-accent dark:bg-[#38BDF8]'}`} style={{ width: `${(officer.active_cases / 20) * 100}%` }} />
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-[9px] text-text-dim block">SLA COMPLIANCE</span>
-                      <span className="font-bold text-warning">{officer.sla_compliance}%</span>
-                      <div className="w-full h-1.5 rounded-full bg-surface-hover mt-1 overflow-hidden">
-                        <div className="h-full bg-warning rounded-full" style={{ width: `${officer.sla_compliance}%` }} />
+                      <span className="text-[9px] text-text-dim dark:text-[#94A3B8] block uppercase">SLA Compliance</span>
+                      <span className="font-bold text-amber-400">{officer.sla_compliance}%</span>
+                      <div className="w-full h-1.5 rounded-full bg-surface dark:bg-[#0B0F17] mt-1 overflow-hidden border border-border-soft dark:border-[#1E293B]">
+                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${officer.sla_compliance}%` }} />
                       </div>
                     </div>
                   </div>
@@ -311,49 +301,51 @@ export function SupervisorPerformancePage() {
         </div>
 
         {/* Right Column: Inspector Backlog Drilldown (5 cols) */}
-        <div className="lg:col-span-5 glass p-5 rounded-2xl bg-surface/90 border border-border-strong space-y-4 shadow-xl text-xs">
-          <div className="border-b border-border-soft pb-3 flex items-center justify-between">
+        <div className="lg:col-span-5 bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3 shadow-xs text-xs">
+          <div className="border-b border-border-soft dark:border-[#1E293B] pb-2.5 flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-text">{selectedOfficer.name} · Dossier</h3>
-              <p className="text-[11px] text-text-dim mt-0.5">{selectedOfficer.station}</p>
+              <h3 className="text-sm font-bold text-text dark:text-[#F8FAFC]">{selectedOfficer.name} · Dossier</h3>
+              <p className="text-[11px] text-text-dim dark:text-[#94A3B8] mt-0.5">{selectedOfficer.station}</p>
             </div>
             <div className="text-right">
-              <span className="text-emerald-400 font-bold text-sm block">{selectedOfficer.closed_cases_month} Closed</span>
-              <span className="text-[9px] text-text-faint">this month</span>
+              <span className="text-emerald-400 font-bold text-xs block">{selectedOfficer.closed_cases_month} Closed</span>
+              <span className="text-[9px] text-text-dim dark:text-[#94A3B8]">this month</span>
             </div>
           </div>
 
           {/* Contact Details */}
-          <div className="p-3 rounded-xl bg-surface-2 border border-border-soft space-y-1 text-[11px]">
+          <div className="p-3 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] space-y-1 text-[11px]">
             <div className="flex justify-between">
-              <span className="text-text-dim">PHONE:</span>
-              <span className="font-bold text-text">{selectedOfficer.phone}</span>
+              <span className="text-text-dim dark:text-[#94A3B8]">PHONE:</span>
+              <span className="font-bold text-text dark:text-[#F8FAFC]">{selectedOfficer.phone}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-dim">EMAIL:</span>
-              <span className="font-bold text-text truncate max-w-[180px]">{selectedOfficer.email}</span>
+              <span className="text-text-dim dark:text-[#94A3B8]">EMAIL:</span>
+              <span className="font-bold text-text dark:text-[#F8FAFC] truncate max-w-[180px]">{selectedOfficer.email}</span>
             </div>
-            <div className="flex justify-between pt-1 border-t border-border-soft/60">
-              <span className="text-text-dim">JOINED STATION:</span>
-              <span className="font-bold text-brand">{selectedOfficer.joined_station}</span>
+            <div className="flex justify-between pt-1 border-t border-border-soft dark:border-[#1E293B]">
+              <span className="text-text-dim dark:text-[#94A3B8]">JOINED STATION:</span>
+              <span className="font-bold text-accent dark:text-[#38BDF8]">{selectedOfficer.joined_station}</span>
             </div>
           </div>
 
           {/* Active Cases Backlog Stream */}
           <div className="space-y-2">
-            <span className="font-bold text-brand text-xs block">ASSIGNED ACTIVE FIR BACKLOG:</span>
+            <span className="font-bold text-accent dark:text-[#38BDF8] text-xs block uppercase tracking-wider">Assigned Active FIR Backlog:</span>
             {selectedOfficer.recent_cases.map((c, idx) => (
-              <div key={idx} className="p-3 rounded-xl bg-surface-2 border border-border-soft space-y-1.5">
+              <div key={idx} className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-brand">{c.case_number}</span>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                    c.sla_status.includes('Critical') ? 'bg-danger/20 text-danger-bright' : 'bg-emerald-500/20 text-emerald-400'
+                  <span className="font-bold text-accent dark:text-[#38BDF8]">{c.case_number}</span>
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                    c.sla_status.includes('Critical') 
+                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' 
+                      : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                   }`}>
                     {c.sla_status}
                   </span>
                 </div>
-                <p className="text-text text-[11px] font-bold">{c.crime_type}</p>
-                <div className="flex justify-between text-[10px] text-text-dim pt-1 border-t border-border-soft/60">
+                <p className="text-text dark:text-[#F8FAFC] text-[11px] font-bold font-sans">{c.crime_type}</p>
+                <div className="flex justify-between text-[10px] text-text-dim dark:text-[#94A3B8] pt-1 border-t border-border-soft dark:border-[#1E293B]">
                   <span>Filed: {c.date}</span>
                   <span>{c.status}</span>
                 </div>

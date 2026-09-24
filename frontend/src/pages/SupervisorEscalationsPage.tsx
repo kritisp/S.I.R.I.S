@@ -72,30 +72,32 @@ export function SupervisorEscalationsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 font-sans bg-bg min-h-screen text-text select-none">
+    <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
       
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass p-4 rounded-2xl bg-surface/90 border border-border-strong shadow-xl">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-danger/20 border border-danger/40 flex items-center justify-center text-danger">
-              <AlertTriangle size={18} />
-            </div>
-            <h1 className="text-xl font-bold font-mono text-text uppercase tracking-wider">
-              EMERGENCY BROADCAST & QRT MOBILIZATION
-            </h1>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-danger/20 text-danger border border-danger/30">
-              STATE CRITICAL DIRECTIVES
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-xs">
+            <AlertTriangle size={20} />
           </div>
-          <p className="text-xs text-text-dim">
-            Odisha State Police · Tactical Interventions, Critical Alerts & Statewide Flash Directives
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold font-mono text-text dark:text-[#F8FAFC] uppercase tracking-wider">
+                Emergency Broadcast & QRT Mobilization
+              </h1>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400">
+                STATE CRITICAL
+              </span>
+            </div>
+            <p className="text-xs text-text-dim dark:text-[#94A3B8]">
+              Odisha State Police · Tactical Interventions, Critical Alerts & Statewide Flash Directives
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono font-bold text-danger flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-danger animate-ping" />
+          <span className="px-3 py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-rose-500/30 text-xs font-mono font-bold text-rose-400 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
             <span>{escalations.length} Active Critical Alerts</span>
           </span>
         </div>
@@ -103,64 +105,64 @@ export function SupervisorEscalationsPage() {
 
       {/* ACTION NOTIFICATION */}
       {broadcastSuccess && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2">
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold flex items-center gap-2">
           <CheckCircle2 size={16} className="text-emerald-400" />
           <span>{broadcastSuccess}</span>
         </div>
       )}
 
       {/* MAIN 2-COLUMN CONSOLE */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-mono text-xs">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start font-mono text-xs">
         
         {/* Left 8 Cols: Active Escalation Incidents */}
         <div className="lg:col-span-8 space-y-4">
           {escalations.map((esc) => (
             <div
               key={esc.id}
-              className="glass p-5 sm:p-6 rounded-2xl bg-surface/90 border border-border-strong space-y-3 shadow-xl"
+              className="bg-surface dark:bg-[#0B0F17] p-4 sm:p-5 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3 shadow-xs"
             >
               <div className="flex items-center justify-between">
-                <span className="px-3 py-0.5 rounded bg-danger/20 text-danger-bright font-bold text-[10px]">
+                <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-[10px]">
                   {esc.level}
                 </span>
-                <span className="text-text-faint font-mono">{esc.timestamp}</span>
+                <span className="text-text-dim dark:text-[#94A3B8] font-mono text-[11px]">{esc.timestamp}</span>
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-text">{esc.title}</h3>
-                <p className="text-text-dim flex items-center gap-1.5 text-xs mt-1">
-                  <MapPin size={14} className="text-danger shrink-0" />
+                <h3 className="text-sm sm:text-base font-bold text-text dark:text-[#F8FAFC]">{esc.title}</h3>
+                <p className="text-text-dim dark:text-[#94A3B8] flex items-center gap-1.5 text-xs mt-1">
+                  <MapPin size={14} className="text-rose-400 shrink-0" />
                   {esc.location} ({esc.district})
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-surface-2 border border-border-soft text-[11px] leading-relaxed">
-                <span className="text-text-dim font-bold block mb-0.5">INCIDENT NARRATIVE:</span>
-                <p className="text-text">{esc.description}</p>
+              <div className="p-3 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-[11px] leading-relaxed font-sans">
+                <span className="text-text-dim dark:text-[#94A3B8] font-mono font-bold block mb-0.5 uppercase tracking-wider text-[10px]">Incident Narrative:</span>
+                <p className="text-text dark:text-[#F8FAFC]">{esc.description}</p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-brand/10 border border-brand/30 text-[11px] leading-relaxed">
-                <span className="text-brand font-bold block mb-0.5">COMMAND DIRECTIVE:</span>
-                <p className="text-text font-medium">{esc.commandDirective}</p>
+              <div className="p-3 rounded-lg bg-accent/5 dark:bg-[#38BDF8]/5 border border-accent/20 dark:border-[#38BDF8]/20 text-[11px] leading-relaxed font-sans">
+                <span className="text-accent dark:text-[#38BDF8] font-mono font-bold block mb-0.5 uppercase tracking-wider text-[10px]">Command Directive:</span>
+                <p className="text-text dark:text-[#F8FAFC] font-medium">{esc.commandDirective}</p>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-border-soft/60">
-                <span className="text-text-dim">
-                  Status: <strong className="text-danger">{esc.status}</strong>
+              <div className="flex items-center justify-between pt-2 border-t border-border-soft dark:border-[#1E293B]">
+                <span className="text-text-dim dark:text-[#94A3B8]">
+                  Status: <strong className="text-rose-400">{esc.status}</strong>
                 </span>
 
                 {esc.activeQrtDispatched ? (
-                  <span className="text-emerald-400 font-bold flex items-center gap-1.5 bg-emerald-500/20 px-3 py-1 rounded-lg border border-emerald-500/30">
+                  <span className="text-emerald-400 font-bold flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/30">
                     <CheckCircle2 size={14} />
                     Special QRT Strike Team Mobilized
                   </span>
                 ) : (
                   <button
                     onClick={() => handleDeployQrt(esc.id)}
-                    className="px-4 py-2 rounded-xl bg-brand text-bg font-bold font-mono text-xs hover:bg-brand-bright transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                    className="px-4 py-2 rounded-lg bg-accent hover:bg-accent-bright dark:bg-[#38BDF8] dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] font-bold font-mono text-xs uppercase flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
-                    <Zap size={14} className="text-warning" />
-                    <span>Deploy Armed QRT Strike Unit</span>
+                    <Zap size={14} />
+                    <span>Deploy Armed QRT Unit</span>
                   </button>
                 )}
               </div>
@@ -169,19 +171,19 @@ export function SupervisorEscalationsPage() {
         </div>
 
         {/* Right 4 Cols: High-Priority Emergency Broadcast Form */}
-        <div className="lg:col-span-4 glass p-5 rounded-2xl bg-surface/90 border border-border-strong space-y-4 shadow-xl">
+        <div className="lg:col-span-4 bg-surface dark:bg-[#0B0F17] p-4 rounded-xl border border-border-soft dark:border-[#1E293B] space-y-3.5 shadow-xs">
           <div>
-            <span className="text-[10px] font-bold text-danger uppercase tracking-wider block">MDT BROADCAST DISPATCHER</span>
-            <h3 className="text-base font-bold text-text mt-0.5">Push Flash Directive</h3>
+            <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">MDT Broadcast Dispatcher</span>
+            <h3 className="text-sm font-bold text-text dark:text-[#F8FAFC] mt-0.5">Push Flash Directive</h3>
           </div>
 
           <form onSubmit={handleBroadcast} className="space-y-3">
             <div>
-              <label className="text-text-dim block mb-1 font-bold text-[10px]">SCOPE / PRECINCT:</label>
+              <label className="text-text-dim dark:text-[#94A3B8] block mb-1 font-bold text-[10px] uppercase">Scope / Precinct:</label>
               <select
                 value={targetDistrict}
                 onChange={(e) => setTargetDistrict(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border-soft text-xs text-text outline-none font-mono focus:border-brand"
+                className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-xs text-text dark:text-[#F8FAFC] outline-none font-mono focus:border-accent dark:focus:border-[#38BDF8]"
               >
                 <option value="ALL">All 142 Active Units Statewide</option>
                 <option value="Bhubaneswar Urban">Bhubaneswar Urban Command</option>
@@ -191,22 +193,22 @@ export function SupervisorEscalationsPage() {
             </div>
 
             <div>
-              <label className="text-text-dim block mb-1 font-bold text-[10px]">DIRECT EXECUTIVE MESSAGE:</label>
+              <label className="text-text-dim dark:text-[#94A3B8] block mb-1 font-bold text-[10px] uppercase">Direct Executive Message:</label>
               <textarea
                 rows={4}
                 value={broadcastMessage}
                 onChange={(e) => setBroadcastMessage(e.target.value)}
                 placeholder="e.g. ALL UNITS: Armed suspects fleeing south on NH-16. Establish spike barriers immediately..."
-                className="w-full p-3 rounded-xl bg-surface-2 border border-border-soft text-text placeholder:text-text-faint text-xs font-mono resize-none outline-none focus:border-brand"
+                className="w-full p-3 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] placeholder:text-text-dim dark:placeholder:text-[#94A3B8] text-xs font-mono resize-none outline-none focus:border-accent dark:focus:border-[#38BDF8]"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-danger text-white font-bold font-mono text-xs hover:bg-danger-bright transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+              className="w-full py-2.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold font-mono text-xs uppercase flex items-center justify-center gap-2 shadow-xs cursor-pointer"
             >
               <Send size={14} />
-              <span>TRANSMIT FLASH MDT BROADCAST</span>
+              <span>Transmit Flash Directive</span>
             </button>
           </form>
         </div>

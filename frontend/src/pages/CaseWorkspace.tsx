@@ -293,18 +293,18 @@ export function CaseWorkspace() {
   // Render Loading State
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto py-16 px-4">
-        <div className="glass p-12 rounded-2xl text-center border border-brand/30 bg-surface/90 shadow-glass animate-pulse space-y-6">
+      <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC]">
+        <div className="p-10 rounded-xl text-center border border-border-soft dark:border-[#1E293B] bg-surface dark:bg-[#0B0F17] shadow-xs animate-pulse space-y-4">
           <div className="relative inline-flex">
-            <Bot className="animate-spin text-brand" size={48} />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-brand-bright rounded-full animate-ping" />
+            <Bot className="animate-spin text-accent dark:text-[#38BDF8]" size={36} />
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent dark:bg-[#38BDF8] rounded-full animate-ping" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-text font-display uppercase tracking-wider">
-              LOADING CASE WORKSPACE DATA...
+            <h2 className="text-base font-bold text-text dark:text-[#F8FAFC] font-mono uppercase tracking-wider">
+              Loading Case Workspace Data...
             </h2>
-            <p className="text-xs font-mono text-text-dim mt-2 max-w-md mx-auto">
-              Aggregating PostgreSQL authoritative records, Neo4j investigation graph, NetworkX analytics & intelligence engines for <span className="text-brand font-bold">{id}</span>
+            <p className="text-xs font-mono text-text-dim dark:text-[#94A3B8] mt-1.5 max-w-md mx-auto">
+              Aggregating PostgreSQL authoritative records, Neo4j investigation graph, NetworkX analytics & intelligence engines for <span className="text-accent dark:text-[#38BDF8] font-bold">{id}</span>
             </p>
           </div>
         </div>
@@ -316,19 +316,19 @@ export function CaseWorkspace() {
   if (notFound) {
     return (
       <div className="max-w-2xl mx-auto py-16 px-4">
-        <div className="glass p-8 rounded-2xl border border-warning/40 bg-warning/5 text-center space-y-5">
-          <AlertCircle size={44} className="text-warning mx-auto" />
+        <div className="p-6 rounded-xl border border-amber-500/30 bg-amber-500/5 text-center space-y-4">
+          <AlertCircle size={36} className="text-amber-400 mx-auto" />
           <div>
-            <h2 className="text-xl font-bold text-warning uppercase font-mono tracking-wider">
-              CASE NOT FOUND (HTTP 404)
+            <h2 className="text-base font-bold text-amber-400 uppercase font-mono tracking-wider">
+              Case Not Found (HTTP 404)
             </h2>
-            <p className="text-xs text-text-dim mt-2">
-              Case ID <code className="text-text font-bold bg-surface-2 px-2 py-0.5 rounded">{id}</code> was not found in the PostgreSQL case registry or Neo4j investigation graph.
+            <p className="text-xs text-text-dim dark:text-[#94A3B8] mt-1.5">
+              Case ID <code className="text-text dark:text-[#F8FAFC] font-bold bg-surface-2 dark:bg-[#0E1422] px-2 py-0.5 rounded">{id}</code> was not found in the PostgreSQL case registry or Neo4j investigation graph.
             </p>
           </div>
           <button
             onClick={() => navigate('/cases')}
-            className="bg-brand text-bg px-5 py-2.5 rounded-lg font-bold text-xs hover:bg-brand-bright transition-colors uppercase tracking-wider"
+            className="bg-accent hover:bg-accent-bright dark:bg-[#38BDF8] dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider font-mono cursor-pointer"
           >
             Return to Investigations List
           </button>
@@ -341,28 +341,28 @@ export function CaseWorkspace() {
   if (error || !workspaceData) {
     return (
       <div className="max-w-2xl mx-auto py-16 px-4">
-        <div className="glass p-8 rounded-2xl border border-danger/40 bg-danger/5 text-center space-y-5">
-          <AlertTriangle size={44} className="text-danger-bright mx-auto" />
+        <div className="p-6 rounded-xl border border-rose-500/30 bg-rose-500/5 text-center space-y-4">
+          <AlertTriangle size={36} className="text-rose-400 mx-auto" />
           <div>
-            <h2 className="text-xl font-bold text-danger-bright uppercase font-mono tracking-wider">
-              WORKSPACE DATA UNAVAILABLE
+            <h2 className="text-base font-bold text-rose-400 uppercase font-mono tracking-wider">
+              Workspace Data Unavailable
             </h2>
-            <p className="text-xs text-text-dim mt-2 leading-relaxed">
+            <p className="text-xs text-text-dim dark:text-[#94A3B8] mt-1.5 leading-relaxed">
               {error || "Failed to retrieve authoritative database records from backend services."}
             </p>
           </div>
-          <div className="flex justify-center gap-3 pt-2">
+          <div className="flex justify-center gap-2.5 pt-1 font-mono">
             <button
               onClick={() => navigate('/cases')}
-              className="bg-surface-2 border border-border-soft px-4 py-2 rounded-lg text-xs font-bold text-text hover:bg-surface-hover transition-colors"
+              className="bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] px-3.5 py-1.5 rounded-lg text-xs font-bold text-text dark:text-[#F8FAFC] hover:bg-surface-hover transition-colors cursor-pointer"
             >
               Return to Cases List
             </button>
             <button
               onClick={loadWorkspace}
-              className="bg-brand text-bg px-5 py-2 rounded-lg font-bold text-xs hover:bg-brand-bright transition-colors flex items-center gap-2"
+              className="bg-accent hover:bg-accent-bright dark:bg-[#38BDF8] dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] px-4 py-1.5 rounded-lg font-bold text-xs uppercase transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <RefreshCw size={14} /> Retry Connection
+              <RefreshCw size={12} /> Retry Connection
             </button>
           </div>
         </div>
@@ -383,61 +383,65 @@ export function CaseWorkspace() {
       : HERO_CASE_PROVISIONS;
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-12">
+    <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
       {/* Dynamic Header */}
-      <div className="glass p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border-soft shadow-glass">
-        <div>
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="text-xs font-mono font-bold bg-surface-2 border border-border-soft px-2.5 py-0.5 rounded text-text-bright">
-              {workspaceData.fir_number}
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-accent/20 text-accent-bright px-2 py-0.5 rounded border border-accent/30">
-              {meta.status || 'UNDER INVESTIGATION'}
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-danger/20 text-danger-bright px-2 py-0.5 rounded border border-danger/30">
-              PRIORITY: {meta.priority || 'HIGH'}
-            </span>
-            {workspaceData.is_authoritative_postgres && (
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-success/20 text-success px-2 py-0.5 rounded border border-success/30 flex items-center gap-1">
-                <Database size={10} /> Authoritative PostgreSQL
-              </span>
-            )}
+      <div className="p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] shadow-xs dark:shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs">
+            <Shield size={20} />
           </div>
-          <h1 className="text-2xl font-bold text-text font-display">{meta.title}</h1>
-          <p className="text-xs text-text-dim mt-1.5 font-mono">
-            Station: <span className="text-text font-semibold">{meta.police_station}</span> ({meta.station_id}) · District: <span className="text-text font-semibold">{meta.district}</span> · State: {meta.state} · Registered: {meta.registration_date}
-          </p>
+          <div>
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-xs font-mono font-bold bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] px-2 py-0.5 rounded text-accent dark:text-[#38BDF8]">
+                {workspaceData.fir_number}
+              </span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] px-2 py-0.5 rounded-full border border-accent/20 dark:border-[#38BDF8]/20">
+                {meta.status || 'UNDER INVESTIGATION'}
+              </span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2 py-0.5 rounded-full">
+                PRIORITY: {meta.priority || 'HIGH'}
+              </span>
+              {workspaceData.is_authoritative_postgres && (
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Database size={10} /> Authoritative PostgreSQL
+                </span>
+              )}
+            </div>
+            <h1 className="text-base sm:text-lg font-bold text-text dark:text-[#F8FAFC] font-mono">{meta.title}</h1>
+            <p className="text-xs text-text-dim dark:text-[#94A3B8] mt-0.5 font-mono">
+              Station: <span className="text-text dark:text-[#F8FAFC] font-semibold">{meta.police_station}</span> ({meta.station_id}) · District: <span className="text-text dark:text-[#F8FAFC] font-semibold">{meta.district}</span> · Registered: {meta.registration_date}
+            </p>
+          </div>
         </div>
 
-        <div className="flex gap-2 shrink-0">
-          <button className="bg-surface-2 border border-border-soft px-4 py-2 rounded-lg text-xs font-semibold hover:bg-surface-hover text-text flex items-center gap-2 transition-colors">
-            <Share2 size={15} /> Share
+        <div className="flex items-center gap-2 shrink-0 font-mono text-xs">
+          <button className="bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] px-3.5 py-1.5 rounded-lg text-xs font-bold hover:bg-surface-hover text-text dark:text-[#F8FAFC] flex items-center gap-1.5 transition-colors cursor-pointer">
+            <Share2 size={13} /> Share
           </button>
-          <button className="bg-brand text-bg px-4 py-2 rounded-lg text-xs font-bold hover:bg-brand-bright flex items-center gap-2 transition-colors">
-            <AlertTriangle size={15} /> Mark Critical
+          <button className="bg-rose-500 hover:bg-rose-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase flex items-center gap-1.5 transition-colors cursor-pointer">
+            <AlertTriangle size={13} /> Mark Critical
           </button>
         </div>
       </div>
 
-      {/* Graph Intelligence Status Banner — reflects the real, backend-computed graph_status.
-          Generation is always an explicit investigator action, never automatic. */}
+      {/* Graph Intelligence Status Banner */}
       {workspaceData.graph_status && workspaceData.graph_status !== 'available' && (
-        <div className={`glass p-4 rounded-xl border flex items-center justify-between gap-4 flex-wrap ${
+        <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 flex-wrap ${
           workspaceData.graph_status === 'failed' || projectError
-            ? 'border-danger/40 bg-danger/5'
-            : 'border-warning/40 bg-warning/5'
+            ? 'border-rose-500/30 bg-rose-500/5'
+            : 'border-amber-500/30 bg-amber-500/5'
         }`}>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {workspaceData.graph_status === 'failed' || projectError
-              ? <AlertTriangle size={20} className="text-danger-bright shrink-0" />
-              : <Cpu size={20} className="text-warning shrink-0" />}
+              ? <AlertTriangle size={18} className="text-rose-400 shrink-0" />
+              : <Cpu size={18} className="text-amber-400 shrink-0" />}
             <div>
-              <div className="text-xs font-bold uppercase tracking-wider text-text">
+              <div className="text-xs font-bold uppercase tracking-wider text-text dark:text-[#F8FAFC] font-mono">
                 {workspaceData.graph_status === 'not_projected' && 'Case Intelligence Not Yet Generated'}
                 {workspaceData.graph_status === 'stale' && 'Case Intelligence Is Stale'}
                 {workspaceData.graph_status === 'failed' && 'Case Intelligence Generation Failed'}
               </div>
-              <p className="text-[11px] text-text-dim mt-0.5">
+              <p className="text-[11px] text-text-dim dark:text-[#94A3B8] mt-0.5">
                 {projectError || workspaceData.graph_status_message || 'This case record has changed since the graph was last generated.'}
               </p>
             </div>
@@ -445,30 +449,65 @@ export function CaseWorkspace() {
           <button
             onClick={handleGenerateIntelligence}
             disabled={isProjecting}
-            className="bg-brand text-bg px-4 py-2 rounded-lg text-xs font-bold hover:bg-brand-bright flex items-center gap-2 transition-colors disabled:opacity-50 shrink-0"
+            className="bg-accent hover:bg-accent-bright dark:bg-[#38BDF8] dark:hover:bg-[#0284C7] text-bg dark:text-[#070A0F] px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold uppercase flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0 cursor-pointer"
           >
             {isProjecting
-              ? <><RefreshCw size={14} className="animate-spin" /> Generating...</>
-              : <><Sparkles size={14} /> {workspaceData.graph_status === 'not_projected' ? 'Generate Case Intelligence' : 'Regenerate Case Intelligence'}</>}
+              ? <><RefreshCw size={12} className="animate-spin" /> Generating...</>
+              : <><Sparkles size={12} /> {workspaceData.graph_status === 'not_projected' ? 'Generate Case Intelligence' : 'Regenerate Case Intelligence'}</>}
           </button>
         </div>
       )}
 
       {/* Workspace Navigation Tabs */}
-      <div className="flex border-b border-border-soft overflow-x-auto flex-nowrap">
-        <button onClick={() => setActiveTab('overview')} className={tabClass('overview')}>
+      <div className="flex items-center gap-1 bg-surface-2 dark:bg-[#0E1422] p-1 rounded-lg border border-border-soft dark:border-[#1E293B] text-xs font-semibold font-mono self-start overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
+            activeTab === 'overview'
+              ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs font-bold'
+              : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
+          }`}
+        >
           Overview & Timeline
         </button>
-        <button onClick={() => setActiveTab('graph')} className={tabClass('graph', 'brand')}>
+        <button
+          onClick={() => setActiveTab('graph')}
+          className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
+            activeTab === 'graph'
+              ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs font-bold'
+              : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
+          }`}
+        >
           Knowledge Graph ({graphNeighborhood.total_nodes} Nodes)
         </button>
-        <button onClick={() => setActiveTab('analytics')} className={tabClass('analytics', 'brand')}>
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
+            activeTab === 'analytics'
+              ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs font-bold'
+              : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
+          }`}
+        >
           Graph Analytics
         </button>
-        <button onClick={() => setActiveTab('legal')} className={tabClass('legal', 'brand')}>
+        <button
+          onClick={() => setActiveTab('legal')}
+          className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
+            activeTab === 'legal'
+              ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs font-bold'
+              : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
+          }`}
+        >
           Legal Intelligence
         </button>
-        <button onClick={() => setActiveTab('reports')} className={tabClass('reports')}>
+        <button
+          onClick={() => setActiveTab('reports')}
+          className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
+            activeTab === 'reports'
+              ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs font-bold'
+              : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
+          }`}
+        >
           Reports & Drafts
         </button>
       </div>

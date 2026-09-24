@@ -60,18 +60,18 @@ const MOCK_DARK_ZONES_FALLBACK = [
 const TacticalTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: string }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-surface-2 border border-border-soft rounded-xl px-3.5 py-2.5 shadow-2xl text-xs text-text">
-        <p className="text-[11px] font-mono uppercase tracking-wider text-text-dim font-semibold mb-1 pb-1 border-b border-border-soft font-mono">
+      <div className="bg-surface-2 dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl px-3.5 py-2.5 shadow-2xl text-xs text-text dark:text-[#F8FAFC]">
+        <p className="text-[11px] font-mono uppercase tracking-wider text-text-dim dark:text-[#94A3B8] font-semibold mb-1 pb-1 border-b border-border-soft dark:border-[#1E293B]">
           {label}
         </p>
         <div className="space-y-1">
           {(payload as Array<{ name: string; value: number; color?: string }>).map((p, i) => (
             <div key={i} className="flex items-center justify-between gap-3 text-xs">
-              <span className="flex items-center gap-1.5 text-text-dim">
-                <span className="w-2 h-2 rounded-full" style={{ background: p.color || '#3B82F6' }} />
+              <span className="flex items-center gap-1.5 text-text-dim dark:text-[#94A3B8]">
+                <span className="w-2 h-2 rounded-full" style={{ background: p.color || '#38BDF8' }} />
                 <span>{p.name}:</span>
               </span>
-              <span className="font-mono font-bold text-text">
+              <span className="font-mono font-bold text-text dark:text-[#F8FAFC]">
                 {Number(p.value).toLocaleString()}
               </span>
             </div>
@@ -146,155 +146,159 @@ export function Analytics() {
     : null;
 
   return (
-    <div className="p-4 sm:p-7 space-y-6 max-w-7xl mx-auto animate-fade-in font-sans pb-24">
+    <div className="max-w-[1520px] mx-auto space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
 
       {/* ── 1. POLICE COMMAND HEADER & TELEMETRY HUB ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-border-soft">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand to-brand-hover flex items-center justify-center text-white shadow-md shadow-brand/20">
-              <ShieldCheck className="w-4 h-4" />
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 sm:p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-text font-mono uppercase">
-                CRIME INTELLIGENCE & TELEMETRY
-              </h1>
-              <p className="text-xs text-text-dim font-medium">
-                Odisha State Police CCTNS • State Crime Record Bureau (SCRB)
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold font-mono tracking-tight text-text dark:text-[#F8FAFC] uppercase">
+                  CRIME INTELLIGENCE & TELEMETRY
+                </h1>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-accent/15 dark:bg-[#38BDF8]/15 border border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]">
+                  STATEWIDE CCTNS
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  LIVE TELEMETRY
+                </span>
+              </div>
+              <p className="text-xs text-text-dim dark:text-[#94A3B8] font-mono mt-0.5">
+                State Crime Record Bureau (SCRB) • Multi-Jurisdictional Statistical Aggregation Engine
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Tactical Controls & Status */}
-        <div className="flex items-center gap-2.5 flex-wrap font-mono">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-success/10 border border-success/20 text-success text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-success animate-ping" />
-            <span>GRID SYNCHRONIZED</span>
+          {/* Tactical Controls & Status */}
+          <div className="flex items-center gap-2 flex-wrap font-mono">
+            {lastUpdated && (
+              <span className="text-[11px] text-text-dim dark:text-[#94A3B8] flex items-center gap-1.5 bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] px-2.5 py-1.5 rounded-lg">
+                <Clock className="w-3.5 h-3.5 text-accent dark:text-[#38BDF8]" />
+                <span>UPDATED: {formatTime(lastUpdated)}</span>
+              </span>
+            )}
+
+            <button
+              onClick={() => fetchAnalyticsData(true)}
+              disabled={refreshing || loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] hover:border-accent/40 dark:hover:border-[#38BDF8]/40 text-xs font-mono font-bold text-accent dark:text-[#38BDF8] transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-accent dark:text-[#38BDF8]' : ''}`} />
+              <span>{refreshing ? 'SYNCING…' : 'REFRESH'}</span>
+            </button>
           </div>
-
-          {lastUpdated && (
-            <span className="text-xs text-text-dim flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{formatTime(lastUpdated)}</span>
-            </span>
-          )}
-
-          <button
-            onClick={() => fetchAnalyticsData(true)}
-            disabled={refreshing || loading}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-surface border border-border-soft hover:border-brand/40 text-xs font-semibold text-text transition-all shadow-xs cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-brand' : ''}`} />
-            <span>{refreshing ? 'Syncing…' : 'Refresh Telemetry'}</span>
-          </button>
         </div>
       </div>
 
       {/* ── 2. EXECUTIVE POLICE KPI CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
         {/* KPI 1: Total FIRs */}
-        <div className="p-4 sm:p-5 rounded-2xl glass border border-border-soft hover:border-brand/40 transition-all group">
-          <div className="flex items-center justify-between text-xs text-text-dim mb-2">
-            <span className="uppercase tracking-wider font-semibold">Total Registered FIRs</span>
-            <div className="w-7 h-7 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
-              <Database className="w-3.5 h-3.5" />
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 shadow-xs hover:border-accent/40 dark:hover:border-[#38BDF8]/40 transition-all">
+          <div className="flex items-center justify-between text-xs text-text-dim dark:text-[#94A3B8] mb-1.5">
+            <span className="uppercase tracking-wider font-semibold text-[11px]">Total Registered FIRs</span>
+            <div className="w-6 h-6 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-accent/20 dark:border-[#38BDF8]/20 flex items-center justify-center text-accent dark:text-[#38BDF8]">
+              <Database className="w-3 h-3" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-text">
+            <span className="text-2xl sm:text-3xl font-bold text-text dark:text-[#F8FAFC]">
               {liveTotalFIRs.toLocaleString()}
             </span>
-            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-success">
+            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-400">
               <TrendingUp className="w-3 h-3" /> +8.0%
             </span>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-border-soft flex items-center justify-between text-[11px] text-text-dim">
+          <div className="mt-2.5 pt-2 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between text-[10px] text-text-dim dark:text-[#94A3B8]">
             <span>Statewide Repository</span>
-            <span className="text-brand font-medium">CCTNS v4.2</span>
+            <span className="text-accent dark:text-[#38BDF8] font-bold">CCTNS v4.2</span>
           </div>
         </div>
 
         {/* KPI 2: High Risk Peak Index */}
-        <div className="p-4 sm:p-5 rounded-2xl glass border border-border-soft hover:border-warning/40 transition-all group">
-          <div className="flex items-center justify-between text-xs text-text-dim mb-2">
-            <span className="uppercase tracking-wider font-semibold">Peak Month Volume</span>
-            <div className="w-7 h-7 rounded-lg bg-warning/10 border border-warning/20 flex items-center justify-center text-warning">
-              <Flame className="w-3.5 h-3.5" />
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 shadow-xs hover:border-amber-500/40 transition-all">
+          <div className="flex items-center justify-between text-xs text-text-dim dark:text-[#94A3B8] mb-1.5">
+            <span className="uppercase tracking-wider font-semibold text-[11px]">Peak Month Volume</span>
+            <div className="w-6 h-6 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Flame className="w-3 h-3" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-warning">
+            <span className="text-2xl sm:text-3xl font-bold text-amber-400">
               {livePeakIncidents.toLocaleString()}
             </span>
-            <span className="text-xs text-text-dim">Incidents</span>
+            <span className="text-xs text-text-dim dark:text-[#94A3B8]">Incidents</span>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-border-soft flex items-center justify-between text-[11px] text-text-dim">
+          <div className="mt-2.5 pt-2 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between text-[10px] text-text-dim dark:text-[#94A3B8]">
             <span>Peak Incident Period</span>
-            <span className="text-warning font-semibold">Summer Surge</span>
+            <span className="text-amber-400 font-bold">Summer Surge</span>
           </div>
         </div>
 
         {/* KPI 3: Clearance Velocity */}
-        <div className="p-4 sm:p-5 rounded-2xl glass border border-border-soft hover:border-success/40 transition-all group">
-          <div className="flex items-center justify-between text-xs text-text-dim mb-2">
-            <span className="uppercase tracking-wider font-semibold">Case Disposal Rate</span>
-            <div className="w-7 h-7 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success">
-              <Scale className="w-3.5 h-3.5" />
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 shadow-xs hover:border-emerald-500/40 transition-all">
+          <div className="flex items-center justify-between text-xs text-text-dim dark:text-[#94A3B8] mb-1.5">
+            <span className="uppercase tracking-wider font-semibold text-[11px]">Case Disposal Rate</span>
+            <div className="w-6 h-6 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Scale className="w-3 h-3" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-success">
+            <span className="text-2xl sm:text-3xl font-bold text-emerald-400">
               {liveClearanceRate}%
             </span>
-            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-success">
+            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-400">
               <TrendingUp className="w-3 h-3" /> +3.4%
             </span>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-border-soft flex items-center justify-between text-[11px] text-text-dim">
+          <div className="mt-2.5 pt-2 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between text-[10px] text-text-dim dark:text-[#94A3B8]">
             <span>Resolution Velocity</span>
-            <span className="text-success font-semibold">Optimal</span>
+            <span className="text-emerald-400 font-bold">OPTIMAL</span>
           </div>
         </div>
 
         {/* KPI 4: Under-reporting Dark Zones */}
-        <div className="p-4 sm:p-5 rounded-2xl glass border border-border-soft hover:border-error/40 transition-all group">
-          <div className="flex items-center justify-between text-xs text-text-dim mb-2">
-            <span className="uppercase tracking-wider font-semibold">Dark Zones Flagged</span>
-            <div className="w-7 h-7 rounded-lg bg-error/10 border border-error/20 flex items-center justify-center text-error">
-              <Radar className="w-3.5 h-3.5" />
+        <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 shadow-xs hover:border-rose-500/40 transition-all">
+          <div className="flex items-center justify-between text-xs text-text-dim dark:text-[#94A3B8] mb-1.5">
+            <span className="uppercase tracking-wider font-semibold text-[11px]">Dark Zones Flagged</span>
+            <div className="w-6 h-6 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-rose-500/20 flex items-center justify-center text-rose-400">
+              <Radar className="w-3 h-3" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-error">
+            <span className="text-2xl sm:text-3xl font-bold text-rose-400">
               {darkZones.length}
             </span>
-            <span className="text-xs text-error font-semibold">Districts</span>
+            <span className="text-xs text-rose-400 font-semibold">Districts</span>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-border-soft flex items-center justify-between text-[11px] text-text-dim">
+          <div className="mt-2.5 pt-2 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between text-[10px] text-text-dim dark:text-[#94A3B8]">
             <span>Reporting Deficit</span>
-            <span className="text-error font-semibold">&gt;40% Below Avg</span>
+            <span className="text-rose-400 font-bold">&gt;40% Below Avg</span>
           </div>
         </div>
       </div>
 
       {/* ── 3. CHARTS GRID (ROW 1: CRIME TREND AREA CHART & DISTRICT HOTSPOTS) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         {/* Monthly Crime Trend (Area Chart) - 7 Cols */}
-        <div className="lg:col-span-7 rounded-2xl glass border border-border-soft shadow-xs p-5 flex flex-col justify-between">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border-soft">
+        <div className="lg:col-span-7 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-soft dark:border-[#1E293B]">
             <div>
-              <h3 className="text-sm font-bold text-text font-mono uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-bold text-text dark:text-[#F8FAFC] font-mono uppercase tracking-wider">
                 Monthly Incident Trajectory
               </h3>
-              <p className="text-xs text-text-dim">
+              <p className="text-[11px] text-text-dim dark:text-[#94A3B8] font-mono">
                 Registered FIR dockets vs. Resolved cases (MoM Telemetry)
               </p>
             </div>
 
             {/* Time Selector Buttons */}
-            <div className="flex bg-surface-2 p-1 rounded-xl border border-border-soft self-start sm:self-auto font-mono">
+            <div className="flex bg-surface-2 dark:bg-[#0E1422] p-1 rounded-lg border border-border-soft dark:border-[#1E293B] self-start sm:self-auto font-mono">
               {[
                 { label: '3M', val: 3 },
                 { label: '6M', val: 6 },
@@ -304,10 +308,10 @@ export function Analytics() {
                 <button
                   key={b.label}
                   onClick={() => setMonthsBack(b.val)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded text-[11px] font-mono font-bold transition-all cursor-pointer ${
                     monthsBack === b.val
-                      ? 'bg-brand text-white shadow-xs'
-                      : 'text-text-dim hover:text-text'
+                      ? 'bg-accent/20 dark:bg-[#38BDF8]/20 text-accent dark:text-[#38BDF8] border border-accent/40 dark:border-[#38BDF8]/40'
+                      : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
                   }`}
                 >
                   {b.label}
@@ -321,8 +325,8 @@ export function Analytics() {
               <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="crimeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#38BDF8" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#38BDF8" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="resolvedGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10B981" stopOpacity={0.25}/>
@@ -330,10 +334,10 @@ export function Analytics() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fill: '#64748B', fontSize: 11, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#64748B', fontSize: 11, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="month" tick={{ fill: '#64748B', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#64748B', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<TacticalTooltip />} />
-                <Area type="monotone" dataKey="crimes" stroke="#3B82F6" strokeWidth={2.5} fillOpacity={1} fill="url(#crimeGrad)" name="Registered FIRs" />
+                <Area type="monotone" dataKey="crimes" stroke="#38BDF8" strokeWidth={2} fillOpacity={1} fill="url(#crimeGrad)" name="Registered FIRs" />
                 <Area type="monotone" dataKey="resolved" stroke="#10B981" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#resolvedGrad)" name="Cleared Cases" />
               </AreaChart>
             </ResponsiveContainer>
@@ -341,17 +345,17 @@ export function Analytics() {
         </div>
 
         {/* Top Crime Districts (Horizontal Bar Chart) - 5 Cols */}
-        <div className="lg:col-span-5 rounded-2xl glass border border-border-soft shadow-xs p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between pb-4 border-b border-border-soft">
+        <div className="lg:col-span-5 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-border-soft dark:border-[#1E293B]">
             <div>
-              <h3 className="text-sm font-bold text-text font-mono uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-bold text-text dark:text-[#F8FAFC] font-mono uppercase tracking-wider">
                 Jurisdiction Volume
               </h3>
-              <p className="text-xs text-text-dim">
+              <p className="text-[11px] text-text-dim dark:text-[#94A3B8] font-mono">
                 Top high-density district commands
               </p>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-2 text-text-dim font-semibold">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-accent dark:text-[#38BDF8] font-bold">
               TOP 6
             </span>
           </div>
@@ -360,12 +364,12 @@ export function Analytics() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={districtData} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                <XAxis type="number" tick={{ fill: '#64748B', fontSize: 11, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                <YAxis dataKey="district" type="category" tick={{ fill: '#64748B', fontSize: 11, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={115} />
+                <XAxis type="number" tick={{ fill: '#64748B', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="district" type="category" tick={{ fill: '#64748B', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={115} />
                 <Tooltip content={<TacticalTooltip />} />
-                <Bar dataKey="count" radius={[0, 6, 6, 0]} name="Active FIRs">
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} name="Active FIRs">
                   {districtData.map((d, i) => (
-                    <Cell key={i} fill={d.color || '#3B82F6'} />
+                    <Cell key={i} fill={d.color || '#38BDF8'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -376,47 +380,47 @@ export function Analytics() {
       </div>
 
       {/* ── 4. SECOND ROW: CRIME CATEGORIES & UNDERREPORTING ANOMALIES ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         {/* Crime Type Breakdown (7 Cols) */}
-        <div className="lg:col-span-7 rounded-2xl glass border border-border-soft shadow-xs p-5">
-          <div className="flex items-center justify-between pb-4 border-b border-border-soft mb-4">
+        <div className="lg:col-span-7 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-border-soft dark:border-[#1E293B] mb-3">
             <div>
-              <h3 className="text-sm font-bold text-text font-mono uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-bold text-text dark:text-[#F8FAFC] font-mono uppercase tracking-wider">
                 Crime Classification Matrix
               </h3>
-              <p className="text-xs text-text-dim">
+              <p className="text-[11px] text-text-dim dark:text-[#94A3B8] font-mono">
                 Statutory categories across active CCTNS records
               </p>
             </div>
-            <span className="text-[11px] font-mono text-brand font-bold">
-              300 FIR Batch
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] border border-accent/20 dark:border-[#38BDF8]/20 font-bold">
+              300 FIR BATCH
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {crimeTypes.map((c) => {
               const IconComponent = c.icon || Layers;
               return (
                 <div 
                   key={c.type}
-                  className="p-3 rounded-xl bg-surface border border-border-soft hover:border-brand/40 transition-all flex flex-col justify-between gap-2.5"
+                  className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] hover:border-accent/40 dark:hover:border-[#38BDF8]/40 transition-all flex flex-col justify-between gap-2"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-surface-2 border border-border-soft flex items-center justify-center shrink-0 shadow-2xs">
-                        <IconComponent className={`w-3.5 h-3.5 ${c.textCol}`} />
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B] flex items-center justify-center shrink-0">
+                        <IconComponent className={`w-3 h-3 ${c.textCol}`} />
                       </div>
-                      <span className="text-xs font-bold text-text truncate">
+                      <span className="text-xs font-bold text-text dark:text-[#F8FAFC] truncate">
                         {c.type}
                       </span>
                     </div>
-                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                    <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
                       c.severity === 'Critical' 
-                        ? 'bg-error/10 text-error border border-error/20' 
+                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
                         : c.severity === 'High' 
-                          ? 'bg-warning/10 text-warning border border-warning/20'
-                          : 'bg-surface-2 text-text-dim'
+                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          : 'bg-surface dark:bg-[#070A0F] text-text-dim dark:text-[#94A3B8] border border-border-soft dark:border-[#1E293B]'
                     }`}>
                       {c.severity}
                     </span>
@@ -424,15 +428,15 @@ export function Analytics() {
 
                   {/* Progress bar */}
                   <div className="space-y-1">
-                    <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden">
+                    <div className="w-full h-1 bg-surface dark:bg-[#070A0F] rounded-full overflow-hidden">
                       <div
                         className={`h-full ${c.color} rounded-full transition-all duration-700`}
                         style={{ width: `${Math.max(c.pct, 5)}%` }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-text-dim">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-text-dim dark:text-[#94A3B8]">
                       <span>{c.count} Cases</span>
-                      <span className="font-bold text-text">{c.pct}% Share</span>
+                      <span className="font-bold text-text dark:text-[#F8FAFC]">{c.pct}% Share</span>
                     </div>
                   </div>
                 </div>
@@ -442,50 +446,50 @@ export function Analytics() {
         </div>
 
         {/* Under-Reporting Dark Zones (5 Cols) */}
-        <div className="lg:col-span-5 rounded-2xl glass border border-border-soft shadow-xs p-5 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 border-b border-border-soft mb-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border-soft dark:border-[#1E293B] mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-warning/10 border border-warning/20 flex items-center justify-center text-warning">
-                  <Radar className="w-4 h-4" />
+                <div className="w-6 h-6 rounded bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                  <Radar className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text font-mono uppercase tracking-wider">
+                  <h3 className="text-xs sm:text-sm font-bold text-text dark:text-[#F8FAFC] font-mono uppercase tracking-wider">
                     Under-Reporting Dark Zones
                   </h3>
-                  <p className="text-xs text-text-dim">
+                  <p className="text-[11px] text-text-dim dark:text-[#94A3B8] font-mono">
                     Districts with &gt;40% deficit below statewide baseline
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {darkZones.map((z, idx) => (
                 <div 
                   key={z.district || idx}
-                  className="p-3 rounded-xl bg-warning/5 border border-warning/20 hover:border-warning/40 transition-all flex items-start justify-between gap-2"
+                  className="p-2.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-amber-500/20 hover:border-amber-500/40 transition-all flex items-start justify-between gap-2"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-warning shrink-0" />
-                      <span className="text-xs font-bold text-text font-mono">
+                      <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
+                      <span className="text-xs font-bold text-text dark:text-[#F8FAFC] font-mono">
                         {z.district} District
                       </span>
-                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-warning/10 text-warning border border-warning/20">
-                        {z.deficit} Deficit
+                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        {z.deficit} DEFICIT
                       </span>
                     </div>
-                    <p className="text-[11px] text-text-dim mt-1 leading-snug">
+                    <p className="text-[10px] text-text-dim dark:text-[#94A3B8] mt-1 leading-snug">
                       {z.reason}
                     </p>
                   </div>
 
                   <div className="text-right shrink-0 font-mono">
-                    <p className="text-xs font-bold text-warning">
+                    <p className="text-xs font-bold text-amber-400">
                       {z.rate} <span className="text-[10px] opacity-75">FIRs/L</span>
                     </p>
-                    <p className="text-[10px] text-text-dim">
+                    <p className="text-[10px] text-text-dim dark:text-[#94A3B8]">
                       Exp: {z.expected}
                     </p>
                   </div>
@@ -494,11 +498,11 @@ export function Analytics() {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-border-soft flex items-center justify-between text-[11px] text-text-dim font-mono">
+          <div className="mt-3 pt-3 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between text-[11px] text-text-dim dark:text-[#94A3B8] font-mono">
             <span>Recommended: Deploy Digital e-FIR Kiosks</span>
             <Link
-              to="/map"
-              className="text-brand font-semibold hover:underline flex items-center gap-1"
+              to="/gis-map"
+              className="text-accent dark:text-[#38BDF8] font-semibold hover:underline flex items-center gap-1"
             >
               <span>View Map</span>
               <ArrowUpRight className="w-3 h-3" />

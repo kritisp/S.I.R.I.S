@@ -93,60 +93,69 @@ export function SupervisorApprovalsPage() {
   const pendingCount = sanctions.filter(s => s.status === 'PENDING_SANCTION').length;
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 font-sans bg-bg min-h-screen text-text select-none">
-      
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass p-4 rounded-2xl bg-surface/90 border border-border-strong shadow-xl">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-brand/20 border border-brand/40 flex items-center justify-center text-brand">
-              <ClipboardCheck size={18} />
+    <div className="max-w-[1520px] mx-auto space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
+      {/* ── UNIFIED COMMAND-CENTER HEADER ── */}
+      <div className="bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-3.5 sm:p-4 shadow-xs dark:shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs shrink-0">
+              <ClipboardCheck size={20} />
             </div>
-            <h1 className="text-xl font-bold font-mono text-text uppercase tracking-wider">
-              SANCTIONS & WARRANTS CLEARANCE QUEUE
-            </h1>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-brand/20 text-brand border border-brand/30">
-              SP STATUTORY DESK
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-accent dark:text-[#38BDF8]">
+                  SP STATUTORY DESK
+                </span>
+                <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  STATEWIDE WARRANTS
+                </span>
+                {pendingCount > 0 && (
+                  <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400">
+                    {pendingCount} AWAITING SIGNATURE
+                  </span>
+                )}
+              </div>
+              <h1 className="text-base sm:text-lg font-bold font-mono tracking-tight text-text dark:text-[#F8FAFC] mt-0.5">
+                Sanctions & Statutory Warrants Clearance Queue
+              </h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-xs font-mono font-bold text-rose-400 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>{pendingCount} Pending Review</span>
             </span>
           </div>
-          <p className="text-xs text-text-dim">
-            Odisha State Police · Superintendent of Police Statutory Approvals & Goonda Warrants
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono font-bold text-danger flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-danger animate-pulse" />
-            <span>{pendingCount} Awaiting Signature</span>
-          </span>
         </div>
       </div>
 
       {/* ACTION NOTIFICATION */}
       {actionSuccess && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2">
+        <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2 animate-fade-in">
           <CheckCircle2 size={16} className="text-emerald-400" />
           <span>{actionSuccess}</span>
         </div>
       )}
 
       {/* SEARCH & FILTER */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-2.5">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim dark:text-[#94A3B8]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by suspect name, FIR number, or police station..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs text-text placeholder:text-text-faint outline-none focus:border-brand font-mono"
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] text-xs text-text dark:text-[#F8FAFC] placeholder:text-text-dim dark:placeholder:text-[#94A3B8] outline-none focus:border-accent dark:focus:border-[#38BDF8] font-mono"
           />
         </div>
 
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="px-4 py-2.5 rounded-xl bg-surface-2 border border-border-soft text-xs font-mono text-text outline-none"
+          className="px-3 py-2 rounded-lg bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] text-xs font-mono text-text dark:text-[#F8FAFC] outline-none"
         >
           <option value="ALL">All Requests ({sanctions.length})</option>
           <option value="PENDING_SANCTION">Pending Signature</option>
@@ -155,54 +164,54 @@ export function SupervisorApprovalsPage() {
       </div>
 
       {/* MAIN 2-COLUMN CONSOLE */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-mono text-xs">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start font-mono text-xs">
         
         {/* Left Column: Docket List (7 cols) */}
-        <div className="lg:col-span-7 space-y-3">
+        <div className="lg:col-span-7 space-y-2.5">
           {filteredSanctions.map((sanc) => {
-            const isSelected = selectedSanction.id === sanc.id;
+            const isSelected = selectedSanction?.id === sanc.id;
 
             return (
               <div
                 key={sanc.id}
                 onClick={() => setSelectedSanction(sanc)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer space-y-2.5 ${
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer space-y-2 ${
                   isSelected
-                    ? 'bg-brand/20 border-brand shadow-md'
-                    : 'bg-surface-2 border-border-soft hover:bg-surface-hover'
+                    ? 'bg-accent/15 dark:bg-[#38BDF8]/15 border-accent dark:border-[#38BDF8] shadow-xs'
+                    : 'bg-surface dark:bg-[#0B0F17] border-border-soft dark:border-[#1E293B] hover:bg-surface-hover dark:hover:bg-[#151D2E]'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                      sanc.urgency === 'CRITICAL' ? 'bg-danger/20 text-danger-bright' : 'bg-amber-500/20 text-amber-400'
+                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                      sanc.urgency === 'CRITICAL' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                     }`}>
                       {sanc.urgency}
                     </span>
-                    <span className="font-bold text-brand">{sanc.firNumber}</span>
+                    <span className="font-bold text-accent dark:text-[#38BDF8]">{sanc.firNumber}</span>
                   </div>
-                  <span className="text-[10px] text-text-faint">{sanc.timestamp}</span>
+                  <span className="text-[10px] text-text-dim dark:text-[#94A3B8]">{sanc.timestamp}</span>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-bold text-text">{sanc.requestType}</h4>
-                  <p className="text-xs text-text-dim mt-0.5">
-                    Suspect: <strong className="text-text">{sanc.suspectName}</strong> · Station: {sanc.policeStation}
+                  <h4 className="text-xs font-bold text-text dark:text-[#F8FAFC]">{sanc.requestType}</h4>
+                  <p className="text-[11px] text-text-dim dark:text-[#94A3B8] mt-0.5">
+                    Suspect: <strong className="text-text dark:text-[#F8FAFC]">{sanc.suspectName}</strong> · Station: {sanc.policeStation}
                   </p>
-                  <p className="text-[10px] text-text-dim mt-1 leading-relaxed">
+                  <p className="text-[10px] text-text-dim dark:text-[#94A3B8] mt-1 leading-relaxed">
                     {sanc.summary}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-border-soft/60 text-[10px]">
-                  <span className="text-text-dim">IO: {sanc.investigatingOfficer}</span>
+                <div className="flex items-center justify-between pt-2 border-t border-border-soft/60 dark:border-[#1E293B] text-[10px]">
+                  <span className="text-text-dim dark:text-[#94A3B8]">IO: {sanc.investigatingOfficer}</span>
                   {sanc.status === 'PENDING_SANCTION' ? (
-                    <span className="text-danger font-bold flex items-center gap-1">
-                      <Clock size={12} /> Awaiting Sign-off
+                    <span className="text-rose-400 font-bold flex items-center gap-1">
+                      <Clock size={11} /> Awaiting Sign-off
                     </span>
                   ) : (
                     <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 size={12} /> Sanction Granted
+                      <CheckCircle2 size={11} /> Sanction Granted
                     </span>
                   )}
                 </div>
@@ -212,75 +221,75 @@ export function SupervisorApprovalsPage() {
         </div>
 
         {/* Right Column: SP Executive Review Console (5 cols) */}
-        <div className="lg:col-span-5 glass p-5 rounded-2xl bg-surface/90 border border-border-strong space-y-4 shadow-xl">
+        <div className="lg:col-span-5 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3.5 shadow-xs dark:shadow-2xl">
           {selectedSanction ? (
             <>
-              <div className="border-b border-border-soft pb-2.5">
-                <span className="text-[10px] font-bold text-brand uppercase tracking-wider block">SP STATUTORY REVIEW</span>
-                <h3 className="text-base font-bold text-text mt-0.5">Docket #{selectedSanction.id}</h3>
+              <div className="border-b border-border-soft dark:border-[#1E293B] pb-2.5">
+                <span className="text-[10px] font-bold text-accent dark:text-[#38BDF8] uppercase tracking-wider block">SP STATUTORY REVIEW</span>
+                <h3 className="text-sm font-bold text-text dark:text-[#F8FAFC] mt-0.5">Docket #{selectedSanction.id}</h3>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-surface-2 border border-border-soft space-y-1.5 text-[11px]">
+              <div className="p-3 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] space-y-1.5 text-[11px]">
                 <div className="flex justify-between">
-                  <span className="text-text-dim">STATUTORY POWER:</span>
-                  <span className="font-bold text-text text-right max-w-[200px]">{selectedSanction.requestType}</span>
+                  <span className="text-text-dim dark:text-[#94A3B8]">STATUTORY POWER:</span>
+                  <span className="font-bold text-text dark:text-[#F8FAFC] text-right max-w-[200px]">{selectedSanction.requestType}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-dim">TARGET SUSPECT:</span>
-                  <span className="font-bold text-danger">{selectedSanction.suspectName}</span>
+                  <span className="text-text-dim dark:text-[#94A3B8]">TARGET SUSPECT:</span>
+                  <span className="font-bold text-rose-400">{selectedSanction.suspectName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-dim">ORIGINATING PS:</span>
-                  <span className="font-bold text-text">{selectedSanction.policeStation}</span>
+                  <span className="text-text-dim dark:text-[#94A3B8]">ORIGINATING PS:</span>
+                  <span className="font-bold text-text dark:text-[#F8FAFC]">{selectedSanction.policeStation}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-dim">INVESTIGATING OFFICER:</span>
-                  <span className="font-bold text-brand">{selectedSanction.investigatingOfficer}</span>
+                  <span className="text-text-dim dark:text-[#94A3B8]">INVESTIGATING OFFICER:</span>
+                  <span className="font-bold text-accent dark:text-[#38BDF8]">{selectedSanction.investigatingOfficer}</span>
                 </div>
               </div>
 
               <div>
-                <span className="font-bold text-text block mb-1">EVIDENTIARY GROUNDS & SUMMARY:</span>
-                <p className="text-[10px] text-text-dim bg-surface/80 p-3 rounded-xl border border-border-soft leading-relaxed">
+                <span className="font-bold text-text dark:text-[#F8FAFC] block mb-1 text-[11px]">EVIDENTIARY GROUNDS:</span>
+                <p className="text-[10px] text-text-dim dark:text-[#94A3B8] bg-surface-2 dark:bg-[#0E1422] p-2.5 rounded-lg border border-border-soft dark:border-[#1E293B] leading-relaxed">
                   {selectedSanction.summary}
                 </p>
               </div>
 
               {selectedSanction.status === 'PENDING_SANCTION' ? (
-                <div className="space-y-2 pt-2 border-t border-border-soft">
+                <div className="space-y-2 pt-2 border-t border-border-soft dark:border-[#1E293B]">
                   <button
                     onClick={() => handleApprove(selectedSanction)}
-                    className="w-full py-2.5 rounded-xl bg-brand text-bg font-bold font-mono text-xs hover:bg-brand-bright transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                    className="w-full py-2 rounded-lg bg-accent text-bg dark:bg-[#38BDF8] dark:text-[#070A0F] font-bold font-mono text-xs hover:bg-accent-bright dark:hover:bg-[#0284C7] transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer uppercase"
                   >
-                    <CheckCircle2 size={16} />
-                    <span>AUTHORIZE & GRANT SP CLEARANCE</span>
+                    <CheckCircle2 size={15} />
+                    <span>AUTHORIZE & GRANT CLEARANCE</span>
                   </button>
 
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => handleRequestEvidence(selectedSanction)}
-                      className="py-2 rounded-xl bg-surface-2 border border-border-soft text-text-dim hover:text-text font-bold text-[10px] flex items-center justify-center gap-1 cursor-pointer"
+                      className="py-1.5 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] font-bold text-[10px] flex items-center justify-center gap-1 cursor-pointer uppercase"
                     >
-                      <HelpCircle size={12} className="text-brand" />
+                      <HelpCircle size={11} className="text-accent dark:text-[#38BDF8]" />
                       <span>Request Evidence</span>
                     </button>
                     <button
                       onClick={() => handleReject(selectedSanction)}
-                      className="py-2 rounded-xl bg-danger/10 border border-danger/30 text-danger font-bold text-[10px] flex items-center justify-center gap-1 cursor-pointer"
+                      className="py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-[10px] flex items-center justify-center gap-1 cursor-pointer uppercase"
                     >
-                      <XCircle size={12} />
+                      <XCircle size={11} />
                       <span>Reject Docket</span>
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-center">
+                <div className="p-3 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold text-center text-xs">
                   ✓ Formally cleared and signed under SP executive seal.
                 </div>
               )}
             </>
           ) : (
-            <div className="py-12 text-center text-text-dim text-xs">
+            <div className="py-12 text-center text-text-dim dark:text-[#94A3B8] text-xs">
               Select a warrant from the queue to review evidentiary grounds and grant statutory sign-offs.
             </div>
           )}

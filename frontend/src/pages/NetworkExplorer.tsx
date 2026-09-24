@@ -603,34 +603,39 @@ export function NetworkExplorer() {
   }, [filteredNodes, filteredEdges]);
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-24 font-sans select-none">
+    <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
       
       {/* ── TOP HEADER & SUB-TAB NAVIGATION BAR ── */}
-      <div className="p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border-soft shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-brand/10 text-brand border border-brand/20">
-              CROSS-STATION INTELLIGENCE ({role})
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              State Graph Online
-            </span>
+      <div className="p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] shadow-xs dark:shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shadow-xs">
+            <Network size={20} />
           </div>
-          <h1 className="text-2xl font-bold font-mono text-text">
-            Criminal Syndicate & Network Explorer
-          </h1>
-          <p className="text-xs text-text-dim mt-0.5">
-            Odisha State Police · Inter-Station Crime Ring Analysis & Entity Graph Topology
-          </p>
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] border border-accent/20 dark:border-[#38BDF8]/20">
+                CROSS-STATION INTELLIGENCE ({role})
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                State Graph Online
+              </span>
+            </div>
+            <h1 className="text-base sm:text-lg font-bold font-mono text-text dark:text-[#F8FAFC]">
+              Criminal Syndicate & Network Explorer
+            </h1>
+            <p className="text-xs text-text-dim dark:text-[#94A3B8]">
+              Odisha State Police · Inter-Station Crime Ring Analysis & Entity Graph Topology
+            </p>
+          </div>
         </div>
 
         {/* Sub-Tab Navigation Bar */}
-        <div className="flex items-center gap-1.5 bg-surface-2 p-1.5 rounded-2xl border border-border-soft text-xs font-semibold font-mono self-start md:self-auto overflow-x-auto">
+        <div className="flex items-center gap-1 bg-surface-2 dark:bg-[#0E1422] p-1 rounded-lg border border-border-soft dark:border-[#1E293B] text-xs font-semibold font-mono self-start md:self-auto overflow-x-auto">
           {[
-            { id: 'graph', label: 'Interactive Network Explorer', icon: Network },
+            { id: 'graph', label: 'Network Graph', icon: Network },
             { id: 'wall', label: 'Investigation Wall', icon: Newspaper },
-            { id: 'cards', label: 'Syndicate Cards', icon: Layers },
+            { id: 'cards', label: 'Syndicates', icon: Layers },
             { id: 'matrix', label: 'Nexus Matrix', icon: Database },
             { id: 'routes', label: 'Predictive Routes', icon: Navigation },
             { id: 'osint', label: 'OSINT Hub', icon: Globe },
@@ -641,10 +646,10 @@ export function NetworkExplorer() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
                   isActive
-                    ? 'bg-brand text-white shadow-xs font-bold'
-                    : 'text-text-dim hover:text-text hover:bg-surface'
+                    ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs font-bold'
+                    : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface dark:hover:bg-[#0B0F17]'
                 }`}
               >
                 <IconComp className="w-3.5 h-3.5" />
@@ -657,7 +662,7 @@ export function NetworkExplorer() {
 
       {/* ── TAB 1 (DEFAULT): INTERACTIVE NETWORK EXPLORER ── */}
       {activeTab === 'graph' && (
-        <div className="w-full h-[720px] rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl bg-[#070b14]">
+        <div className="w-full h-[720px] rounded-xl border border-border-soft dark:border-[#1E293B] overflow-hidden shadow-2xl bg-surface dark:bg-[#070A0F]">
           <KnowledgeGraph
             nodes={filteredNodes}
             edges={filteredEdges}
