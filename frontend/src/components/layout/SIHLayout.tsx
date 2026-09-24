@@ -19,7 +19,6 @@ interface NavItemConfig {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   label: string;
   badge?: number;
-  badgeColor?: string;
 }
 
 interface NavGroupConfig {
@@ -39,8 +38,9 @@ export function SIHLayout() {
   });
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    workspace: true,
     operations: true,
-    intelligence: true,
+    intelligence: false,
     forensics: false,
     collaboration: false,
     assistance: false,
@@ -205,17 +205,23 @@ export function SIHLayout() {
         <aside
           className={`
             fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-surface dark:bg-[#0B0F17] border-r border-border-soft dark:border-[#1E293B] shadow-lg lg:shadow-[1px_0_4px_rgba(0,0,0,0.03)] select-none transition-all duration-300
-            ${isSidebarCollapsed ? 'w-16' : 'w-64'}
+            ${isSidebarCollapsed ? 'w-18' : 'w-64'}
             ${isMobileDrawerOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           `}
         >
           {/* Header Seal & Brand */}
-          <div className="p-3.5 border-b border-border-soft dark:border-[#1E293B] bg-surface-2/60 dark:bg-[#0E1422] flex items-center justify-between">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1 shadow-xs shrink-0">
-                <img src="/siris.png" alt="S.I.R.I.S" className="w-full h-full object-contain" />
+          <div className="h-14 px-3 border-b border-border-soft dark:border-[#1E293B] bg-surface-2/60 dark:bg-[#0E1422] flex items-center justify-between">
+            {isSidebarCollapsed ? (
+              <div className="w-full flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1.5 shadow-sm">
+                  <img src="/siris.png" alt="S.I.R.I.S" className="w-full h-full object-contain" />
+                </div>
               </div>
-              {!isSidebarCollapsed && (
+            ) : (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1.5 shadow-xs shrink-0">
+                  <img src="/siris.png" alt="S.I.R.I.S" className="w-full h-full object-contain" />
+                </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <h1 className="text-sm font-bold font-mono text-accent dark:text-[#38BDF8] tracking-tight leading-none">
@@ -229,8 +235,8 @@ export function SIHLayout() {
                     {isSuperAdmin ? 'STATE CRIME COMMAND' : 'INVESTIGATION WORKSTATION'}
                   </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Mobile Close Button */}
             <button
@@ -241,16 +247,16 @@ export function SIHLayout() {
             </button>
           </div>
 
-          {/* Grouped Accordion Navigation */}
-          <nav className="flex-1 overflow-y-auto py-2.5 px-2 space-y-2 scrollbar-thin">
-            {navGroups.map((group) => {
+          {/* Navigation Items */}
+          <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-3 scrollbar-none">
+            {navGroups.map((group, groupIdx) => {
               const isGroupOpen = openGroups[group.id] ?? true;
               const hasActiveChild = group.items.some((item) => location.pathname === item.to);
 
               return (
-                <div key={group.id} className="space-y-0.5">
-                  {/* Group Header (Expanded view only) */}
-                  {!isSidebarCollapsed && (
+                <div key={group.id} className="space-y-1">
+                  {/* Expanded Group Header */}
+                  {!isSidebarCollapsed ? (
                     <button
                       onClick={() => toggleGroup(group.id)}
                       className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-bold font-mono uppercase tracking-wider text-text-dim dark:text-[#64748B] hover:text-text dark:hover:text-[#94A3B8] transition-colors cursor-pointer rounded"
@@ -260,17 +266,23 @@ export function SIHLayout() {
                       </span>
                       {isGroupOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                     </button>
+                  ) : (
+                    /* Collapsed Group Divider */
+                    groupIdx > 0 && (
+                      <div className="w-8 h-px bg-border-soft dark:bg-[#1E293B] mx-auto my-1.5" />
+                    )
                   )}
 
-                  {/* Group Nav Items */}
+                  {/* Group Items */}
                   {(isSidebarCollapsed || isGroupOpen) && (
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       {group.items.map((item) => (
                         <NavItem
                           key={item.to}
                           to={item.to}
                           icon={item.icon}
                           label={item.label}
+                          groupTitle={group.title}
                           badge={item.badge}
                           collapsed={isSidebarCollapsed}
                         />
@@ -282,58 +294,103 @@ export function SIHLayout() {
             })}
           </nav>
 
-          {/* User Officer Panel */}
-          <div className="p-2.5 border-t border-border-soft dark:border-[#1E293B] bg-surface-2/70 dark:bg-[#0E1422]">
-            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2'} mb-2 px-1`}>
-              <div className="h-7 w-7 rounded-md bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 shrink-0 text-xs">
-                {state.currentUser.name.charAt(0)}
-              </div>
-              {!isSidebarCollapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-text dark:text-[#F8FAFC] truncate">
-                    {state.currentUser.name}
-                  </p>
-                  <p className="text-[9px] text-text-dim dark:text-[#94A3B8] truncate font-mono">
-                    {state.currentUser.rank || 'Investigating Officer'}
-                  </p>
+          {/* User Officer Panel & Footer Actions */}
+          <div className="p-2 border-t border-border-soft dark:border-[#1E293B] bg-surface-2/70 dark:bg-[#0E1422]">
+            {isSidebarCollapsed ? (
+              /* Collapsed Footer: Clean Centered Stack */
+              <div className="flex flex-col items-center gap-2 py-1">
+                {/* User Avatar with Tooltip */}
+                <div className="group relative">
+                  <div className="w-9 h-9 rounded-xl bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 text-xs shadow-xs cursor-pointer">
+                    {state.currentUser.name.charAt(0)}
+                  </div>
+                  {/* Floating User Tooltip */}
+                  <div className="absolute left-full ml-3 bottom-0 px-2.5 py-1.5 rounded-lg bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-xl text-xs font-semibold whitespace-nowrap z-50 pointer-events-none hidden group-hover:block animate-fade-in">
+                    <p className="font-bold">{state.currentUser.name}</p>
+                    <p className="text-[10px] text-text-dim dark:text-[#94A3B8] font-mono">{state.currentUser.rank || 'Investigating Officer'}</p>
+                  </div>
                 </div>
-              )}
-            </div>
-            
-            <div className={`flex items-center ${isSidebarCollapsed ? 'flex-col gap-1.5' : 'justify-between'} pt-1.5 border-t border-border-soft/60 dark:border-[#1E293B]`}>
-              <button
-                onClick={toggleTheme}
-                className={`flex items-center gap-1.5 px-2 py-1 text-xs text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-md transition-colors cursor-pointer ${
-                  isSidebarCollapsed ? 'w-full justify-center' : ''
-                }`}
-                title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-              >
-                {theme === 'dark' ? <Sun size={13} className="text-amber-400" /> : <Moon size={13} className="text-text-dim" />}
-                {!isSidebarCollapsed && (
-                  <span className="text-[10px] font-mono">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-                )}
-              </button>
 
-              <button 
-                onClick={() => {
-                  dispatch({ type: 'SET_USER', payload: null as any });
-                  navigate('/');
-                }}
-                className="p-1 text-text-dim dark:text-[#94A3B8] hover:text-danger hover:bg-danger/10 rounded-md transition-colors cursor-pointer"
-                title="Secure Logout"
-              >
-                <LogOut size={14} />
-              </button>
-            </div>
+                {/* Theme Toggle Button */}
+                <div className="group relative">
+                  <button
+                    onClick={toggleTheme}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] transition-colors cursor-pointer border border-transparent hover:border-border-soft dark:hover:border-[#1E293B]"
+                    title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                  >
+                    {theme === 'dark' ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} />}
+                  </button>
+                  <div className="absolute left-full ml-3 bottom-1 px-2 py-1 rounded-md bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-xl text-[11px] font-mono whitespace-nowrap z-50 pointer-events-none hidden group-hover:block">
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </div>
+                </div>
+
+                {/* Logout Button */}
+                <div className="group relative">
+                  <button
+                    onClick={() => {
+                      dispatch({ type: 'SET_USER', payload: null as any });
+                      navigate('/');
+                    }}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-text-dim dark:text-[#94A3B8] hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="Secure Logout"
+                  >
+                    <LogOut size={15} />
+                  </button>
+                  <div className="absolute left-full ml-3 bottom-1 px-2 py-1 rounded-md bg-surface dark:bg-[#1E293B] text-rose-400 border border-border-soft dark:border-[#334155] shadow-xl text-[11px] font-mono whitespace-nowrap z-50 pointer-events-none hidden group-hover:block">
+                    Secure Logout
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Expanded Footer */
+              <div>
+                <div className="flex items-center gap-2.5 mb-2 px-1">
+                  <div className="w-8 h-8 rounded-lg bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 shrink-0 text-xs shadow-xs">
+                    {state.currentUser.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-text dark:text-[#F8FAFC] truncate">
+                      {state.currentUser.name}
+                    </p>
+                    <p className="text-[9px] text-text-dim dark:text-[#94A3B8] truncate font-mono">
+                      {state.currentUser.rank || 'Investigating Officer'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-1.5 border-t border-border-soft/60 dark:border-[#1E293B]">
+                  <button
+                    onClick={toggleTheme}
+                    className="flex items-center gap-1.5 px-2 py-1 text-xs text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-md transition-colors cursor-pointer"
+                    title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                  >
+                    {theme === 'dark' ? <Sun size={13} className="text-amber-400" /> : <Moon size={13} />}
+                    <span className="text-[10px] font-mono">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      dispatch({ type: 'SET_USER', payload: null as any });
+                      navigate('/');
+                    }}
+                    className="p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors cursor-pointer"
+                    title="Secure Logout"
+                  >
+                    <LogOut size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </aside>
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-bg">
           {/* Top Bar Header */}
-          <header className="h-13 bg-surface dark:bg-[#0B0F17] border-b border-border-soft dark:border-[#1E293B] flex items-center justify-between px-4 sm:px-6 shrink-0 z-20 shadow-xs">
+          <header className="h-14 bg-surface dark:bg-[#0B0F17] border-b border-border-soft dark:border-[#1E293B] flex items-center justify-between px-4 sm:px-6 shrink-0 z-20 shadow-xs">
             <div className="flex items-center gap-2.5">
-              {/* Desktop Collapse Button */}
+              {/* Desktop Collapse Toggle */}
               <button
                 onClick={() => setIsSidebarCollapsed((prev) => !prev)}
                 className="hidden lg:flex p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-accent dark:hover:text-[#38BDF8] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] rounded-lg transition-all cursor-pointer"
@@ -442,49 +499,80 @@ function NavItem({
   to,
   icon: Icon,
   label,
+  groupTitle,
   badge,
   collapsed,
 }: {
   to: string;
   icon: any;
   label: string;
+  groupTitle?: string;
   badge?: number;
   collapsed?: boolean;
 }) {
   return (
     <NavLink
       to={to}
-      title={collapsed ? label : undefined}
       className={({ isActive }) => `
-        group relative flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-2.5'} py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer overflow-hidden
+        group relative flex items-center transition-all duration-150 cursor-pointer
+        ${
+          collapsed
+            ? 'justify-center w-10 h-10 mx-auto rounded-xl'
+            : 'justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold'
+        }
         ${
           isActive 
-            ? 'bg-surface-2 dark:bg-[#131B2E] text-accent dark:text-[#38BDF8] font-bold border border-border-soft dark:border-[#1E293B] shadow-2xs' 
+            ? 'bg-accent/15 dark:bg-[#38BDF8]/15 text-accent dark:text-[#38BDF8] font-bold border border-accent/35 dark:border-[#38BDF8]/35 shadow-xs' 
             : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#0E1422] border border-transparent'
         }
       `}
     >
       {({ isActive }) => (
         <>
-          {isActive && (
+          {/* Expanded Active Bar */}
+          {!collapsed && isActive && (
             <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent dark:bg-[#38BDF8] rounded-r" />
           )}
+
           <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2'} min-w-0`}>
             <Icon 
-              size={15} 
-              className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${
+              size={16} 
+              className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
                 isActive ? 'text-accent dark:text-[#38BDF8]' : 'text-text-dim dark:text-[#64748B] group-hover:text-text dark:group-hover:text-[#F8FAFC]'
               }`} 
             />
             {!collapsed && <span className="tracking-tight truncate text-[11px]">{label}</span>}
           </div>
+
+          {/* Expanded Badge */}
           {!collapsed && badge !== undefined && badge > 0 && (
             <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
               {badge}
             </span>
           )}
+
+          {/* Collapsed Dot Badge */}
           {collapsed && badge !== undefined && badge > 0 && (
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500 ring-1 ring-surface" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-surface dark:ring-[#0B0F17]" />
+          )}
+
+          {/* Collapsed Floating Flyout Tooltip */}
+          {collapsed && (
+            <div className="absolute left-full ml-3.5 px-3 py-1.5 rounded-xl bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-2xl text-xs font-semibold whitespace-nowrap z-50 pointer-events-none hidden group-hover:flex items-center gap-2 animate-fade-in">
+              <div className="flex flex-col">
+                {groupTitle && (
+                  <span className="text-[9px] font-mono text-text-dim dark:text-[#94A3B8] uppercase tracking-wider">
+                    {groupTitle}
+                  </span>
+                )}
+                <span className="font-bold text-[12px]">{label}</span>
+              </div>
+              {badge !== undefined && badge > 0 && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                  {badge}
+                </span>
+              )}
+            </div>
           )}
         </>
       )}
