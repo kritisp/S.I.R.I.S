@@ -205,33 +205,33 @@ export function SIHLayout() {
         <aside
           className={`
             fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-surface dark:bg-[#0B0F17] border-r border-border-soft dark:border-[#1E293B] shadow-lg lg:shadow-[1px_0_4px_rgba(0,0,0,0.03)] select-none transition-all duration-300
-            ${isSidebarCollapsed ? 'w-18' : 'w-64'}
+            ${isSidebarCollapsed ? 'w-18' : 'w-72'}
             ${isMobileDrawerOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           `}
         >
           {/* Header Seal & Brand */}
-          <div className="h-14 px-3 border-b border-border-soft dark:border-[#1E293B] bg-surface-2/60 dark:bg-[#0E1422] flex items-center justify-between">
+          <div className="h-16 px-3.5 border-b border-border-soft dark:border-[#1E293B] bg-surface-2/60 dark:bg-[#0E1422] flex items-center justify-between">
             {isSidebarCollapsed ? (
               <div className="w-full flex items-center justify-center">
-                <div className="w-9 h-9 rounded-xl overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1.5 shadow-sm">
+                <div className="w-10 h-10 rounded-xl overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1.5 shadow-sm">
                   <img src="/siris.png" alt="S.I.R.I.S" className="w-full h-full object-contain" />
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1.5 shadow-xs shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl overflow-hidden bg-surface dark:bg-[#070A0F] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center p-1.5 shadow-xs shrink-0">
                   <img src="/siris.png" alt="S.I.R.I.S" className="w-full h-full object-contain" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h1 className="text-sm font-bold font-mono text-accent dark:text-[#38BDF8] tracking-tight leading-none">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-base font-bold font-mono text-accent dark:text-[#38BDF8] tracking-tight leading-none">
                       S.I.R.I.S.
                     </h1>
-                    <span className="inline-flex items-center gap-1 text-[8px] font-mono font-bold uppercase px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> LIVE
+                    <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> LIVE
                     </span>
                   </div>
-                  <p className="text-[9px] text-text-dim dark:text-[#94A3B8] font-mono truncate mt-0.5">
+                  <p className="text-[11px] text-text-dim dark:text-[#94A3B8] font-mono truncate mt-0.5">
                     {isSuperAdmin ? 'STATE CRIME COMMAND' : 'INVESTIGATION WORKSTATION'}
                   </p>
                 </div>
@@ -241,35 +241,35 @@ export function SIHLayout() {
             {/* Mobile Close Button */}
             <button
               onClick={() => setIsMobileDrawerOpen(false)}
-              className="p-1 rounded-md text-text-dim hover:text-text hover:bg-surface-hover lg:hidden"
+              className="p-1.5 rounded-md text-text-dim hover:text-text hover:bg-surface-hover lg:hidden"
             >
               <X size={18} />
             </button>
           </div>
 
           {/* Navigation Items */}
-          <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-3 scrollbar-none">
+          <nav className="flex-1 overflow-y-auto py-3.5 px-2.5 space-y-3.5 scrollbar-thin">
             {navGroups.map((group, groupIdx) => {
               const isGroupOpen = openGroups[group.id] ?? true;
               const hasActiveChild = group.items.some((item) => location.pathname === item.to);
 
               return (
-                <div key={group.id} className="space-y-1">
+                <div key={group.id} className="space-y-1.5">
                   {/* Expanded Group Header */}
                   {!isSidebarCollapsed ? (
                     <button
                       onClick={() => toggleGroup(group.id)}
-                      className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-bold font-mono uppercase tracking-wider text-text-dim dark:text-[#64748B] hover:text-text dark:hover:text-[#94A3B8] transition-colors cursor-pointer rounded"
+                      className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold font-mono uppercase tracking-wider text-text-dim dark:text-[#64748B] hover:text-text dark:hover:text-[#94A3B8] transition-colors cursor-pointer rounded"
                     >
                       <span className={hasActiveChild ? 'text-accent dark:text-[#38BDF8]' : ''}>
                         {group.title}
                       </span>
-                      {isGroupOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                      {isGroupOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                     </button>
                   ) : (
                     /* Collapsed Group Divider */
                     groupIdx > 0 && (
-                      <div className="w-8 h-px bg-border-soft dark:bg-[#1E293B] mx-auto my-1.5" />
+                      <div className="w-8 h-px bg-border-soft dark:bg-[#1E293B] mx-auto my-2" />
                     )
                   )}
 
@@ -295,19 +295,19 @@ export function SIHLayout() {
           </nav>
 
           {/* User Officer Panel & Footer Actions */}
-          <div className="p-2 border-t border-border-soft dark:border-[#1E293B] bg-surface-2/70 dark:bg-[#0E1422]">
+          <div className="p-3 border-t border-border-soft dark:border-[#1E293B] bg-surface-2/70 dark:bg-[#0E1422]">
             {isSidebarCollapsed ? (
               /* Collapsed Footer: Clean Centered Stack */
-              <div className="flex flex-col items-center gap-2 py-1">
+              <div className="flex flex-col items-center gap-2.5 py-1">
                 {/* User Avatar with Tooltip */}
                 <div className="group relative">
-                  <div className="w-9 h-9 rounded-xl bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 text-xs shadow-xs cursor-pointer">
+                  <div className="w-10 h-10 rounded-xl bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 text-sm shadow-xs cursor-pointer">
                     {state.currentUser.name.charAt(0)}
                   </div>
                   {/* Floating User Tooltip */}
-                  <div className="absolute left-full ml-3 bottom-0 px-2.5 py-1.5 rounded-lg bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-xl text-xs font-semibold whitespace-nowrap z-50 pointer-events-none hidden group-hover:block animate-fade-in">
-                    <p className="font-bold">{state.currentUser.name}</p>
-                    <p className="text-[10px] text-text-dim dark:text-[#94A3B8] font-mono">{state.currentUser.rank || 'Investigating Officer'}</p>
+                  <div className="absolute left-full ml-3.5 bottom-0 px-3 py-2 rounded-xl bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-xl text-xs font-semibold whitespace-nowrap z-50 pointer-events-none hidden group-hover:block animate-fade-in">
+                    <p className="font-bold text-sm">{state.currentUser.name}</p>
+                    <p className="text-[11px] text-accent dark:text-[#38BDF8] font-mono">{state.currentUser.rank || 'Investigating Officer'}</p>
                   </div>
                 </div>
 
@@ -315,12 +315,12 @@ export function SIHLayout() {
                 <div className="group relative">
                   <button
                     onClick={toggleTheme}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] transition-colors cursor-pointer border border-transparent hover:border-border-soft dark:hover:border-[#1E293B]"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] transition-colors cursor-pointer border border-transparent hover:border-border-soft dark:hover:border-[#1E293B]"
                     title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
                   >
-                    {theme === 'dark' ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} />}
+                    {theme === 'dark' ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} />}
                   </button>
-                  <div className="absolute left-full ml-3 bottom-1 px-2 py-1 rounded-md bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-xl text-[11px] font-mono whitespace-nowrap z-50 pointer-events-none hidden group-hover:block">
+                  <div className="absolute left-full ml-3.5 bottom-1 px-2.5 py-1.5 rounded-lg bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-xl text-xs font-mono whitespace-nowrap z-50 pointer-events-none hidden group-hover:block">
                     {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                   </div>
                 </div>
@@ -332,12 +332,12 @@ export function SIHLayout() {
                       dispatch({ type: 'SET_USER', payload: null as any });
                       navigate('/');
                     }}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-text-dim dark:text-[#94A3B8] hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-text-dim dark:text-[#94A3B8] hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
                     title="Secure Logout"
                   >
-                    <LogOut size={15} />
+                    <LogOut size={17} />
                   </button>
-                  <div className="absolute left-full ml-3 bottom-1 px-2 py-1 rounded-md bg-surface dark:bg-[#1E293B] text-rose-400 border border-border-soft dark:border-[#334155] shadow-xl text-[11px] font-mono whitespace-nowrap z-50 pointer-events-none hidden group-hover:block">
+                  <div className="absolute left-full ml-3.5 bottom-1 px-2.5 py-1.5 rounded-lg bg-surface dark:bg-[#1E293B] text-rose-400 border border-border-soft dark:border-[#334155] shadow-xl text-xs font-mono whitespace-nowrap z-50 pointer-events-none hidden group-hover:block">
                     Secure Logout
                   </div>
                 </div>
@@ -345,28 +345,28 @@ export function SIHLayout() {
             ) : (
               /* Expanded Footer */
               <div>
-                <div className="flex items-center gap-2.5 mb-2 px-1">
-                  <div className="w-8 h-8 rounded-lg bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 shrink-0 text-xs shadow-xs">
+                <div className="flex items-center gap-3 mb-2.5 px-1">
+                  <div className="w-9 h-9 rounded-xl bg-accent/15 dark:bg-[#38BDF8]/15 flex items-center justify-center text-accent dark:text-[#38BDF8] font-bold border border-accent/30 dark:border-[#38BDF8]/30 shrink-0 text-sm shadow-xs">
                     {state.currentUser.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-text dark:text-[#F8FAFC] truncate">
+                    <p className="text-sm font-bold text-text dark:text-[#F8FAFC] truncate">
                       {state.currentUser.name}
                     </p>
-                    <p className="text-[9px] text-text-dim dark:text-[#94A3B8] truncate font-mono">
+                    <p className="text-[11px] text-text-dim dark:text-[#94A3B8] truncate font-mono">
                       {state.currentUser.rank || 'Investigating Officer'}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between pt-1.5 border-t border-border-soft/60 dark:border-[#1E293B]">
+                <div className="flex items-center justify-between pt-2 border-t border-border-soft/60 dark:border-[#1E293B]">
                   <button
                     onClick={toggleTheme}
-                    className="flex items-center gap-1.5 px-2 py-1 text-xs text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-md transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-lg transition-colors cursor-pointer"
                     title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
                   >
-                    {theme === 'dark' ? <Sun size={13} className="text-amber-400" /> : <Moon size={13} />}
-                    <span className="text-[10px] font-mono">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                    {theme === 'dark' ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} />}
+                    <span className="text-xs font-medium">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                   </button>
 
                   <button 
@@ -374,10 +374,10 @@ export function SIHLayout() {
                       dispatch({ type: 'SET_USER', payload: null as any });
                       navigate('/');
                     }}
-                    className="p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors cursor-pointer"
+                    className="p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                     title="Secure Logout"
                   >
-                    <LogOut size={14} />
+                    <LogOut size={16} />
                   </button>
                 </div>
               </div>
@@ -393,32 +393,32 @@ export function SIHLayout() {
               {/* Desktop Collapse Toggle */}
               <button
                 onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-                className="hidden lg:flex p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-accent dark:hover:text-[#38BDF8] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] rounded-lg transition-all cursor-pointer"
+                className="hidden lg:flex p-2 text-text-dim dark:text-[#94A3B8] hover:text-accent dark:hover:text-[#38BDF8] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] rounded-lg transition-all cursor-pointer"
                 title={isSidebarCollapsed ? 'Expand Navigation' : 'Collapse Navigation'}
               >
-                {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                {isSidebarCollapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
               </button>
 
               {/* Mobile Hamburger Button */}
               <button
                 onClick={() => setIsMobileDrawerOpen(true)}
-                className="flex lg:hidden p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-accent dark:hover:text-[#38BDF8] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] rounded-lg transition-all cursor-pointer"
+                className="flex lg:hidden p-2 text-text-dim dark:text-[#94A3B8] hover:text-accent dark:hover:text-[#38BDF8] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] rounded-lg transition-all cursor-pointer"
                 title="Open Navigation"
               >
-                <Menu size={16} />
+                <Menu size={17} />
               </button>
 
               {state.currentUser.stationId ? (
-                <div className="flex items-center gap-1.5 text-xs font-mono bg-surface-2 dark:bg-[#0E1422] px-2.5 py-1 rounded-lg border border-border-soft dark:border-[#1E293B]">
-                  <span className="text-text-dim dark:text-[#64748B] text-[9px] uppercase font-bold">STATION:</span>
-                  <span className="font-bold text-text dark:text-[#F8FAFC] text-[11px]">
+                <div className="flex items-center gap-2 text-xs font-mono bg-surface-2 dark:bg-[#0E1422] px-3 py-1.5 rounded-lg border border-border-soft dark:border-[#1E293B]">
+                  <span className="text-text-dim dark:text-[#64748B] text-[10px] uppercase font-bold">STATION:</span>
+                  <span className="font-bold text-text dark:text-[#F8FAFC] text-xs">
                     {state.stations.find((s) => s.id === state.currentUser?.stationId)?.name || 'Khandagiri PS'}
                   </span>
-                  <span className="text-text-dim dark:text-[#64748B] text-[9px]">[{state.currentUser.stationId}]</span>
+                  <span className="text-text-dim dark:text-[#64748B] text-[10px]">[{state.currentUser.stationId}]</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 text-xs font-mono bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] px-2.5 py-1 rounded-lg border border-accent/30 dark:border-[#38BDF8]/30 font-bold text-[11px]">
-                  <Shield size={13} /> ODISHA POLICE STATE COMMAND
+                <div className="flex items-center gap-1.5 text-xs font-mono bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] px-3 py-1.5 rounded-lg border border-accent/30 dark:border-[#38BDF8]/30 font-bold text-xs">
+                  <Shield size={14} /> ODISHA POLICE STATE COMMAND
                 </div>
               )}
             </div>
@@ -429,17 +429,17 @@ export function SIHLayout() {
                 <button
                   type="button"
                   onClick={() => setLangMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-1.5 bg-surface-2 dark:bg-[#0E1422] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] px-2.5 py-1 rounded-lg text-xs font-semibold text-text dark:text-[#F8FAFC] transition-all"
+                  className="flex items-center gap-1.5 bg-surface-2 dark:bg-[#0E1422] hover:bg-surface-hover dark:hover:bg-[#1E293B] border border-border-soft dark:border-[#1E293B] px-3 py-1.5 rounded-lg text-xs font-semibold text-text dark:text-[#F8FAFC] transition-all"
                   title="Change language"
                 >
-                  <Globe size={13} className="text-accent dark:text-[#38BDF8] shrink-0" />
-                  <span className="font-medium text-[11px]">{currentLangObj.nativeLabel}</span>
-                  <ChevronDown size={11} className={`text-text-dim transition-transform duration-200 ${langMenuOpen ? 'rotate-180' : ''}`} />
+                  <Globe size={14} className="text-accent dark:text-[#38BDF8] shrink-0" />
+                  <span className="font-medium text-xs">{currentLangObj.nativeLabel}</span>
+                  <ChevronDown size={12} className={`text-text-dim transition-transform duration-200 ${langMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {langMenuOpen && (
-                  <div className="absolute right-0 mt-1.5 w-40 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl shadow-lg py-1 z-50 animate-fade-in divide-y divide-border-soft dark:divide-[#1E293B]">
-                    <div className="px-3 py-1 text-[9px] font-bold font-mono uppercase tracking-wider text-text-dim dark:text-[#64748B]">
+                  <div className="absolute right-0 mt-1.5 w-44 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-xl shadow-lg py-1.5 z-50 animate-fade-in divide-y divide-border-soft dark:divide-[#1E293B]">
+                    <div className="px-3.5 py-1.5 text-[10px] font-bold font-mono uppercase tracking-wider text-text-dim dark:text-[#64748B]">
                       {t('header.language', 'Select Language')}
                     </div>
                     <div className="py-1">
@@ -451,14 +451,14 @@ export function SIHLayout() {
                             setLanguage(lang.code as LanguageCode);
                             setLangMenuOpen(false);
                           }}
-                          className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors ${
+                          className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors ${
                             language === lang.code
                               ? 'bg-accent/15 text-accent dark:text-[#38BDF8] font-bold'
                               : 'text-text dark:text-[#E2E8F0] hover:bg-surface-hover dark:hover:bg-[#1E293B]'
                           }`}
                         >
                           <span>{lang.nativeLabel}</span>
-                          <span className="text-[9px] font-mono text-text-dim uppercase">
+                          <span className="text-[10px] font-mono text-text-dim uppercase">
                             {lang.code.toUpperCase()}
                           </span>
                         </button>
@@ -471,19 +471,19 @@ export function SIHLayout() {
               {/* Alert Bell */}
               <button 
                 onClick={() => navigate('/requests')} 
-                className="relative p-1.5 text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-lg transition-colors border border-border-soft dark:border-[#1E293B]"
+                className="relative p-2 text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC] hover:bg-surface-hover dark:hover:bg-[#1E293B] rounded-lg transition-colors border border-border-soft dark:border-[#1E293B]"
                 title="Pending Station Requests"
               >
-                <Bell size={15} />
+                <Bell size={16} />
                 {pendingRequests > 0 && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-surface"></span>
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-surface"></span>
                 )}
               </button>
             </div>
           </header>
 
           {/* Page Content Viewport */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <Outlet />
           </div>
         </main>
@@ -517,8 +517,8 @@ function NavItem({
         group relative flex items-center transition-all duration-150 cursor-pointer
         ${
           collapsed
-            ? 'justify-center w-10 h-10 mx-auto rounded-xl'
-            : 'justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold'
+            ? 'justify-center w-11 h-11 mx-auto rounded-xl'
+            : 'justify-between px-3 py-2 rounded-lg text-[13px] font-medium'
         }
         ${
           isActive 
@@ -534,41 +534,41 @@ function NavItem({
             <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent dark:bg-[#38BDF8] rounded-r" />
           )}
 
-          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2'} min-w-0`}>
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'} min-w-0`}>
             <Icon 
-              size={16} 
+              size={18} 
               className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
                 isActive ? 'text-accent dark:text-[#38BDF8]' : 'text-text-dim dark:text-[#64748B] group-hover:text-text dark:group-hover:text-[#F8FAFC]'
               }`} 
             />
-            {!collapsed && <span className="tracking-tight truncate text-[11px]">{label}</span>}
+            {!collapsed && <span className="tracking-tight truncate text-[13px]">{label}</span>}
           </div>
 
           {/* Expanded Badge */}
           {!collapsed && badge !== undefined && badge > 0 && (
-            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
               {badge}
             </span>
           )}
 
           {/* Collapsed Dot Badge */}
           {collapsed && badge !== undefined && badge > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-surface dark:ring-[#0B0F17]" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-surface dark:ring-[#0B0F17]" />
           )}
 
           {/* Collapsed Floating Flyout Tooltip */}
           {collapsed && (
-            <div className="absolute left-full ml-3.5 px-3 py-1.5 rounded-xl bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-2xl text-xs font-semibold whitespace-nowrap z-50 pointer-events-none hidden group-hover:flex items-center gap-2 animate-fade-in">
+            <div className="absolute left-full ml-4 px-3.5 py-2 rounded-xl bg-surface dark:bg-[#1E293B] text-text dark:text-[#F8FAFC] border border-border-soft dark:border-[#334155] shadow-2xl text-xs font-semibold whitespace-nowrap z-50 pointer-events-none hidden group-hover:flex items-center gap-2.5 animate-fade-in">
               <div className="flex flex-col">
                 {groupTitle && (
-                  <span className="text-[9px] font-mono text-text-dim dark:text-[#94A3B8] uppercase tracking-wider">
+                  <span className="text-[10px] font-mono text-text-dim dark:text-[#94A3B8] uppercase tracking-wider font-bold">
                     {groupTitle}
                   </span>
                 )}
-                <span className="font-bold text-[12px]">{label}</span>
+                <span className="font-bold text-[13px] text-text dark:text-[#F8FAFC]">{label}</span>
               </div>
               {badge !== undefined && badge > 0 && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
                   {badge}
                 </span>
               )}
