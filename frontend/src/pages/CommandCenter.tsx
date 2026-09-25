@@ -74,6 +74,9 @@ export function CommandCenter() {
         evidence={state.evidence}
         accessRequests={state.accessRequests}
         officers={stationOfficers}
+        role={role}
+        currentUserId={state.currentUser?.id}
+        officerName={state.currentUser?.name}
       />
 
       {/* ── 3. MAIN INVESTIGATION WORKSPACE GRID (7 COLS : 5 COLS) ── */}

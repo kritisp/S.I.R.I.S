@@ -107,7 +107,7 @@ export function IdentityReviewPage() {
             {/* Matching Rationale & Warning */}
             <div className="p-3 rounded-lg bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] space-y-1.5 font-mono">
               <span className="text-[10px] font-bold uppercase tracking-wider text-text-dim dark:text-[#94A3B8]">
-                Matching Rationale & Levenshtein Metrics
+                Matching Rationale & Alias Cross-Match Analysis
               </span>
               <ul className="space-y-1">
                 {pair.matchingReasons.map((reason, idx) => (

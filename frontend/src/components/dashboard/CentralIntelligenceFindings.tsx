@@ -36,8 +36,8 @@ export function CentralIntelligenceFindings({ cases: propsCases }: CentralIntell
         id: 'find-mo-01',
         type: 'MODUS_OPERANDI' as const,
         title: `Syndicate Modus Operandi: ${sample.crimeType?.replace(/_/g, ' ') || 'Coercive Cyber Extortion'}`,
-        description: `Deep NLP correlation identified recurring transaction routing patterns across ${Math.min(cyberCases.length, 5)} active station dockets.`,
-        statusText: 'AI PATTERN VERIFIED',
+        description: `Crime pattern analysis identified recurring transaction routing patterns across ${Math.min(cyberCases.length, 5)} active station dockets.`,
+        statusText: 'PATTERN VERIFIED',
         statusColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-500/30',
         entities: [`Target: Financial Fraud Vectors`, `Primary FIR: ${sample.firNumber || sample.id}`],
         cases: [sample.firNumber || sample.id],
@@ -53,7 +53,7 @@ export function CentralIntelligenceFindings({ cases: propsCases }: CentralIntell
         id: 'find-ph-02',
         type: 'PHONE_CROSS_MATCH' as const,
         title: 'Cross-Jurisdiction Telephony & CDR Overlap',
-        description: `Cell tower triangulation and call-detail records in ${sample.firNumber || sample.id} match flagged CDR signatures in neighboring police station.`,
+        description: `Tower location logs and call-detail records in ${sample.firNumber || sample.id} match flagged phone activity in neighboring police station.`,
         statusText: 'INTER-DISTRICT LINK',
         statusColor: 'bg-accent/15 text-accent dark:text-[#38BDF8] border-accent/30 dark:border-[#38BDF8]/30',
         entities: [`Flagged MSISDN Cluster`, `Station: ${stationName}`],
@@ -70,7 +70,7 @@ export function CentralIntelligenceFindings({ cases: propsCases }: CentralIntell
         id: 'find-vh-03',
         type: 'VEHICLE_SYNDICATE' as const,
         title: 'Vehicle Movement Correlated with Crime Window',
-        description: `Automated ANPR high-speed lookup spotted suspect getaway registration traversing ${stationName} perimeter prior to incident filing.`,
+        description: `Automated high-speed camera lookup spotted suspect getaway registration traversing ${stationName} perimeter prior to incident filing.`,
         statusText: 'ANPR POSITIVE HIT',
         statusColor: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
         entities: [`Vehicle Track: OD-02 Gateway`, `Linked FIR: ${sample.firNumber || sample.id}`],
@@ -87,7 +87,7 @@ export function CentralIntelligenceFindings({ cases: propsCases }: CentralIntell
         id: 'find-id-04',
         type: 'IDENTITY_RESOLUTION' as const,
         title: 'Identity Resolution: Known Alias Convergence',
-        description: `Phonetic Levenshtein graph resolution matched suspect persona with existing NCRB & State Police dossier index.`,
+        description: `Automated alias and suspect profile matching linked record with existing NCRB & State Police criminal dossier.`,
         statusText: 'DOSSIER RESOLVED',
         statusColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
         entities: [`Resolved Persona Match`, `Docket: ${sample.firNumber || sample.id}`],
@@ -126,7 +126,7 @@ export function CentralIntelligenceFindings({ cases: propsCases }: CentralIntell
           </div>
 
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold">
-            NEO4J GRAPH INTEL
+            CRIME INTELLIGENCE RADAR
           </span>
         </div>
 
@@ -194,7 +194,7 @@ export function CentralIntelligenceFindings({ cases: propsCases }: CentralIntell
 
       {/* Footer Navigation */}
       <div className="pt-3 mt-3 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between font-mono text-[11px]">
-        <span className="text-text-dim dark:text-[#64748B]">Station-scoped intelligence verified against CCTNS graph</span>
+        <span className="text-text-dim dark:text-[#64748B]">Station intelligence verified against Odisha CCTNS database</span>
         <button
           onClick={() => navigate('/network')}
           className="text-accent dark:text-[#38BDF8] hover:underline flex items-center gap-1 font-bold cursor-pointer"

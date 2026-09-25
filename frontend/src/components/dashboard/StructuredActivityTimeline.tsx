@@ -7,7 +7,7 @@ import {
 interface ActivityEvent {
   id: string;
   time: string;
-  type: 'FIR_CREATED' | 'EVIDENCE_SECURED' | 'NLP_EXTRACTED' | 'REQUEST_LOGGED' | 'GRAPH_SYNC';
+  type: 'FIR_CREATED' | 'EVIDENCE_SECURED' | 'ENTITY_ANALYSIS' | 'REQUEST_LOGGED' | 'GRAPH_SYNC';
   title: string;
   details: string;
   actor: string;
@@ -19,8 +19,8 @@ const EVENTS: ActivityEvent[] = [
     id: 'act-01',
     time: '23:42:10',
     type: 'GRAPH_SYNC',
-    title: 'Knowledge Graph Association Projected',
-    details: '14 new node projections & 29 relationship records updated from station database.',
+    title: 'Cross-Station Syndicate Link Identified',
+    details: '14 suspect & vehicle records linked with neighboring jurisdiction database.',
     actor: 'Investigation Pipeline',
     status: 'SUCCESS',
   },
@@ -37,7 +37,7 @@ const EVENTS: ActivityEvent[] = [
     id: 'act-03',
     time: '22:48:30',
     type: 'REQUEST_LOGGED',
-    title: 'Section 105 BNSS Access Request Transmitted',
+    title: 'Section 91 CrPC Access Request Transmitted',
     details: 'Inter-station access request REQ-2026-004 sent to Chauliaganj PS.',
     actor: 'IO SI Ranjan Samal',
     status: 'INFO',
@@ -45,10 +45,10 @@ const EVENTS: ActivityEvent[] = [
   {
     id: 'act-04',
     time: '21:30:15',
-    type: 'NLP_EXTRACTED',
+    type: 'ENTITY_ANALYSIS',
     title: 'Case Entity Extraction Completed',
     details: '3 Accused, 2 Phone Numbers, 1 Vehicle extracted for investigator review.',
-    actor: 'Entity Analysis Service',
+    actor: 'Automated FIR Parser',
     status: 'SUCCESS',
   },
   {
@@ -71,7 +71,7 @@ export function StructuredActivityTimeline() {
         return <Fingerprint size={13} className="text-emerald-500" />;
       case 'REQUEST_LOGGED':
         return <KeyRound size={13} className="text-amber-500" />;
-      case 'NLP_EXTRACTED':
+      case 'ENTITY_ANALYSIS':
         return <Database size={13} className="text-accent dark:text-[#38BDF8]" />;
       case 'FIR_CREATED':
         return <FileText size={13} className="text-blue-500" />;

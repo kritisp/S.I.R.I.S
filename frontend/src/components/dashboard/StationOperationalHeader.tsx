@@ -78,7 +78,7 @@ export function StationOperationalHeader({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#B88922] dark:text-[#D1A33A] bg-[#B88922]/10 dark:bg-[#B88922]/15 px-2 py-0.5 rounded border border-[#B88922]/30">
-                GOVT OF ODISHA · CCTNS 2.0 CORE
+                {user?.role === 'OFFICER' ? 'IO INVESTIGATION DESK' : user?.role === 'STATION_ADMIN' ? 'STATION IIC COMMAND' : 'GOVT OF ODISHA · CCTNS 2.0'}
               </span>
               
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
@@ -120,7 +120,7 @@ export function StationOperationalHeader({
               </div>
               <div className="text-[10px] text-text-dim dark:text-[#94A3B8] flex items-center gap-1 mt-0.5">
                 <UserCheck size={10} className="text-accent dark:text-[#38BDF8]" />
-                <span>IO: <strong className="text-text dark:text-[#E2E8F0]">{officerName}</strong> ({officerBadge})</span>
+                <span>{user?.role === 'STATION_ADMIN' ? 'IIC' : 'IO'}: <strong className="text-text dark:text-[#E2E8F0]">{officerName}</strong> ({officerBadge})</span>
               </div>
             </div>
           </div>
