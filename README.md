@@ -5,7 +5,7 @@
 [![Operational DB](https://img.shields.io/badge/Database-Supabase%20PostgreSQL%2015-3ECF8E.svg?style=flat-square&logo=supabase)](https://supabase.com)
 [![Knowledge Graph](https://img.shields.io/badge/Graph%20Store-Neo4j%20Aura%20Enterprise-008CC1.svg?style=flat-square&logo=neo4j)](https://neo4j.com)
 [![Legal Engine](https://img.shields.io/badge/Legal%20RAG-BM25%20%2B%20BNS%20%2F%20BNSS%202023-FF6F00.svg?style=flat-square)](https://github.com/kritisp/S.I.R.I.S)
-[![Team](https://img.shields.io/badge/Team-Tattva-darkblue.svg?style=flat-square)](https://github.com/kritisp/S.I.R.I.S)
+[![Team](https://img.shields.io/badge/Team-Tattvas-darkblue.svg?style=flat-square)](https://github.com/kritisp/S.I.R.I.S)
 
 > **S.I.R.I.S. helps investigators connect fragmented dots across criminal cases. It does not replace the investigator or autonomously determine criminal culpability.**
 
@@ -13,7 +13,7 @@
 
 ## 1. Project Overview & Core Philosophy
 
-**S.I.R.I.S.** (*Smart Intelligence for Real-time Investigation Support*) is an AI-assisted criminal investigation and crime intelligence platform developed by **Team Tattva**.
+**S.I.R.I.S.** (*Smart Intelligence for Real-time Investigation Support*) is an AI-assisted criminal investigation and crime intelligence platform developed by **Team Tattvas**.
 
 In modern law enforcement, critical investigative information is fragmented across disparate dockets, station registries, phone records, vehicle logs, and digital evidence lockers. S.I.R.I.S. operates as an **analytical intelligence layer alongside existing police infrastructure (such as CCTNS/ICJS)** to discover non-obvious multi-hop relationships, surface cross-case linkages, match Modus Operandi (MO), retrieve applicable Bharatiya Nyaya Sanhita (BNS 2023) provisions, and maintain tamper-evident evidence chains.
 
@@ -300,7 +300,7 @@ To maintain legal and technical integrity, the following boundaries are enforced
 ## 12. Team & Project Information
 
 * **Project**: S.I.R.I.S. (*Smart Intelligence for Real-time Investigation Support*)
-* **Team**: **Team Tattva**
+* **Team**: **Team Tattvas**
 * **Target Jurisdiction**: Odisha Police & State Law Enforcement Agencies
 * **Repository**: [https://github.com/kritisp/S.I.R.I.S](https://github.com/kritisp/S.I.R.I.S)
 * **Live Deployment**:
