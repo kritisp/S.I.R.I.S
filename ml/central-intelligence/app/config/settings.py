@@ -102,12 +102,19 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         url = self.DATABASE_URL or "postgresql://postgres:password@localhost:5432/postgres"
+        
+        # Auto-convert direct Supabase IPv6 host to IPv4 Pooler host for Render/cloud IPv4 compatibility
+        if "db.pbhhuilzqlnwsalgcvbn.supabase.co" in url:
+            url = url.replace("db.pbhhuilzqlnwsalgcvbn.supabase.co:5432", "aws-0-ap-southeast-1.pooler.supabase.com:6543")
+            url = url.replace("db.pbhhuilzqlnwsalgcvbn.supabase.co", "aws-0-ap-southeast-1.pooler.supabase.com:6543")
+            url = url.replace("postgres:Pf7eqEttsmsw8Jdt@", "postgres.pbhhuilzqlnwsalgcvbn:Pf7eqEttsmsw8Jdt@")
+        
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql+psycopg2://", 1)
         elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
         
-        if "supabase.co" in url and "sslmode" not in url:
+        if ("supabase.co" in url or "pooler.supabase.com" in url) and "sslmode" not in url:
             delimiter = "&" if "?" in url else "?"
             url = f"{url}{delimiter}sslmode=require"
         return url
