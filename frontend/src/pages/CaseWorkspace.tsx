@@ -8,7 +8,7 @@ import {
   RefreshCw, Activity, Cpu, Layers, Info, CheckCircle2, User, Phone, MapPin, Database, Award, Radio
 } from 'lucide-react';
 
-import { HERO_CASE_PROVISIONS, ROBBERY_CASE_PROVISIONS, FIR_ANALYSIS_PROVISIONS } from '../mockServices/legalProvisionMockData';
+import { HERO_CASE_PROVISIONS, ROBBERY_CASE_PROVISIONS, FIR_ANALYSIS_PROVISIONS, getProvisionsForCase } from '../mockServices/legalProvisionMockData';
 import { LegalProvisionList } from '../components/legal/LegalProvisionList';
 import { generateFirDraft, requestsApi } from '../services/api';
 import { VehicleIntelligenceModal } from '../components/intelligence/VehicleIntelligenceModal';
@@ -391,11 +391,14 @@ export function CaseWorkspace() {
   const analytics = workspaceData.analytics;
   const crossIntel = workspaceData.cross_case_intelligence;
 
-  // Pick legal provisions
-  const caseProvisions =
-    meta.crime_type?.toLowerCase().includes('robbery') || meta.crime_type?.toLowerCase().includes('heist')
-      ? ROBBERY_CASE_PROVISIONS
-      : HERO_CASE_PROVISIONS;
+  // Dynamically resolve exact statutory BNS legal provisions for this specific case
+  const caseProvisions = useMemo(() => {
+    return getProvisionsForCase(
+      meta.crime_type,
+      `${meta.title || ''} ${meta.summary || ''} ${meta.crime_type || ''}`,
+      meta.legal_sections
+    );
+  }, [meta.crime_type, meta.title, meta.summary, meta.legal_sections]);
 
   return (
     <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">
