@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, Plus, CheckCircle2, FileText, Send, ShieldAlert, AlertTriangle, Activity, User, ShieldCheck } from 'lucide-react';
+import { API_BASE_URL } from '../../services/api/client';
 
 export interface TimelineLogEntry {
   id: string;
@@ -118,7 +119,7 @@ export function InvestigationTimelineLog({ caseId, firNumber, initialEvents }: I
 
     // Persist to PostgreSQL via FastAPI
     try {
-      await fetch(`http://localhost:8000/api/v1/workspace/case/${encodeURIComponent(caseId)}/events`, {
+      await fetch(`${API_BASE_URL}/workspace/case/${encodeURIComponent(caseId)}/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

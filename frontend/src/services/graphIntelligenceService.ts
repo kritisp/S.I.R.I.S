@@ -7,7 +7,7 @@
  * Endpoint base: http://localhost:8000/api/v1/graph  (central-intelligence)
  */
 
-const BASE_URL = import.meta.env.VITE_INTEL_SERVICE_URL || 'http://localhost:8000/api/v1/graph';
+const BASE_URL = import.meta.env.VITE_INTEL_SERVICE_URL || 'https://siris-backend-duzn.onrender.com/api/v1/graph';
 const TIMEOUT_MS = 30000;
 
 // ─── Types ──────────────────────────────────────────────────────────────────

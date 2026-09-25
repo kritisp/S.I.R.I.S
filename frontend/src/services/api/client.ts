@@ -3,7 +3,7 @@ const getApiBaseUrl = (): string => {
   if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
     return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
   }
-  return '/api/v1';
+  return 'https://siris-backend-duzn.onrender.com/api/v1';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

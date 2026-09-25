@@ -106,6 +106,10 @@ class Settings(BaseSettings):
             url = url.replace("postgres://", "postgresql+psycopg2://", 1)
         elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        
+        if "supabase.co" in url and "sslmode" not in url:
+            delimiter = "&" if "?" in url else "?"
+            url = f"{url}{delimiter}sslmode=require"
         return url
 
     model_config = SettingsConfigDict(
