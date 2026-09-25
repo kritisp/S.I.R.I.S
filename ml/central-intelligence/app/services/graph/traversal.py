@@ -144,8 +144,7 @@ class Neo4jGraphTraversalService:
     def traverse(self, request: GraphTraversalRequest) -> GraphTraversalResult:
         """Executes a bounded, read-only multi-hop Cypher traversal returning structural paths."""
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 # 1. Verify start node exists
                 start_check = session.run(
                     "MATCH (n {node_id: $start_id}) WHERE $start_label IN labels(n) RETURN count(n) AS c",

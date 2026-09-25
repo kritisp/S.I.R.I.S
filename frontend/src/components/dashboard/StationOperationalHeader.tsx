@@ -71,27 +71,27 @@ export function StationOperationalHeader({
         
         {/* Left: Station Identity & Operational Context */}
         <div className="flex items-start sm:items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-accent/40 dark:border-[#38BDF8]/40 flex items-center justify-center text-accent dark:text-[#38BDF8] shrink-0 shadow-xs">
-            <Shield size={20} />
+          <div className="w-11 h-11 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-[#B88922]/50 flex items-center justify-center p-1 shrink-0 shadow-sm">
+            <img src="/siris.png" alt="Odisha Police" className="w-full h-full object-contain" />
           </div>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-accent dark:text-[#38BDF8]">
-                INVESTIGATION COMMAND CENTRE
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#B88922] dark:text-[#D1A33A] bg-[#B88922]/10 dark:bg-[#B88922]/15 px-2 py-0.5 rounded border border-[#B88922]/30">
+                GOVT OF ODISHA · CCTNS 2.0 CORE
               </span>
               
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                STATION NETWORK CONNECTED
+                CCTNS & ICJS GRID SYNCED
               </span>
 
               <span className="text-[9px] font-mono font-medium text-text-dim dark:text-[#94A3B8] px-1.5 py-0.2 rounded bg-surface-2 dark:bg-[#131B2E] border border-border-soft dark:border-[#1E293B]">
-                PS: {stationCode}
+                STATION ID: {stationCode}
               </span>
 
-              <span className="text-[9px] font-mono font-medium text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded bg-amber-500/10 border border-amber-500/20">
-                DEVELOPMENT DATASET
+              <span className="text-[9px] font-mono font-bold text-blue-500 dark:text-[#38BDF8] px-1.5 py-0.2 rounded bg-blue-500/10 border border-blue-500/20">
+                SEC 91 CrPC COMPLIANT
               </span>
             </div>
 
@@ -99,7 +99,7 @@ export function StationOperationalHeader({
               <h1 className="text-base sm:text-lg font-bold font-mono text-text dark:text-[#F8FAFC] tracking-tight">
                 {stationName}
               </h1>
-              <span className="text-xs text-text-dim dark:text-[#94A3B8] flex items-center gap-1">
+              <span className="text-xs text-text-dim dark:text-[#94A3B8] flex items-center gap-1 font-mono">
                 <MapPin size={11} className="text-accent dark:text-[#38BDF8]" />
                 {stationDistrict}
               </span>

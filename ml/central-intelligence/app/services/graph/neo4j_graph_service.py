@@ -154,8 +154,7 @@ class Neo4jGraphService:
         Applies NetworkX analytics to compute exact centrality, focus nodes, and important connectors.
         """
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 global_totals = self.get_global_totals(session)
 
                 # Step 1: Select top nodes up to limit
@@ -213,9 +212,8 @@ class Neo4jGraphService:
         Computes hop distances, centrality scores, and focus vs important connector flags.
         """
         try:
-            driver = self.connection_service.get_driver()
             depth = max(1, min(3, depth))
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 global_totals = self.get_global_totals(session)
 
                 # Check if focus node exists
@@ -284,8 +282,7 @@ class Neo4jGraphService:
     def get_path(self, from_id: str, to_id: str) -> Dict[str, Any]:
         """Cypher shortest path between two nodes in Neo4j."""
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 global_totals = self.get_global_totals(session)
 
                 cypher = """
@@ -334,8 +331,7 @@ class Neo4jGraphService:
     def get_common(self, a: str, b: str) -> Dict[str, Any]:
         """Common neighbors between two nodes in Neo4j."""
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 cypher = """
                 MATCH (na {node_id: $a})--(c)--(nb {node_id: $b})
                 RETURN DISTINCT c.node_id AS id, labels(c) AS labels, properties(c) AS props

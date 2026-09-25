@@ -1,18 +1,19 @@
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node modules
+# Node modules & Web Build
 node_modules/
+frontend/node_modules/
 jspm_packages/
-
-# Output directory files
 dist/
 dist-ssr/
+frontend/dist/
+frontend/dist-ssr/
 *.local
 
 # Environment variables & API Keys / Secrets
@@ -29,25 +30,50 @@ dist-ssr/
 !.vscode/extensions.json
 .idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Maven & Java build files
+# Java / Maven build files (legacy cleanup)
 backend/target/
 *.class
+*.jar
+*.war
 
 # Python & ML cache / DBs
 __pycache__/
-*.pyc
+*/__pycache__/
+*/*/__pycache__/
+*.py[cod]
+*$py.class
 *.sqlite3
-*.bin
+*.db
+.pytest_cache/
+.coverage
+htmlcov/
+chroma_db/
+chroma_db*/
+*chroma_db*/
+.chroma/
 
-# External source dumps & archive zips (Requested by User)
+# Archive files & External reference dumps (User protected)
 *.zip
-drishti_source/
-glassbox_source/
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
 ARGUS-main/
+ARGUS-main*/
+argus*/
+drishti_source/
+drishti_source*/
+glassbox_source/
+glassbox*/
+kspdatathon*/
+Nexus-main*/
+nexus*/
 sample_fir.png

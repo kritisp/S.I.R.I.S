@@ -66,9 +66,9 @@ class CategoryRegistry:
         },
         "traffic_accidents": {
             "name": "Traffic Accidents & Hit-and-Run",
-            "description": "Hit-and-run, fatal road accidents, rash driving, vehicle mechanical inspection (BNS Sec 106(2)/281)",
-            "bns_keywords": ["accident", "hit and run", "vehicle", "rash driving", "car crash", "speeding", "collision"],
-            "bns_sections": ["106", "281"]
+            "description": "Hit-and-run, fatal road accidents, rash driving, vehicle mechanical inspection (BNS Sec 106(1)/106(2)/125/281)",
+            "bns_keywords": ["accident", "hit and run", "vehicle", "rash driving", "car crash", "speeding", "collision", "knocked down", "ran over", "motorcycle accident", "scooter accident", "driver fled", "negligent driving"],
+            "bns_sections": ["106", "125", "281"]
         },
         "offences_against_children": {
             "name": "Offences Against Children & POCSO",

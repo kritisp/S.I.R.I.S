@@ -83,15 +83,17 @@ class FIRIntelligencePipeline:
         if any(consonant_cluster.search(w) for w in words):
             return True
 
-        common_tokens = {
-            "on", "at", "the", "in", "by", "of", "to", "and", "a", "an", "is", "was", "for", "with",
-            "stole", "theft", "complainant", "police", "money", "cash", "gold", "bike", "car", "mobile",
-            "phone", "accused", "person", "shop", "house", "night", "day", "threat", "attack", "injured",
-            "knife", "gun", "fraud", "cyber", "upi", "bank", "account", "transfer", "lock", "broken",
-            "report", "case", "incident", "loss", "vehicle", "victim", "suspect", "road", "street"
+        substantive_crime_tokens = {
+            "stole", "stolen", "theft", "complainant", "money", "cash", "gold", "jewellery", "jewel", "bike", "car", "mobile",
+            "phone", "accused", "threat", "attack", "injured", "knife", "gun", "fraud", "scam", "collision", "accident",
+            "assault", "beaten", "struck", "fight", "quarrel", "murder", "killed", "dead", "trespass", "burglary",
+            "robbery", "loot", "extortion", "snatch", "cheating", "cyber", "phishing", "vehicle", "driver", "rash",
+            "hit", "run", "fled", "fracture", "rod", "pistol", "unlawful", "cheated", "forged"
         }
         words_lower = [w.lower() for w in words]
-        if len(words) < 7 and not any(w in common_tokens for w in words_lower):
+        has_crime_keyword = any(w in substantive_crime_tokens for w in words_lower)
+
+        if len(words) < 15 and not has_crime_keyword:
             return True
 
         return False
@@ -148,11 +150,13 @@ class FIRIntelligencePipeline:
                     {
                         "law": "BNSS",
                         "section": "Section 173(3)",
+                        "section_number": "173(3)",
                         "action": "Conduct Preliminary Inquiry under BNSS Section 173(3) within 14 days to ascertain whether a cognizable offence is disclosed before formal FIR registration when narrative lacks clear particulars."
                     },
                     {
                         "law": "BNSS",
                         "section": "Section 173(1)",
+                        "section_number": "173(1)",
                         "action": "Re-examine the complainant/informant to record a detailed supplementary statement specifying occurrence details, acts, and participants."
                     }
                 ],
@@ -240,12 +244,7 @@ class FIRIntelligencePipeline:
             query=clean_text,
             expanded_concepts=expanded_concepts,
             crime_category=crime_domain,
-            top_k=8
-        )
-        reranked_bns = self.reranker.rerank(
-            query=clean_text,
-            candidate_docs=bns_candidates,
-            top_k=5
+            top_k=15
         )
 
         analysis = {
@@ -258,7 +257,7 @@ class FIRIntelligencePipeline:
 
         verified_bns, missing_questions, uncertainty_notes = self.verifier.verify_bns_candidates(
             analysis=analysis,
-            candidate_docs=reranked_bns,
+            candidate_docs=bns_candidates,
             extracted_facts=extracted_facts
         )
 
@@ -279,11 +278,18 @@ class FIRIntelligencePipeline:
                 supporting_evidence.append("Factual incident narrative recorded in FIR")
 
             formatted_bns_sections.append({
+                "act": "BNS",
                 "law": "BNS",
                 "section": f"Section {sec_num}",
+                "section_number": sec_num,
                 "title": v.get("title", "Penal Offence"),
+                "verified_title": v.get("title", "Penal Offence"),
+                "offence_or_procedure": "OFFENCE",
+                "applicability_status": v.get("applicability_status", "CONFIRMED"),
                 "reason": v.get("reason", "Satisfies mandatory statutory ingredients."),
-                "supporting_fir_evidence": supporting_evidence,
+                "supporting_fir_evidence": v.get("supporting_facts", supporting_evidence),
+                "supporting_facts": v.get("supporting_facts", supporting_evidence),
+                "missing_facts": v.get("missing_facts", []),
                 "confidence": v.get("confidence", "HIGH"),
                 "confidence_reason": v.get("confidence_reason", "Statutory elements matched against FIR facts.")
             })
@@ -304,13 +310,15 @@ class FIRIntelligencePipeline:
         formatted_bnss_actions = []
         for doc_item in reranked_bnss:
             meta = doc_item.get("metadata", {})
-            sec_num = str(meta.get("section_number", ""))
-            sec_title = meta.get("section_title", "")
+            sec_num = str(meta.get("section_number", "")).replace("Section ", "").strip()
+            sec_title = meta.get("section_title", "") or meta.get("title", "")
             if sec_num in ["531", "530", "529"]:
                 continue
 
             action_desc = f"Invoke BNSS Section {sec_num} ({sec_title}) for investigation procedure."
-            if sec_num == "173":
+            if sec_num == "53":
+                action_desc = "Requisition medical examination of arrested accused by registered medical practitioner under BNSS Section 53."
+            elif sec_num == "173":
                 action_desc = "Record detailed examination of informant under BNSS Section 173."
             elif sec_num == "105":
                 action_desc = "Conduct mandatory audio-video electronic recording of search, seizure, and spot proceedings under BNSS Section 105."
@@ -322,9 +330,27 @@ class FIRIntelligencePipeline:
                 action_desc = "Compile final police report upon completion of investigation under BNSS Section 193."
 
             formatted_bnss_actions.append({
+                "act": "BNSS",
                 "law": "BNSS",
                 "section": f"Section {sec_num}",
-                "action": action_desc
+                "section_number": sec_num,
+                "verified_title": sec_title or f"BNSS Section {sec_num}",
+                "action": action_desc,
+                "offence_or_procedure": "PROCEDURE",
+                "applicability_status": "CONFIRMED"
+            })
+
+        # Add Victim MLC Requisition if injury is reported in narrative
+        if any(k in clean_text.lower() for k in ["injured", "fracture", "bleeding", "wound", "hospital", "hurt"]):
+            formatted_bnss_actions.append({
+                "act": "BNSS",
+                "law": "BNSS",
+                "section": "Victim MLC Requisition",
+                "section_number": "MLC",
+                "verified_title": "Victim Medical Legal Examination & MLC Requisition",
+                "action": "Requisition formal victim Medical Legal Certificate (MLC) & casualty injury examination at District Hospital.",
+                "offence_or_procedure": "PROCEDURE",
+                "applicability_status": "CONFIRMED"
             })
 
         # ---------------------------------------------------------------------

@@ -35,8 +35,7 @@ class Neo4jSchemaManager:
         applied_constraints: List[str] = []
         applied_indexes: List[str] = []
 
-        driver = self.connection_service.get_driver()
-        with driver.session(database=self.connection_service.database) as session:
+        with self.connection_service.get_session() as session:
             # 1. Apply Uniqueness Constraints
             for name, ddl in CONSTRAINTS_DDL:
                 try:
@@ -62,11 +61,10 @@ class Neo4jSchemaManager:
 
     def verify_schema_status(self) -> Dict[str, int]:
         """Queries Neo4j schema metadata to verify active constraint and index count."""
-        driver = self.connection_service.get_driver()
         c_count = 0
         i_count = 0
 
-        with driver.session(database=self.connection_service.database) as session:
+        with self.connection_service.get_session() as session:
             try:
                 res_c = session.run("SHOW CONSTRAINTS")
                 c_count = len(list(res_c))

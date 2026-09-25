@@ -2743,7 +2743,7 @@ export const initialState: AppState = {
       requestingOfficerId: 'INV-BBSR-001',
       targetStationId: 'OP-CTC-CITY',
       targetCaseId: 'OD-CTC-2026-0008',
-      reason: 'Cross-station phone correlation link.',
+      reason: 'Cross-station phone correlation link (+91 98610 99882).',
       status: 'PENDING',
       createdAt: '2026-08-19T10:00:00.000Z'
     },
@@ -2753,7 +2753,7 @@ export const initialState: AppState = {
       requestingOfficerId: 'INV-BBSR-001',
       targetStationId: 'OP-PAT-CITY',
       targetCaseId: 'OD-RKL-2026-0117',
-      reason: 'Vehicle plate query matching pattern.',
+      reason: 'Vehicle plate query matching pattern OD-02-AB-1234.',
       status: 'APPROVED',
       createdAt: '2026-08-18T14:30:00.000Z'
     },
@@ -2766,6 +2766,56 @@ export const initialState: AppState = {
       reason: 'Suspect association mapping.',
       status: 'REJECTED',
       createdAt: '2026-08-17T09:15:00.000Z'
+    },
+    {
+      id: 'REQ-2026-00304',
+      requestingStationId: 'OP-BBSR-CAP',
+      requestingOfficerId: 'INV-BBSR-001',
+      targetStationId: 'PS_BBSR_002',
+      targetCaseId: 'FIR-2026-BBSR_001-014',
+      reason: 'Modus Operandi overlap: identical nighttime commercial safe breach signature.',
+      status: 'PENDING',
+      createdAt: '2026-09-24T11:00:00.000Z'
+    },
+    {
+      id: 'REQ-2026-00305',
+      requestingStationId: 'OP-BBSR-CAP',
+      requestingOfficerId: 'INV-BBSR-001',
+      targetStationId: 'PS_CTC_001',
+      targetCaseId: 'FIR-2026-BBSR_001-067',
+      reason: 'Correlated suspect call tower handover on NH-16 corridor.',
+      status: 'APPROVED',
+      createdAt: '2026-09-24T14:20:00.000Z'
+    },
+    {
+      id: 'REQ-2026-00306',
+      requestingStationId: 'OP-BBSR-CAP',
+      requestingOfficerId: 'INV-BBSR-001',
+      targetStationId: 'PS_CTC_001',
+      targetCaseId: 'OD-CTC-2026-00981',
+      reason: 'Shared suspect phone +91 98610 99882 and vehicle OD-02-AB-1234.',
+      status: 'APPROVED',
+      createdAt: '2026-09-24T09:15:00.000Z'
+    },
+    {
+      id: 'REQ-2026-00307',
+      requestingStationId: 'OP-BBSR-CAP',
+      requestingOfficerId: 'INV-BBSR-001',
+      targetStationId: 'PS_SBP_001',
+      targetCaseId: 'FIR-2026-SBP_001-1163',
+      reason: 'Statewide snatching syndicate link and physical description corroboration.',
+      status: 'PENDING',
+      createdAt: '2026-09-25T08:30:00.000Z'
+    },
+    {
+      id: 'REQ-2026-00308',
+      requestingStationId: 'OP-BBSR-CAP',
+      requestingOfficerId: 'INV-BBSR-001',
+      targetStationId: 'PS_PURI_001',
+      targetCaseId: 'FIR-2026-PURI_001-827',
+      reason: 'Shared vehicle getaway route towards Puri sea beach road.',
+      status: 'APPROVED',
+      createdAt: '2026-09-24T16:45:00.000Z'
     }
   ],
   alerts,

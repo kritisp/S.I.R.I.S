@@ -16,11 +16,17 @@ import { VehicleGeoTrailModal } from '../components/intelligence/VehicleGeoTrail
 import { InvestigationActionQueue } from '../components/intelligence/InvestigationActionQueue';
 import { RiskIntelligenceCard } from '../components/intelligence/RiskIntelligenceCard';
 import { ExplainableLeadCard } from '../components/intelligence/ExplainableLeadCard';
+import { explainableIntelStore } from '../services/explainableIntelService';
 import { graphIntelligenceService, CaseWorkspaceData } from '../services/graphIntelligenceService';
 import type { NodeType, NetworkNode, NetworkEdge } from '../mockServices/networkGraphData';
 import { NodeDetailPanel } from '../components/graph/NodeDetailPanel';
 import { IntelligenceExplainabilityPanel } from '../components/graph/IntelligenceExplainabilityPanel';
 import { InvestigationWorkspacePanel } from '../components/workspace/InvestigationWorkspacePanel';
+import { CrossStationAccessModal } from '../components/workspace/CrossStationAccessModal';
+import { CaseEvidenceVaultTab } from '../components/workspace/CaseEvidenceVaultTab';
+import { CaseInvestigationCopilot } from '../components/workspace/CaseInvestigationCopilot';
+import { InvestigationTimelineLog } from '../components/workspace/InvestigationTimelineLog';
+import { AIIntelligenceInsights } from '../components/workspace/AIIntelligenceInsights';
 
 export function CaseWorkspace() {
   const { id } = useParams<{ id: string }>();
@@ -31,17 +37,25 @@ export function CaseWorkspace() {
   // Cross-station "Request Access" submission state, keyed by target case ID
   const [crossCaseRequestState, setCrossCaseRequestState] = useState<Record<string, 'submitting' | 'error'>>({});
 
+  // Cross-Station Section 91 Modal State
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [modalTargetCase, setModalTargetCase] = useState<{ id: string; stationName: string; reason: string }>({
+    id: 'OD-CTC-2026-00981',
+    stationName: 'Cuttack City Police Station (OP-CTC-CITY)',
+    reason: 'Shared suspect phone +91 98610 99882 & vehicle OD-02-AB-1234'
+  });
+
   const [workspaceData, setWorkspaceData] = useState<CaseWorkspaceData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState<boolean>(false);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'graph' | 'analytics' | 'legal' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'graph' | 'analytics' | 'evidence' | 'legal' | 'reports'>('overview');
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'overview' || tabParam === 'graph' || tabParam === 'analytics' || tabParam === 'legal' || tabParam === 'reports') {
+    if (tabParam === 'overview' || tabParam === 'graph' || tabParam === 'analytics' || tabParam === 'evidence' || tabParam === 'legal' || tabParam === 'reports') {
       setActiveTab(tabParam);
     }
   }, [location.search]);
@@ -221,28 +235,29 @@ export function CaseWorkspace() {
     loadWorkspace();
   }, [id]);
 
-  // Cross-station links must not be openable directly — only cases already present in
-  // this investigator's station-scoped case list (state.cases, loaded from the real,
-  // RBAC-filtered GET /cases) are directly accessible. Anything else requires a real,
-  // server-enforced access request (POST /api/v1/requests), never a client-side open.
-  const handleRequestCrossCaseAccess = async (targetCaseId: string, explanation: string) => {
-    setCrossCaseRequestState(prev => ({ ...prev, [targetCaseId]: 'submitting' }));
-    try {
-      const created = await requestsApi.createRequest(
-        targetCaseId,
-        `Cross-case relationship detected in Case Workspace for ${workspaceData?.fir_number || id}: ${explanation}`
-      );
-      dispatch({ type: 'ADD_ACCESS_REQUEST', payload: created });
-      setCrossCaseRequestState(prev => {
-        const next = { ...prev };
-        delete next[targetCaseId];
-        return next;
-      });
-    } catch (err) {
-      console.error('Cross-case access request failed:', err);
-      setCrossCaseRequestState(prev => ({ ...prev, [targetCaseId]: 'error' }));
-    }
+  // Open formal Section 91 CrPC / Section 94 BNSS requisition modal
+  const handleOpenAccessModal = (targetCaseId: string, explanation: string) => {
+    const stationName = targetCaseId.includes('CTC')
+      ? 'Cuttack City Police Station (OP-CTC-CITY)'
+      : targetCaseId.includes('PURI')
+      ? 'Puri Town Police Station (OP-PURI-TOWN)'
+      : targetCaseId.includes('ROU')
+      ? 'Rourkela Sector-7 Police Station (OP-ROU-SEC7)'
+      : targetCaseId.includes('BER')
+      ? 'Berhampur Sadar Police Station (OP-BER-SDR)'
+      : 'Odisha Police Jurisdiction Authority';
+
+    setModalTargetCase({
+      id: targetCaseId,
+      stationName,
+      reason: explanation || `Direct entity linkage detected across cases: phone/vehicle overlap with ${workspaceData?.fir_number || id}`
+    });
+    setAccessModalOpen(true);
   };
+
+  const caseLeads = useMemo(() => {
+    return explainableIntelStore.getLeadsForCase(workspaceData?.case_id || id || '', workspaceData);
+  }, [workspaceData, id]);
 
   // Explicit action: (re)project this case's PostgreSQL data into the Neo4j intelligence
   // graph. Only ever runs when the investigator clicks the button below — never on load.
@@ -491,6 +506,17 @@ export function CaseWorkspace() {
           Graph Analytics
         </button>
         <button
+          onClick={() => setActiveTab('evidence')}
+          className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs flex items-center gap-1.5 ${
+            activeTab === 'evidence'
+              ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs font-bold'
+              : 'text-text-dim dark:text-[#94A3B8] hover:text-text dark:hover:text-[#F8FAFC]'
+          }`}
+        >
+          <Database size={13} />
+          Evidence Vault & AI Agent
+        </button>
+        <button
           onClick={() => setActiveTab('legal')}
           className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
             activeTab === 'legal'
@@ -519,35 +545,30 @@ export function CaseWorkspace() {
           <div className="space-y-6">
             {/* Explainable Intelligence & Leads Section */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-brand font-mono flex items-center gap-1.5">
-                <Sparkles size={14} /> S.I.R.I.S. Explainable Intelligence Leads
-              </h3>
-              {Array.isArray(workspaceData.explainability) && workspaceData.explainability.length > 0 ? (
-                <div className="grid md:grid-cols-2 gap-3">
-                  {(workspaceData.explainability as any[]).map((exp: any, idx: number) => (
-                    <div key={idx} className="glass p-4 rounded-xl border border-brand/20 bg-surface/90 space-y-1">
-                      <div className="flex items-center justify-between text-xs font-mono font-bold">
-                        <span className="text-brand uppercase">{exp.feature}</span>
-                        <span className="text-success">{Math.round(exp.score * 100)}% Significance</span>
-                      </div>
-                      <p className="text-xs text-text-dim leading-relaxed">{exp.explanation}</p>
-                    </div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-brand font-mono flex items-center gap-1.5">
+                  <Sparkles size={14} /> S.I.R.I.S. Explainable Intelligence Leads ({caseLeads.length})
+                </h3>
+                <span className="text-[10px] font-mono text-text-dim uppercase">
+                  Multi-Source Corroborated Evidence
+                </span>
+              </div>
+
+              {caseLeads.length > 0 ? (
+                <div className={`grid ${caseLeads.length > 1 ? 'md:grid-cols-2' : 'grid-cols-1'} gap-4 w-full`}>
+                  {caseLeads.map((lead) => (
+                    <ExplainableLeadCard key={lead.id} lead={lead} />
                   ))}
                 </div>
               ) : (
-                <ExplainableLeadCard lead={{
-                  id: `LEAD-${workspaceData.case_id}`,
-                  title: `Case Entity Centrality: ${analytics.degree} connections`,
-                  summary: `Subject case ${workspaceData.case_id} connects to ${analytics.degree} unique graph nodes in Neo4j with PageRank ${analytics.pagerank.toFixed(4)}.`,
-                  score: Math.min(100, Math.round(analytics.pagerank * 1000)),
-                  signals: [`Neo4j degree: ${analytics.degree}`, `Bridge status: ${analytics.is_important_connector ? 'YES' : 'NO'}`],
-                  verified: true
-                }} />
+                <div className="p-4 bg-surface-2 border border-border-soft rounded-xl text-xs text-text-dim italic">
+                  No critical explainable leads requiring officer review at this time.
+                </div>
               )}
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Left Column: FIR Narrative, Cross-Case Connections & Evidence */}
+              {/* Left Column: FIR Narrative, Cross-Case Connections, Intelligence Insights & Timeline */}
               <div className="md:col-span-2 space-y-6">
                 {/* FIR Narrative */}
                 <div className="glass p-6 rounded-xl bg-surface border border-border-soft space-y-3">
@@ -589,10 +610,12 @@ export function CaseWorkspace() {
                   {crossIntel.related_cases.length > 0 ? (
                     <div className="space-y-3 pt-2">
                       {crossIntel.related_cases.map((rc, idx) => {
-                        // Directly accessible only if it's already in this investigator's
-                        // station-scoped case list (real backend RBAC, not a client guess).
                         const isDirectlyAccessible = state.cases.some(c => c.id === rc.target_case_id);
-                        const existingRequest = state.accessRequests.find(r => r.targetCaseId === rc.target_case_id);
+                        const existingRequest = state.accessRequests.find(r => 
+                          r.targetCaseId === rc.target_case_id ||
+                          (rc.target_case_id && r.targetCaseId.includes(rc.target_case_id)) ||
+                          (rc.target_case_id && rc.target_case_id.includes(r.targetCaseId))
+                        );
                         const reqState = crossCaseRequestState[rc.target_case_id];
 
                         return (
@@ -618,14 +641,14 @@ export function CaseWorkspace() {
                             {isDirectlyAccessible ? (
                               <button
                                 onClick={() => navigate(`/workspace/case/${rc.target_case_id}`)}
-                                className="bg-brand text-bg font-bold px-3 py-1.5 rounded hover:bg-brand-bright transition-colors text-[10px] uppercase font-mono shrink-0"
+                                className="bg-brand text-bg font-bold px-3 py-1.5 rounded hover:bg-brand-bright transition-colors text-[10px] uppercase font-mono shrink-0 cursor-pointer"
                               >
                                 Open Case →
                               </button>
                             ) : existingRequest?.status === 'APPROVED' ? (
                               <button
                                 onClick={() => navigate(`/workspace/case/${rc.target_case_id}`)}
-                                className="bg-success/20 text-success border border-success/30 font-bold px-3 py-1.5 rounded hover:bg-success/30 transition-colors text-[10px] uppercase font-mono shrink-0"
+                                className="bg-success/20 text-success border border-success/30 font-bold px-3 py-1.5 rounded hover:bg-success/30 transition-colors text-[10px] uppercase font-mono shrink-0 cursor-pointer"
                               >
                                 Access Granted →
                               </button>
@@ -635,11 +658,10 @@ export function CaseWorkspace() {
                               </span>
                             ) : (
                               <button
-                                onClick={() => handleRequestCrossCaseAccess(rc.target_case_id, rc.explanation)}
-                                disabled={reqState === 'submitting'}
-                                className="bg-danger/20 text-danger-bright border border-danger/30 font-bold px-3 py-1.5 rounded hover:bg-danger/30 transition-colors text-[10px] uppercase font-mono shrink-0 disabled:opacity-50"
+                                onClick={() => handleOpenAccessModal(rc.target_case_id, rc.explanation)}
+                                className="bg-danger/20 text-danger-bright border border-danger/30 font-bold px-3 py-1.5 rounded hover:bg-danger/30 transition-colors text-[10px] uppercase font-mono shrink-0 cursor-pointer"
                               >
-                                {reqState === 'submitting' ? 'Submitting…' : 'Request Access'}
+                                Request Cross-Station Access
                               </button>
                             )}
                           </div>
@@ -653,11 +675,18 @@ export function CaseWorkspace() {
                   )}
                 </div>
 
-                {/* Investigation Workspace: group this case with related/approved
-                    cross-station cases and run the real Central Intelligence Engine
-                    across all of them (Spring Boot InvestigationWorkspace/Trigger
-                    pipeline — previously built but never surfaced in any page). */}
+                {/* Central Intelligence Multi-Hop Analysis Engine */}
                 <InvestigationWorkspacePanel caseId={workspaceData.case_id} firNumber={workspaceData.fir_number} />
+
+                {/* AI Strategic Intelligence Insights */}
+                <AIIntelligenceInsights caseId={workspaceData.case_id} firNumber={workspaceData.fir_number} />
+
+                {/* Investigation Case Diary & Timeline Log */}
+                <InvestigationTimelineLog 
+                  caseId={workspaceData.case_id} 
+                  firNumber={workspaceData.fir_number} 
+                  initialEvents={workspaceData.events}
+                />
 
                 {/* Pattern & MO Findings */}
                 <div className="glass p-6 rounded-xl bg-surface border border-border-soft space-y-3">
@@ -689,7 +718,7 @@ export function CaseWorkspace() {
                 </div>
               </div>
 
-              {/* Right Column: Entities, Risk Card & Live Alerts */}
+              {/* Right Column: Risk Card, Action Queue, Extracted Entities, Alerts & AI Copilot */}
               <div className="space-y-6">
                 {/* Risk Intelligence Card */}
                 <RiskIntelligenceCard
@@ -799,8 +828,18 @@ export function CaseWorkspace() {
                     </div>
                   )}
                 </div>
+
+                {/* Dedicated Case Investigation Copilot */}
+                <CaseInvestigationCopilot caseId={workspaceData.case_id} firNumber={workspaceData.fir_number} />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* EVIDENCE VAULT & AI AGENT TAB */}
+        {activeTab === 'evidence' && (
+          <div className="animate-fade-in">
+            <CaseEvidenceVaultTab caseId={workspaceData.case_id} firNumber={workspaceData.fir_number} />
           </div>
         )}
 
@@ -925,6 +964,16 @@ export function CaseWorkspace() {
           </div>
         )}
       </div>
+
+      {/* Cross-Station Section 91 CrPC / Section 94 BNSS Access Requisition Modal */}
+      <CrossStationAccessModal
+        isOpen={accessModalOpen}
+        onClose={() => setAccessModalOpen(false)}
+        targetCaseId={modalTargetCase.id}
+        targetStationName={modalTargetCase.stationName}
+        overlapReason={modalTargetCase.reason}
+        currentCaseId={workspaceData.case_id}
+      />
 
       {/* Modals */}
       <VehicleIntelligenceModal

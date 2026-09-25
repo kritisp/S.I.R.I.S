@@ -11,6 +11,7 @@ import { CompactNetworkSnapshot } from '../components/dashboard/CompactNetworkSn
 import { StructuredActivityTimeline } from '../components/dashboard/StructuredActivityTimeline';
 import { StatutoryOffenceRankings } from '../components/dashboard/StatutoryOffenceRankings';
 import { InfrastructureHealthPanel } from '../components/dashboard/InfrastructureHealthPanel';
+import { NationalPortalsGateway } from '../components/dashboard/NationalPortalsGateway';
 import { CaseRecord } from '../mockServices/types';
 
 export function CommandCenter() {
@@ -19,7 +20,7 @@ export function CommandCenter() {
   const navigate = useNavigate();
 
   const role = state.currentUser?.role || 'OFFICER';
-  const myStationId = state.currentUser?.stationId || 'OP-BBSR-CAP';
+  const myStationId = state.currentUser?.stationId || 'PS_BBSR_001';
   const myStation = state.stations.find((s) => s.id === myStationId) || state.stations[0];
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -99,7 +100,7 @@ export function CommandCenter() {
         </div>
       </div>
 
-      {/* ── 4. LOWER 3-PANEL OPERATIONAL GRID (4 : 4 : 4 COLS) ── */}
+      {/* ── 5. LOWER 3-PANEL OPERATIONAL GRID (4 : 4 : 4 COLS) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Panel 1: Activity & Forensic Audit Stream */}
         <div className="lg:col-span-4 h-full">
@@ -120,3 +121,4 @@ export function CommandCenter() {
     </div>
   );
 }
+

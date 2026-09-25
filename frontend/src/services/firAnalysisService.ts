@@ -12,14 +12,18 @@ export interface BnsSectionRecommendation {
   title: string;
   reason: string;
   supporting_fir_evidence?: string[];
+  supporting_facts?: string[];
+  missing_facts?: string[];
   confidence: 'HIGH' | 'MEDIUM' | 'LOW' | string;
   confidence_reason?: string;
+  applicability_status?: 'CONFIRMED' | 'CONDITIONALLY_APPLICABLE' | 'UNVERIFIED' | string;
 }
 
 export interface BnssProceduralAction {
   law: string; // 'BNSS'
   section: string; // e.g. 'Section 173'
   action: string;
+  applicability_status?: 'CONFIRMED' | 'CONDITIONALLY_APPLICABLE' | 'UNVERIFIED' | string;
 }
 
 export interface PrioritizedInvestigationAction {
@@ -118,10 +122,11 @@ function generateFallbackFirAnalysis(firText?: string, fileName?: string): Proce
   let bnssActions: BnssProceduralAction[] = [];
   let investigationActions: PrioritizedInvestigationAction[] = [];
 
+  const hasTrafficAccident = /accident|collision|hit and run|rash driving|speeding|knocked down|ran over|motorcycle|scooter|car crash|driver fled|negligent driving|struck by car|struck by vehicle/i.test(lower);
   const hasCyber = /cyber|online|otp|bank|phishing|crypto|telegram|whatsapp|hacked|debited|fraud|link/i.test(lower);
   const hasViolent = /murder|killed|dead|stabbed|deceased|shot|corpse/i.test(lower);
   const hasRobbery = /robbery|looted|dacoit|gunpoint|extort|threat/i.test(lower);
-  const hasAssault = /assault|beaten|hit|injured|hospital|fracture|attack/i.test(lower);
+  const hasAssault = !hasTrafficAccident && /assault|beaten|slapped|punched|struck with knife|struck with rod|altercation|fight|attacked/i.test(lower);
   const hasBurglary = /burglary|broken lock|house trespass|broke in|window broken/i.test(lower);
   const hasGeneralCrime = /stolen|theft|stole|snatched|missing|loss|cash|gold|jewelry|jewel|wallet|vehicle|car|bike|laptop|phone|bribe|crime|complainant|accused|police|fir|incident|break|damage|fire|threat|assault|robbery|loot/i.test(lower);
 
@@ -175,7 +180,77 @@ function generateFallbackFirAnalysis(firText?: string, fileName?: string): Proce
     };
   }
 
-  if (hasCyber) {
+  if (hasTrafficAccident) {
+    crimeCategory = 'OFFENCES AFFECTING PUBLIC SAFETY & VEHICULAR ACCIDENTS';
+    crimeType = 'Rash Driving & Vehicular Collision';
+    const hasGrievous = /fracture|grievous|broken bone|severe injury/i.test(lower);
+    const hasHitRun = /fled|hit and run|escaped/i.test(lower);
+
+    bnsSections = [
+      {
+        law: 'BNS',
+        section: 'Section 281',
+        title: 'Rash Driving or Riding on a Public Way (replaces IPC 279)',
+        reason: 'Driving or riding a vehicle on a public way in a rash or negligent manner endangering human life or personal safety.',
+        supporting_fir_evidence: ['FIR reports vehicle collision on public road due to rash driving'],
+        confidence: 'HIGH',
+        confidence_reason: 'Statutory ingredients matched: Vehicle operation on public way + Rash/negligent manner + Endangering safety.',
+        applicability_status: 'CONFIRMED',
+        supporting_facts: ['FIR reports vehicle collision on public road due to rash driving'],
+        missing_facts: [],
+      },
+      hasGrievous ? {
+        law: 'BNS',
+        section: 'Section 125(b)',
+        title: 'Act Endangering Life or Personal Safety Causing Grievous Hurt (replaces IPC 338)',
+        reason: 'Potentially applicable under BNS Section 125(b) for rash or negligent act causing grievous hurt (suspected fracture).',
+        supporting_fir_evidence: ['Reported bodily injury with suspected fracture resulting from road collision'],
+        confidence: 'HIGH',
+        confidence_reason: 'Statutory elements matched: Rash/negligent driving + Allegation of grievous hurt (fracture).',
+        applicability_status: 'CONDITIONALLY_APPLICABLE',
+        supporting_facts: ['Reported bodily injury with suspected fracture resulting from road collision'],
+        missing_facts: ['Medical X-Ray / MLC radiology report confirming fracture'],
+      } : {
+        law: 'BNS',
+        section: 'Section 125(a)',
+        title: 'Act Endangering Life or Personal Safety Causing Hurt (replaces IPC 337)',
+        reason: 'Rash or negligent act endangering life or personal safety causing simple hurt.',
+        supporting_fir_evidence: ['Reported bodily pain/injuries resulting from road collision'],
+        confidence: 'HIGH',
+        confidence_reason: 'Statutory elements matched: Rash/negligent driving + Bodily hurt caused.',
+        applicability_status: 'CONFIRMED',
+        supporting_facts: ['Reported bodily pain/injuries resulting from road collision'],
+        missing_facts: [],
+      }
+    ];
+
+    if (hasHitRun) {
+      bnsSections.push({
+        law: 'BNS',
+        section: 'Section 106(2)',
+        title: 'Hit & Run — Causing Death / Grievous Injury by Rash Driving & Escaping',
+        reason: 'Driver fled the scene of collision without reporting to police or magistrate.',
+        supporting_fir_evidence: ['Informant statement that driver fled the locus after collision'],
+        confidence: 'MEDIUM',
+        confidence_reason: 'Escaping incident locus without reporting satisfies hit-and-run provisions under BNS 106(2).',
+        applicability_status: 'CONDITIONALLY_APPLICABLE',
+        supporting_facts: ['Driver fled the locus after collision'],
+        missing_facts: ['Confirmation of driver identity and vehicle registration particulars'],
+      });
+    }
+
+    bnssActions = [
+      { law: 'BNSS', section: 'Section 105', action: 'Record mandatory video recording & spot inspection panchnama of accident locus and vehicle damage under BNSS Sec 105.', applicability_status: 'CONFIRMED' },
+      { law: 'BNSS', section: 'Victim MLC', action: 'Requisition immediate victim Medical Legal Certificate (MLC) & casualty injury examination at Govt Hospital.', applicability_status: 'CONFIRMED' },
+      { law: 'BNSS', section: 'Section 185', action: 'Execute motor vehicle inspection by Motor Vehicles Inspector (MVI) to check mechanical brake/steering failure.', applicability_status: 'CONFIRMED' }
+    ];
+
+    investigationActions = [
+      { action: 'Impound Vicinity CCTV Surveillance Feeds along Transit Route', priority: 'HIGH', reason: 'Establish exact vehicle speed, signal status, and collision mechanics.' },
+      { action: 'Conduct MVI Mechanical Inspection of Vehicles', priority: 'HIGH', reason: 'Verify whether brake failure or mechanical fault contributed to collision.' },
+      { action: 'Obtain Medical Legal Certificate (MLC) & X-Ray Reports', priority: 'HIGH', reason: 'Verify whether injury qualifies as grievous hurt under BNS 125(b).' }
+    ];
+  } else if (hasCyber) {
     crimeCategory = 'CYBERCRIME / FINANCIAL FRAUD';
     crimeType = 'Cyber Financial Impersonation & Digital Fraud';
     bnsSections = [

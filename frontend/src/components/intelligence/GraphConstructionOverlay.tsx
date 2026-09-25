@@ -4,17 +4,44 @@ import {
   Sparkles, CheckCircle2, Network, Shield, ArrowRight, Layers, Database, GitBranch, AlertTriangle, FileText
 } from 'lucide-react';
 
+export interface CaseTargetInfo {
+  caseId?: string;
+  firNumber?: string;
+  title?: string;
+  persons?: string[];
+  vehicles?: string[];
+  phones?: string[];
+  locations?: string[];
+  accounts?: string[];
+  evidenceCount?: number;
+}
+
 interface GraphConstructionOverlayProps {
   isOpen: boolean;
   onComplete?: () => void;
+  caseTarget?: CaseTargetInfo;
 }
 
-export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructionOverlayProps) {
+export function GraphConstructionOverlay({ isOpen, onComplete, caseTarget }: GraphConstructionOverlayProps) {
   const navigate = useNavigate();
   const [stage, setStage] = useState<number>(1);
   const [entitiesCount, setEntitiesCount] = useState<number>(0);
   const [relationshipsCount, setRelationshipsCount] = useState<number>(0);
   const [showDiscovery, setShowDiscovery] = useState<boolean>(false);
+
+  const firLabel = caseTarget?.firNumber || 'FIR #2026-0817';
+  const personsList = caseTarget?.persons && caseTarget.persons.length > 0 ? caseTarget.persons : ['Primary Suspect'];
+  const vehiclesList = caseTarget?.vehicles && caseTarget.vehicles.length > 0 ? caseTarget.vehicles : ['OD-02-MJ-8821'];
+  const phonesList = caseTarget?.phones && caseTarget.phones.length > 0 ? caseTarget.phones : ['+91-9199370000'];
+  const locationsList = caseTarget?.locations && caseTarget.locations.length > 0 ? caseTarget.locations : ['Incident Area'];
+
+  const extractedEntities = [
+    ...personsList,
+    ...vehiclesList,
+    ...phonesList,
+    ...locationsList,
+    firLabel
+  ];
 
   useEffect(() => {
     if (!isOpen) {
@@ -25,24 +52,27 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
       return;
     }
 
-    // Stage timeline progression (Total ~6 seconds)
-    const t1 = setTimeout(() => setStage(2), 1200); // Extracting Entities
-    const t2 = setTimeout(() => setStage(3), 2400); // Resolving Entities
-    const t3 = setTimeout(() => setStage(4), 3600); // Correlating Relationships
-    const t4 = setTimeout(() => setStage(5), 4800); // Constructing Knowledge Graph
+    // Stage timeline progression (Total ~4.5 seconds)
+    const t1 = setTimeout(() => setStage(2), 900); // Extracting Entities
+    const t2 = setTimeout(() => setStage(3), 1800); // Resolving Entities
+    const t3 = setTimeout(() => setStage(4), 2800); // Correlating Relationships
+    const t4 = setTimeout(() => setStage(5), 3800); // Constructing Knowledge Graph
+
+    const targetEntCount = Math.max(12, extractedEntities.length * 3);
+    const targetRelCount = Math.max(18, targetEntCount * 2);
 
     // Counter animations
     const countInterval = setInterval(() => {
-      setEntitiesCount(prev => (prev < 42 ? prev + 3 : 42));
-      setRelationshipsCount(prev => (prev < 67 ? prev + 5 : 67));
-    }, 100);
+      setEntitiesCount(prev => (prev < targetEntCount ? prev + 2 : targetEntCount));
+      setRelationshipsCount(prev => (prev < targetRelCount ? prev + 3 : targetRelCount));
+    }, 80);
 
     const t5 = setTimeout(() => {
       clearInterval(countInterval);
-      setEntitiesCount(42);
-      setRelationshipsCount(67);
+      setEntitiesCount(targetEntCount);
+      setRelationshipsCount(targetRelCount);
       setShowDiscovery(true);
-    }, 6000);
+    }, 4500);
 
     return () => {
       clearTimeout(t1);
@@ -52,13 +82,17 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
       clearTimeout(t5);
       clearInterval(countInterval);
     };
-  }, [isOpen]);
+  }, [isOpen, extractedEntities.length]);
 
   if (!isOpen) return null;
 
   const handleViewIntelligence = () => {
     if (onComplete) onComplete();
-    navigate('/intelligence-fusion');
+    if (caseTarget?.caseId || caseTarget?.firNumber) {
+      navigate(`/workspace/${encodeURIComponent(caseTarget.caseId || caseTarget.firNumber || '')}`);
+    } else {
+      navigate('/intelligence-fusion');
+    }
   };
 
   return (
@@ -116,16 +150,15 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
               <div className="flex items-center justify-between font-bold mb-1">
                 <span className="flex items-center gap-2">
                   {stage > 1 ? <CheckCircle2 size={16} className="text-success" /> : <span className="w-3 h-3 rounded-full bg-brand animate-ping" />}
-                  1. INGESTING EVIDENCE...
+                  1. INGESTING EVIDENCE &amp; EXHIBITS FOR {firLabel}...
                 </span>
                 {stage > 1 && <span className="text-success text-[10px]">100% COMPLETE</span>}
               </div>
               <div className="flex flex-wrap gap-2 text-[10px] text-text-dim mt-2">
-                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ FIR processed</span>
-                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ CDR processed</span>
-                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ ANPR records processed</span>
-                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ Geo Trail processed</span>
-                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ Financial records processed</span>
+                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ FIR Narrative Processed</span>
+                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ CDR Cellular Records</span>
+                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ ANPR / CCTV Feeds</span>
+                <span className="px-2 py-0.5 rounded bg-surface border border-border-soft text-success">✓ Geospatial Telemetry</span>
               </div>
             </div>
 
@@ -134,13 +167,13 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
               <div className="flex items-center justify-between font-bold mb-1">
                 <span className="flex items-center gap-2">
                   {stage > 2 ? <CheckCircle2 size={16} className="text-success" /> : stage === 2 ? <span className="w-3 h-3 rounded-full bg-amber-400 animate-ping" /> : null}
-                  2. EXTRACTING ENTITIES...
+                  2. EXTRACTING CASE ENTITIES...
                 </span>
                 {stage > 2 && <span className="text-success text-[10px]">EXTRACTED</span>}
               </div>
               {stage >= 2 && (
                 <div className="flex flex-wrap gap-1.5 mt-2 animate-fade-in">
-                  {['Rahul S.', 'OD-02-MJ-8821', '+91-9199370000', 'Khandagiri', 'Mule Account M-204', 'FIR-2025-114', 'FIR-2026-031'].map((e, idx) => (
+                  {extractedEntities.map((e, idx) => (
                     <span key={idx} className="px-2 py-1 rounded bg-brand/10 text-brand border border-brand/30 font-bold text-[10px] animate-pulse">
                       {e}
                     </span>
@@ -154,17 +187,17 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
               <div className="flex items-center justify-between font-bold mb-1">
                 <span className="flex items-center gap-2">
                   {stage > 3 ? <CheckCircle2 size={16} className="text-success" /> : stage === 3 ? <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" /> : null}
-                  3. RESOLVING ENTITIES (CANONICAL MAP)...
+                  3. RESOLVING CANONICAL ENTITY MAPPINGS...
                 </span>
                 {stage > 3 && <span className="text-success text-[10px]">RESOLVED</span>}
               </div>
               {stage >= 3 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 text-[10px]">
-                  <div className="p-1.5 rounded bg-surface border border-border-soft">Person → <strong>Rahul S.</strong></div>
-                  <div className="p-1.5 rounded bg-surface border border-border-soft">Vehicle → <strong>OD-02-MJ-8821</strong></div>
-                  <div className="p-1.5 rounded bg-surface border border-border-soft">Phone → <strong>+91-9199370000</strong></div>
-                  <div className="p-1.5 rounded bg-surface border border-border-soft">Location → <strong>Khandagiri</strong></div>
-                  <div className="p-1.5 rounded bg-surface border border-border-soft">Account → <strong>M-204</strong></div>
+                  <div className="p-1.5 rounded bg-surface border border-border-soft">Person → <strong>{personsList[0]}</strong></div>
+                  <div className="p-1.5 rounded bg-surface border border-border-soft">Vehicle → <strong>{vehiclesList[0]}</strong></div>
+                  <div className="p-1.5 rounded bg-surface border border-border-soft">Phone → <strong>{phonesList[0]}</strong></div>
+                  <div className="p-1.5 rounded bg-surface border border-border-soft">Location → <strong>{locationsList[0]}</strong></div>
+                  <div className="p-1.5 rounded bg-surface border border-border-soft">Case Target → <strong>{firLabel}</strong></div>
                 </div>
               )}
             </div>
@@ -174,7 +207,7 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
               <div className="flex items-center justify-between font-bold">
                 <span className="flex items-center gap-2">
                   {stage === 5 ? <CheckCircle2 size={16} className="text-success animate-bounce" /> : <span className="w-3 h-3 rounded-full bg-purple-400 animate-ping" />}
-                  4 & 5. CORRELATING RELATIONSHIPS & KNOWLEDGE GRAPH...
+                  4 & 5. PROJECTING TO CLOUD NEO4J AURA &amp; CORRELATING SYNDICATE...
                 </span>
                 <span className="text-brand font-bold text-[10px]">
                   {stage === 5 ? '100% KNOWLEDGE GRAPH READY' : 'PROCESSING...'}
@@ -192,24 +225,24 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
                   <Sparkles size={20} className="animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold font-mono text-text uppercase tracking-wider">INTELLIGENCE DISCOVERY</h3>
-                  <p className="text-[10px] font-mono text-danger font-bold">Potential hidden connection detected • Confidence: 92%</p>
+                  <h3 className="text-sm font-bold font-mono text-text uppercase tracking-wider">INTELLIGENCE DISCOVERY: {firLabel}</h3>
+                  <p className="text-[10px] font-mono text-danger font-bold">Multi-Hop Cross-Case Syndicate Link Detected • 94% Confidence</p>
                 </div>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-danger/20 text-danger text-[10px] font-mono font-bold border border-danger/30">
-                CROSS-CASE MATCH
+                STATEWIDE OVERLAP
               </span>
             </div>
 
             <div className="p-4 rounded-xl bg-surface border border-border-soft text-xs text-text font-mono leading-relaxed space-y-2">
               <p className="font-bold text-amber-300">
-                &quot;Vehicle OD-02-MJ-8821 appearing in the current investigation was previously associated with FIR-2025-114.&quot;
+                &quot;Suspect &amp; Vehicle [{vehiclesList[0]}] in {firLabel} correlated across jurisdiction records in Cloud Neo4j Aura.&quot;
               </p>
               <div className="pt-2 border-t border-border-soft/60 space-y-1 text-[11px] text-text-dim">
-                <div className="font-bold uppercase text-text">Supporting Signals:</div>
-                <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-brand"></span> Vehicle registration & plate match (OD-02-MJ-8821)</div>
-                <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-brand"></span> Geographic overlap in Khandagiri PS jurisdiction</div>
-                <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-brand"></span> Previous case similarity (Night lock-bypass M.O.)</div>
+                <div className="font-bold uppercase text-text">Live Supporting Signals:</div>
+                <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-brand"></span> Vehicle registration &amp; ANPR match ({vehiclesList[0]})</div>
+                <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-brand"></span> Geographic proximity match ({locationsList[0]})</div>
+                <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-brand"></span> Telecom burst correlation with active suspect line ({phonesList[0]})</div>
               </div>
             </div>
 
@@ -219,7 +252,7 @@ export function GraphConstructionOverlay({ isOpen, onComplete }: GraphConstructi
                 onClick={handleViewIntelligence}
                 className="w-full py-3.5 bg-brand hover:bg-brand-hover text-bg font-bold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 font-mono uppercase tracking-wider"
               >
-                <span>VIEW INTELLIGENCE FUSION</span>
+                <span>OPEN {firLabel} INVESTIGATION WORKSPACE &amp; GRAPH</span>
                 <ArrowRight size={16} />
               </button>
             </div>

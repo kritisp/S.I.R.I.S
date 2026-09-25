@@ -173,6 +173,7 @@ export function SIHLayout() {
       title: 'COLLABORATION & ACCESS',
       items: [
         { to: '/requests', icon: Lock, label: 'Inter-Station Requests', badge: pendingRequests || outgoingRequestsCount },
+        { to: '/portals', icon: Globe, label: 'National Police Portals' },
         { to: '/supervisor/approvals', icon: ClipboardCheck, label: 'Sanctions & Approvals' },
         { to: '/supervisor/audit', icon: History, label: 'Statutory Audit Logs' },
         { to: '/investigators', icon: Users, label: 'Station Officers' },

@@ -35,7 +35,12 @@ class MultiLawRetriever:
         # 2. BNS Substantive VectorStore & BM25
         self.bns_vectorstore = BNSVectorStore()
         self.bns_docs = load_and_parse_bns()
-        if self.bns_vectorstore.collection.count() == 0:
+        if self.bns_vectorstore.collection.count() != len(self.bns_docs):
+            try:
+                self.bns_vectorstore.chroma_client.delete_collection("bns_legal_sections")
+                self.bns_vectorstore.collection = self.bns_vectorstore.chroma_client.get_or_create_collection("bns_legal_sections", metadata={"hnsw:space": "cosine"})
+            except Exception:
+                pass
             self.bns_vectorstore.add_documents(self.bns_docs)
 
         if BM25Okapi:
@@ -108,7 +113,37 @@ class MultiLawRetriever:
                     doc_store[sec] = res
 
         sorted_secs = sorted(rrf_scores.keys(), key=lambda s: rrf_scores[s], reverse=True)[:top_k]
-        return [doc_store[sec] for sec in sorted_secs]
+        results = [doc_store[sec] for sec in sorted_secs if sec in doc_store]
+
+        # Domain-Specific Candidate Backfill Guardrail
+        # Ensure mandatory candidate sections for classified categories are present for element verification
+        lower_q = combined_query_text.lower()
+        required_secs = []
+        if any(k in lower_q for k in ["accident", "collision", "rash driving", "collided", "hit and run", "motorcycle", "vehicle"]):
+            required_secs.extend(["281", "125", "106"])
+        if any(k in lower_q for k in ["house", "dwelling", "residence", "entered", "lock broken", "night", "midnight"]):
+            required_secs.extend(["303", "305", "331"])
+        if any(k in lower_q for k in ["assault", "beaten", "struck", "fight", "altercation", "iron rod", "knife"]):
+            required_secs.extend(["115", "117"])
+        if any(k in lower_q for k in ["receiving stolen", "retaining stolen", "bought stolen", "pledged stolen"]):
+            required_secs.extend(["317"])
+
+        retrieved_sec_set = set(str(r["metadata"].get("section_number", "")).replace("Section ", "").strip() for r in results)
+        for req_sec in required_secs:
+            if req_sec not in retrieved_sec_set:
+                # Find matching doc in bns_docs cache
+                for doc in self.bns_docs:
+                    sec_n = str(doc.metadata.get("section_number", "")).replace("Section ", "").strip()
+                    if sec_n == req_sec or sec_n.startswith(req_sec):
+                        results.append({
+                            "document": doc.page_content,
+                            "metadata": doc.metadata,
+                            "rank": 99
+                        })
+                        retrieved_sec_set.add(req_sec)
+                        break
+
+        return results
 
     def search_bnss_procedures(self, query: str, top_k: int = 15, rrf_k: int = 60) -> List[Dict[str, Any]]:
         """

@@ -435,21 +435,46 @@ export function RegisterFIR() {
                     <div className="space-y-2.5">
                       {analysisResult.bns_sections.map((bns, idx) => (
                         <div key={idx} className="p-3 bg-surface dark:bg-[#0B0F17] border border-border-soft dark:border-[#1E293B] rounded-lg text-xs space-y-1.5">
-                          <div className="flex items-center justify-between font-mono font-bold">
+                          <div className="flex items-center justify-between font-mono font-bold flex-wrap gap-1.5">
                             <span className="text-accent dark:text-[#38BDF8] text-xs sm:text-sm">{bns.law} {bns.section}: {bns.title}</span>
-                            <span className={`px-2 py-0.5 rounded text-[9px] uppercase border ${
-                              bns.confidence === 'HIGH' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
-                              bns.confidence === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
-                              'bg-surface-2 text-text-dim border-border-soft'
-                            }`}>
-                              CONFIDENCE: {bns.confidence}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {bns.applicability_status && (
+                                <span className={`px-2 py-0.5 rounded text-[9px] uppercase border font-bold ${
+                                  bns.applicability_status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                                  bns.applicability_status === 'CONDITIONALLY_APPLICABLE' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                                  'bg-surface-2 text-text-dim border-border-soft'
+                                }`}>
+                                  {bns.applicability_status === 'CONDITIONALLY_APPLICABLE' ? 'REQUIRES VERIFICATION' : bns.applicability_status}
+                                </span>
+                              )}
+                              <span className={`px-2 py-0.5 rounded text-[9px] uppercase border ${
+                                bns.confidence === 'HIGH' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                                bns.confidence === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                                'bg-surface-2 text-text-dim border-border-soft'
+                              }`}>
+                                CONFIDENCE: {bns.confidence}
+                              </span>
+                            </div>
                           </div>
                           <p className="text-text-dim dark:text-[#94A3B8] leading-relaxed text-xs">{bns.reason}</p>
                           
                           {bns.confidence_reason && (
                             <div className="text-[10px] font-mono text-text dark:text-[#F8FAFC] bg-surface-2 dark:bg-[#0E1422] p-2 rounded border border-border-soft dark:border-[#1E293B]">
                               <strong className="text-accent dark:text-[#38BDF8]">Statutory Verification:</strong> {bns.confidence_reason}
+                            </div>
+                          )}
+
+                          {bns.missing_facts && bns.missing_facts.length > 0 && (
+                            <div className="text-[10px] font-mono text-amber-400 bg-amber-500/10 p-2 rounded border border-amber-500/30 space-y-0.5">
+                              <span className="font-bold uppercase flex items-center gap-1">
+                                <AlertTriangle size={12} /> Verification Requirements & Missing Particulars:
+                              </span>
+                              {bns.missing_facts.map((mf, midx) => (
+                                <div key={midx} className="flex items-center gap-1.5 pl-2">
+                                  <span className="w-1 h-1 bg-amber-400 rounded-full" />
+                                  <span>{mf}</span>
+                                </div>
+                              ))}
                             </div>
                           )}
 

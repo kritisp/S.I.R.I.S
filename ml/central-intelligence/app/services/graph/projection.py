@@ -487,8 +487,7 @@ class Neo4jGraphProjectionService:
     def get_case_projection_timestamp(self, node_id: str) -> Optional[str]:
         """Read-only lookup of a (:Case) node's last_projected_at property. Never writes."""
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 record = session.run(
                     "MATCH (n:Case {node_id: $node_id}) RETURN n.last_projected_at AS last_projected_at",
                     {"node_id": node_id}
@@ -506,8 +505,7 @@ class Neo4jGraphProjectionService:
     def _execute_query(self, query: str, params: dict) -> bool:
         """Executes a Cypher query with sanitized error handling."""
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 session.run(query, params)
                 return True
         except Exception as e:

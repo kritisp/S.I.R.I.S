@@ -24,6 +24,14 @@ BNS_INTELLIGENCE_REGISTRY = {
         "exclusions": ["victim alive", "suicide", "accidental death"]
     },
     "106": {
+        "title": "Causing death by negligence",
+        "crime_category": "traffic_accidents",
+        "legal_elements": ["causing death of any person", "doing rash or negligent act not amounting to culpable homicide"],
+        "acts": ["rash driving hit and run", "negligent vehicle collision", "reckless operation"],
+        "intent_keywords": ["death by negligence", "rash driving death", "hit and run"],
+        "exclusions": ["premeditated murder", "intentional homicide"]
+    },
+    "108": {
         "title": "Abetment of suicide",
         "crime_category": "violent_crimes",
         "legal_elements": ["abetment of suicide", "victim committed suicide", "instigation/encouragement"],
@@ -384,7 +392,14 @@ def load_and_parse_bns(pdf_path: Optional[str] = None) -> List[Document]:
             with open(cache_path, "r", encoding="utf-8") as f:
                 raw_docs = json.load(f)
                 print(f"Loaded {len(raw_docs)} cached BNS legal sections from {os.path.basename(cache_path)}.")
-                return [Document(page_content=d["content"], metadata=d["metadata"]) for d in raw_docs]
+                docs = [Document(page_content=d["content"], metadata=d["metadata"]) for d in raw_docs]
+                for doc in docs:
+                    sec_num = str(doc.metadata.get("section_number", "")).strip()
+                    if sec_num in BNS_INTELLIGENCE_REGISTRY:
+                        reg = BNS_INTELLIGENCE_REGISTRY[sec_num]
+                        doc.metadata["title"] = reg["title"]
+                        doc.metadata["crime_category"] = reg["crime_category"]
+                return docs
         except Exception as ce:
             print(f"Cache read error, falling back to PDF: {ce}")
 
@@ -461,7 +476,52 @@ def load_and_parse_bns(pdf_path: Optional[str] = None) -> List[Document]:
         )
         documents.append(doc)
 
-    print(f"Successfully parsed {len(documents)} structured BNS substantive offence sections with enriched legal metadata.")
+    # Overlay canonical titles & metadata from BNS_INTELLIGENCE_REGISTRY
+    existing_sec_nums = set()
+    for doc in documents:
+        sec_num = str(doc.metadata.get("section_number", "")).strip()
+        existing_sec_nums.add(sec_num)
+        if sec_num in BNS_INTELLIGENCE_REGISTRY:
+            reg = BNS_INTELLIGENCE_REGISTRY[sec_num]
+            doc.metadata["title"] = reg["title"]
+            doc.metadata["crime_category"] = reg["crime_category"]
+
+    # Inject any missing registry sections directly
+    for sec_num, reg in BNS_INTELLIGENCE_REGISTRY.items():
+        if sec_num not in existing_sec_nums:
+            elements_str = "; ".join(reg["legal_elements"])
+            acts_str = ", ".join(reg["acts"])
+            intent_str = ", ".join(reg["intent_keywords"])
+            exclusions_str = ", ".join(reg["exclusions"]) if reg["exclusions"] else "None"
+            keywords_str = f"{reg['title']}, {reg['crime_category']}, {acts_str}, {intent_str}, {elements_str}"
+
+            structured_content = (
+                f"BNS (Bharatiya Nyaya Sanhita, 2023) Section {sec_num}: {reg['title']}\n"
+                f"Law: BNS (Substantive Penal Code)\n"
+                f"Category: {reg['crime_category']}\n"
+                f"Legal Elements: {elements_str}\n"
+                f"Acts: {acts_str}\n"
+                f"Intent Keywords: {intent_str}\n"
+                f"Exclusions: {exclusions_str}\n"
+            )
+            doc = Document(
+                page_content=structured_content,
+                metadata={
+                    "law": "BNS",
+                    "section_number": sec_num,
+                    "title": reg["title"],
+                    "crime_category": reg["crime_category"],
+                    "keywords": keywords_str,
+                    "legal_elements": json.dumps(reg["legal_elements"]),
+                    "acts": json.dumps(reg["acts"]),
+                    "intent_keywords": json.dumps(reg["intent_keywords"]),
+                    "exclusions": json.dumps(reg["exclusions"]),
+                    "source": "BNS_INTELLIGENCE_REGISTRY"
+                }
+            )
+            documents.append(doc)
+
+    print(f"Successfully processed {len(documents)} structured BNS substantive offence sections with enriched legal metadata.")
     try:
         with open(cache_path, "w", encoding="utf-8") as cf:
             json.dump([{"content": d.page_content, "metadata": d.metadata} for d in documents], cf, ensure_ascii=False)

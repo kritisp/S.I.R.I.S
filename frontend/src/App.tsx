@@ -29,6 +29,7 @@ import { CdrIntelligencePage } from './pages/CdrIntelligencePage';
 import { IntelligenceFusionPage } from './pages/IntelligenceFusionPage';
 import { PredictiveRiskPage } from './pages/PredictiveRiskPage';
 import { ResourceOptimizationPage } from './pages/ResourceOptimizationPage';
+import { NationalPortalsPage } from './pages/NationalPortalsPage';
 import { StateCommandSupervisorPage } from './pages/StateCommandSupervisorPage';
 import { SupervisorFleetDispatchPage } from './pages/SupervisorFleetDispatchPage';
 import { SupervisorPerformancePage } from './pages/SupervisorPerformancePage';
@@ -136,6 +137,7 @@ function App() {
               <Route path="/map" element={<GisCrimeMapPage />} />
               <Route path="/money-trail" element={<MoneyTrailWorkspace />} />
               <Route path="/cdr" element={<CdrIntelligencePage />} />
+              <Route path="/portals" element={<NationalPortalsPage />} />
               <Route path="/identity-review" element={<IdentityReviewPage />} />
               <Route path="/anomalies" element={<AnomalyRadarPage />} />
 

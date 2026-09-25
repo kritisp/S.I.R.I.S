@@ -108,8 +108,7 @@ class Neo4jNetworkAnalyticsService:
     def analyze_network(self, request: NetworkAnalyticsRequest) -> NetworkAnalyticsResult:
         """Executes read-only graph analytics queries and returns deterministic network metrics."""
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 # 1. Fetch relevant graph nodes and edges
                 nodes_query = "MATCH (n) RETURN n.node_id AS node_id, head(labels(n)) AS label, properties(n) AS props"
                 if request.target_node_id:

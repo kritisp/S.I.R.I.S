@@ -19,7 +19,12 @@ export function Cases() {
   const [searchFilter, setSearchFilter] = useState('');
   const [selectedCrimeType, setSelectedCrimeType] = useState('ALL');
   const [dbCases, setDbCases] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
 
   const currentUser = state.currentUser;
   const officerName = currentUser?.name || 'SI Ranjan Samal';
@@ -27,20 +32,22 @@ export function Cases() {
   const stationId = currentUser?.stationId || 'OP-BBSR-CAP';
 
   useEffect(() => {
-    graphIntelligenceService.getWorkspaceCases(500, 0)
+    setIsLoading(true);
+    graphIntelligenceService.getWorkspaceCases(1500, 0)
       .then((res) => {
         if (res && res.cases) {
           setDbCases(res.cases);
         }
       })
-      .catch((err) => console.warn('Workspace cases fetch notice:', err));
+      .catch((err) => console.warn('Workspace cases fetch notice:', err))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
       if (refreshBackendData) await refreshBackendData();
-      const res = await graphIntelligenceService.getWorkspaceCases(500, 0);
+      const res = await graphIntelligenceService.getWorkspaceCases(1500, 0);
       if (res?.cases) setDbCases(res.cases);
     } catch (err) {
       console.warn('Cases refresh error:', err);
@@ -48,6 +55,11 @@ export function Cases() {
       setTimeout(() => setIsRefreshing(false), 500);
     }
   };
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchFilter, selectedCrimeType, pageSize]);
 
   // Combined assigned cases from state and PostgreSQL backend
   const assignedCases: CaseRecord[] = useMemo(() => {
@@ -106,6 +118,13 @@ export function Cases() {
       return true;
     });
   }, [assignedCases, activeTab, selectedCrimeType, searchFilter]);
+
+  // Paginated slice
+  const totalPages = Math.max(1, Math.ceil(filteredCases.length / pageSize));
+  const paginatedCases = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredCases.slice(start, start + pageSize);
+  }, [filteredCases, currentPage, pageSize]);
 
   // Robust Counts
   const activeCount = assignedCases.filter(c => {
@@ -367,7 +386,21 @@ export function Cases() {
 
         {/* Case Rows Grid */}
         <div className="space-y-2.5">
-          {filteredCases.map((c) => {
+          {isLoading && dbCases.length === 0 ? (
+            <div className="space-y-3 py-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="p-4 rounded-xl bg-surface-2 dark:bg-[#0E1422] border border-border-soft dark:border-[#1E293B] animate-pulse space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-32 bg-slate-700/30 rounded" />
+                    <div className="h-4 w-16 bg-slate-700/30 rounded" />
+                  </div>
+                  <div className="h-4 w-3/4 bg-slate-700/20 rounded" />
+                  <div className="h-3 w-1/2 bg-slate-700/10 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            paginatedCases.map((c) => {
             const isSolved = (c.status || '').toUpperCase() === 'CHARGESHEETED' || (c.status || '').toUpperCase() === 'SOLVED';
             const progressPercent = isSolved ? 100 : c.priority === 'CRITICAL' ? 82 : c.priority === 'HIGH' ? 65 : 40;
             const stageLabel = isSolved ? 'Charge Sheet Ready (Court Submission)' : 'Evidence Collection & Link Analysis';
@@ -400,7 +433,7 @@ export function Cases() {
                   </h3>
 
                   <p className="text-xs text-text-dim dark:text-[#94A3B8] line-clamp-2 leading-relaxed font-sans">
-                    {c.description || 'Primary investigation record filed at Khandagiri PS. Pending evidentiary analysis and entity link verification.'}
+                    {c.description || 'Primary investigation record filed at Odisha Police station. Pending evidentiary analysis and entity link verification.'}
                   </p>
 
                   {/* Progress & Metadata Row */}
@@ -442,7 +475,7 @@ export function Cases() {
                 </div>
               </div>
             );
-          })}
+          }))}
 
           {filteredCases.length === 0 && (
             <div className="bg-surface-2 dark:bg-[#0E1422] p-12 rounded-xl text-center border border-dashed border-border-soft dark:border-[#1E293B] space-y-3">
@@ -459,6 +492,93 @@ export function Cases() {
               >
                 Reset All Filters
               </button>
+            </div>
+          )}
+
+          {/* ── PAGINATION CONTROLS ── */}
+          {filteredCases.length > 0 && (
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono border-t border-border-soft dark:border-[#1E293B]/70">
+              <div className="text-text-dim dark:text-[#94A3B8] flex items-center gap-2">
+                <span>
+                  Showing <strong className="text-text dark:text-[#F8FAFC]">{(currentPage - 1) * pageSize + 1}</strong> to <strong className="text-text dark:text-[#F8FAFC]">{Math.min(currentPage * pageSize, filteredCases.length)}</strong> of <strong className="text-accent dark:text-[#38BDF8]">{filteredCases.length}</strong> dockets
+                  {dbCases.length > 0 && ` (${dbCases.length} Total in Supabase)`}
+                </span>
+                <span className="text-border-soft dark:text-[#1E293B]">|</span>
+                <div className="flex items-center gap-1.5">
+                  <span>Per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="px-2 py-1 rounded bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] font-mono text-xs focus:outline-none focus:border-accent"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Page Navigator */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 rounded bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  &laquo;
+                </button>
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1 rounded bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Prev
+                </button>
+
+                {/* Visible Page Numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-2.5 py-1 rounded font-bold cursor-pointer transition-all ${
+                        currentPage === pageNum
+                          ? 'bg-accent dark:bg-[#38BDF8] text-bg dark:text-[#070A0F] shadow-xs'
+                          : 'bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] hover:border-accent'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1 rounded bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Next
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-2 py-1 rounded bg-surface dark:bg-[#070A0F] border border-border-soft dark:border-[#1E293B] text-text dark:text-[#F8FAFC] hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  &raquo;
+                </button>
+              </div>
             </div>
           )}
         </div>

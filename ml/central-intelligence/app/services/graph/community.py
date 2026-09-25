@@ -128,8 +128,7 @@ class Neo4jCommunityDetectionService:
     def detect_communities(self, request: CommunityDetectionRequest) -> CommunityDetectionResult:
         """Executes read-only Cypher queries to evaluate graph components, compute density, and cluster communities."""
         try:
-            driver = self.connection_service.get_driver()
-            with driver.session(database=self.connection_service.database) as session:
+            with self.connection_service.get_session() as session:
                 # 1. Fetch relevant graph nodes
                 nodes_query = "MATCH (n) WHERE head(labels(n)) IN $allowed_types RETURN n.node_id AS node_id, head(labels(n)) AS label, properties(n) AS props"
                 params: Dict[str, Any] = {"allowed_types": request.allowed_node_types}

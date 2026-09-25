@@ -31,8 +31,18 @@ class Neo4jConnectionService:
         self.uri = uri or settings.NEO4J_URI
         self.username = username or settings.effective_neo4j_user
         self.password = password if password is not None else settings.NEO4J_PASSWORD
-        self.database = database or settings.NEO4J_DATABASE
+        self.database = database if database is not None else settings.NEO4J_DATABASE
         self._driver: Optional[Driver] = None
+
+    def get_session(self) -> Session:
+        """Returns a managed Neo4j session using the appropriate database context."""
+        driver = self.get_driver()
+        # For Aura cloud instances, routing without explicit database parameter uses default database safely
+        if self.uri and ("neo4j.io" in self.uri or self.uri.startswith("neo4j+s://")):
+            return driver.session()
+        if self.database:
+            return driver.session(database=self.database)
+        return driver.session()
 
     def get_driver(self) -> Driver:
         """Returns the active Neo4j Driver instance for this service, initializing lazily if necessary."""
@@ -73,7 +83,7 @@ class Neo4jConnectionService:
             driver = self.get_driver()
             driver.verify_connectivity()
 
-            with driver.session(database=self.database) as session:
+            with self.get_session() as session:
                 result = session.run("RETURN 1 AS ok")
                 record = result.single()
 
