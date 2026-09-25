@@ -152,16 +152,59 @@ BNS_STATUTORY_DB = {
 }
 
 
+from app.services.nlp.bm25_rag_retriever import StatutoryChunkRetriever
+
+
 def call_llm_for_statutory_analysis(fir_text: str) -> Optional[Dict[str, Any]]:
-    """Invokes live Groq LLM reasoning model to dynamically analyze FIR narrative against BNS/BNSS 2023."""
+    """
+    True Retrieval-Augmented Generation (RAG) Pipeline:
+    1. Retrieves top physical statutory text chunks from the 485 BNS & 871 BNSS corpus via BM25.
+    2. Injects retrieved chunks into LLM context as statutory grounding truth.
+    3. LLM verifies statutory ingredients, missing facts, and procedural mandates.
+    """
     import httpx
     import json
     api_keys = settings.effective_groq_api_keys
     if not api_keys:
         return None
 
+    # Step 1: Real Statutory Chunk Retrieval via BM25
+    retriever = StatutoryChunkRetriever.get_instance()
+    retrieval_res = retriever.retrieve(fir_text, top_bns=8, top_bnss=4)
+    bns_chunks = retrieval_res.get("bns_chunks", [])
+    bnss_chunks = retrieval_res.get("bnss_chunks", [])
+
+    # Format retrieved legal chunks
+    retrieved_context_lines = []
+    for idx, doc in enumerate(bns_chunks, 1):
+        meta = doc.get("metadata", {})
+        sec_num = meta.get("section_number", "Unknown")
+        title = meta.get("title", "")
+        content = doc.get("content", "").strip()
+        retrieved_context_lines.append(f"[BNS Chunk {idx}] Section {sec_num}: {title}\n{content[:600]}")
+
+    for idx, doc in enumerate(bnss_chunks, 1):
+        meta = doc.get("metadata", {})
+        sec_num = meta.get("section_number", "Unknown")
+        title = meta.get("title", "")
+        content = doc.get("content", "").strip()
+        retrieved_context_lines.append(f"[BNSS Chunk {idx}] Section {sec_num}: {title}\n{content[:400]}")
+
+    grounding_corpus_text = "\n\n".join(retrieved_context_lines)
+
     prompt = f"""You are the S.I.R.I.S. Statutory Legal Intelligence Engine for Odisha Police.
-Analyze the following FIR narrative against the Bharatiya Nyaya Sanhita (BNS) 2023, Bharatiya Nagarik Suraksha Sanhita (BNSS) 2023, Bharatiya Sakshya Adhiniyam (BSA) 2023, and Indian Special & Local Laws (e.g., IT Act, Arms Act, NDPS Act, POCSO Act, Motor Vehicles Act).
+Below is the factual FIR narrative along with retrieved statutory text chunks from the Bharatiya Nyaya Sanhita (BNS 2023) and Bharatiya Nagarik Suraksha Sanhita (BNSS 2023).
+
+RETRIEVED STATUTORY LAW CHUNKS:
+======================================================
+{grounding_corpus_text}
+======================================================
+
+TASK:
+1. Analyze the FIR narrative strictly against the retrieved BNS & BNSS statutory chunks (and any applicable Special Laws such as IT Act, Arms Act, NDPS Act, Motor Vehicles Act).
+2. Determine which sections apply, citing their exact legal ingredients and whether facts in the FIR substantiate them.
+3. Detail procedural mandates from BNSS (e.g. Sec 105 videography, Sec 35 appearance notices).
+4. Specify missing facts or evidence required by the IO before submitting the charge-sheet.
 
 Return a strictly valid JSON object matching this exact schema:
 {{
@@ -171,9 +214,9 @@ Return a strictly valid JSON object matching this exact schema:
   "bns_sections": [
     {{
       "law": "BNS",
-      "section": "e.g., Section 308(2) or Section 318(4) or Section 103(1) or Section 25 Arms Act",
-      "title": "Exact Title of Section (with corresponding IPC section if applicable, e.g. replaces IPC 384)",
-      "reason": "Specific legal justification citing factual ingredients from the FIR",
+      "section": "e.g., Section 305 or Section 318(4) or Section 103(1) or Section 25 Arms Act",
+      "title": "Exact Title of Section (with corresponding IPC section if applicable, e.g. replaces IPC 380)",
+      "reason": "Specific legal justification citing factual ingredients from the FIR and retrieved statute",
       "confidence": "HIGH",
       "applicability_status": "CONFIRMED",
       "supporting_facts": ["Specific fact 1 from narrative", "Specific fact 2"],
@@ -211,7 +254,7 @@ FIR Narrative:
                     json={
                         "model": model_name,
                         "messages": [
-                            {"role": "system", "content": "You are an Indian statutory legal intelligence expert. Output ONLY valid JSON."},
+                            {"role": "system", "content": "You are an Indian statutory legal intelligence expert. Output ONLY valid JSON grounded in the provided statutory chunks."},
                             {"role": "user", "content": prompt}
                         ],
                         "response_format": {"type": "json_object"},
@@ -223,6 +266,11 @@ FIR Narrative:
                     raw_content = res.json()["choices"][0]["message"]["content"]
                     parsed = json.loads(raw_content)
                     if parsed and (parsed.get("bns_sections") or parsed.get("crime_type")):
+                        parsed["_retrieval_metadata"] = {
+                            "retrieved_bns_count": len(bns_chunks),
+                            "retrieved_bnss_count": len(bnss_chunks),
+                            "retrieved_sections": [c.get("metadata", {}).get("section_number") for c in bns_chunks if c.get("metadata", {}).get("section_number")]
+                        }
                         return parsed
             except Exception as e:
                 logger.warning(f"Groq LLM analysis attempt failed with model {model_name}: {e}")
