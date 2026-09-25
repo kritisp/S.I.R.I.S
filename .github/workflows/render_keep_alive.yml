@@ -1,0 +1,17 @@
+name: Render Backend 24/7 Keep-Alive
+
+on:
+  schedule:
+    # Run every 10 minutes 24/7 to prevent Render free instance from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-backend:
+    name: Ping SIRIS Backend Health Endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Health Check Ping
+        run: |
+          echo 'Pinging Render backend to keep instance active...'
+          curl -s -f -m 30 https://siris-backend-duzn.onrender.com/api/v1/health || echo 'Backend awake ping sent.'
