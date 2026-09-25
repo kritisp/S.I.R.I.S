@@ -152,6 +152,83 @@ BNS_STATUTORY_DB = {
 }
 
 
+def call_llm_for_statutory_analysis(fir_text: str) -> Optional[Dict[str, Any]]:
+    """Invokes live Groq LLM reasoning model to dynamically analyze FIR narrative against BNS/BNSS 2023."""
+    import httpx
+    import json
+    api_keys = settings.effective_groq_api_keys
+    if not api_keys:
+        return None
+
+    prompt = f"""You are the S.I.R.I.S. Statutory Legal Intelligence Engine for Odisha Police.
+Analyze the following FIR narrative against the Bharatiya Nyaya Sanhita (BNS) 2023, Bharatiya Nagarik Suraksha Sanhita (BNSS) 2023, Bharatiya Sakshya Adhiniyam (BSA) 2023, and Indian Special & Local Laws (e.g., IT Act, Arms Act, NDPS Act, POCSO Act, Motor Vehicles Act).
+
+Return a strictly valid JSON object matching this exact schema:
+{{
+  "crime_type": "Precise Crime Title",
+  "crime_category": "Statutory Crime Category",
+  "summary": "Concise factual summary of the allegations and statutory offences",
+  "bns_sections": [
+    {{
+      "law": "BNS",
+      "section": "e.g., Section 308(2) or Section 318(4) or Section 103(1) or Section 25 Arms Act",
+      "title": "Exact Title of Section (with corresponding IPC section if applicable, e.g. replaces IPC 384)",
+      "reason": "Specific legal justification citing factual ingredients from the FIR",
+      "confidence": "HIGH",
+      "applicability_status": "CONFIRMED",
+      "supporting_facts": ["Specific fact 1 from narrative", "Specific fact 2"],
+      "missing_facts": ["Missing evidence or requirement needed for charge-sheeting"]
+    }}
+  ],
+  "bnss_procedural_actions": [
+    {{
+      "law": "BNSS",
+      "section": "e.g., Section 105 or Section 35 or Section 94",
+      "action": "Mandatory statutory procedure required under BNSS 2023"
+    }}
+  ],
+  "investigation_actions": [
+    {{
+      "action": "Actionable investigation step",
+      "priority": "HIGH",
+      "reason": "Why this action is critical for evidentiary proof"
+    }}
+  ],
+  "missing_information": ["Information required from IO during investigation"]
+}}
+
+FIR Narrative:
+{fir_text}
+"""
+
+    models_to_try = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"]
+    for key in api_keys:
+        for model_name in models_to_try:
+            try:
+                res = httpx.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                    json={
+                        "model": model_name,
+                        "messages": [
+                            {"role": "system", "content": "You are an Indian statutory legal intelligence expert. Output ONLY valid JSON."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "response_format": {"type": "json_object"},
+                        "temperature": 0.0
+                    },
+                    timeout=25.0
+                )
+                if res.status_code == 200:
+                    raw_content = res.json()["choices"][0]["message"]["content"]
+                    parsed = json.loads(raw_content)
+                    if parsed and (parsed.get("bns_sections") or parsed.get("crime_type")):
+                        return parsed
+            except Exception as e:
+                logger.warning(f"Groq LLM analysis attempt failed with model {model_name}: {e}")
+    return None
+
+
 @router.post('/fir/process-raw', summary='Live RAG FIR & BNS Statutory Processing')
 async def process_raw_fir(
     fir_text: Optional[str] = Form(None),
@@ -190,48 +267,60 @@ async def process_raw_fir(
         val = money_matches[0][0] or money_matches[0][1]
         property_items.append({'item': 'Stolen/Defrauded Monetary Funds', 'value': f'Rs. {val}'})
 
-    # 2. Categorize Crime
-    lower = text_content.lower()
-    if any(k in lower for k in ['cyber', 'upi', 'otp', 'phishing', 'bank', 'link', 'hacked', 'debited', 'crypto', 'telegram', 'fraud']):
-        cat_key = 'cyber_fraud'
-        crime_category = 'CYBER & FINANCIAL CRIMES'
-        crime_type = 'Cyber Financial Fraud & Identity Theft'
-    elif any(k in lower for k in ['murder', 'killed', 'dead', 'stabbed', 'corpse', 'homicide', 'fatal']):
-        cat_key = 'violent_assault'
-        crime_category = 'HEINOUS CRIMES AGAINST BODY'
-        crime_type = 'Homicide & Fatal Assault'
-    elif any(k in lower for k in ['robbery', 'dacoity', 'snatch', 'gunpoint', 'knife threat', 'looted']):
-        cat_key = 'robbery_snatching'
-        crime_category = 'CRIMES AGAINST PROPERTY WITH FORCE'
-        crime_type = 'Armed Robbery & Snatching'
-    elif any(k in lower for k in ['accident', 'hit and run', 'rash driving', 'speeding', 'collision', 'ran over']):
-        cat_key = 'vehicular_accident'
-        crime_category = 'ROAD TRAFFIC OFFENCES & PUBLIC SAFETY'
-        crime_type = 'Rash Driving & Hit-and-Run Collision'
-    elif any(k in lower for k in ['assault', 'beaten', 'fracture', 'iron rod', 'hurt', 'fight', 'attacked']):
-        cat_key = 'violent_assault'
-        crime_category = 'CRIMES AGAINST BODY'
-        crime_type = 'Voluntary Causing Hurt with Weapon'
+    # 2. Try Live Dynamic Groq LLM Statutory Analysis
+    llm_analysis = call_llm_for_statutory_analysis(text_content)
+    
+    if llm_analysis and llm_analysis.get('bns_sections'):
+        crime_type = llm_analysis.get('crime_type', 'Cognizable Offence under BNS 2023')
+        crime_category = llm_analysis.get('crime_category', 'STATUTORY OFFENCE')
+        summary = llm_analysis.get('summary', f'Automated legal RAG analysis completed for {crime_type}.')
+        bns_sections = llm_analysis.get('bns_sections', [])
+        bnss_actions = llm_analysis.get('bnss_procedural_actions', [])
+        investigation_actions = llm_analysis.get('investigation_actions', [])
+        missing_info = llm_analysis.get('missing_information', ['Forensic lab examination confirmation', 'Independent eyewitness statements'])
+        source_label = 'rag_live'
     else:
-        cat_key = 'theft_burglary'
-        crime_category = 'CRIMES AGAINST PROPERTY'
-        crime_type = 'House Burglary & Theft'
+        # 3. Deterministic Heuristic Fallback
+        lower = text_content.lower()
+        if any(k in lower for k in ['cyber', 'upi', 'otp', 'phishing', 'bank', 'link', 'hacked', 'debited', 'crypto', 'telegram', 'fraud']):
+            cat_key = 'cyber_fraud'
+            crime_category = 'CYBER & FINANCIAL CRIMES'
+            crime_type = 'Cyber Financial Fraud & Identity Theft'
+        elif any(k in lower for k in ['murder', 'killed', 'dead', 'stabbed', 'corpse', 'homicide', 'fatal']):
+            cat_key = 'violent_assault'
+            crime_category = 'HEINOUS CRIMES AGAINST BODY'
+            crime_type = 'Homicide & Fatal Assault'
+        elif any(k in lower for k in ['robbery', 'dacoity', 'snatch', 'gunpoint', 'knife threat', 'looted']):
+            cat_key = 'robbery_snatching'
+            crime_category = 'CRIMES AGAINST PROPERTY WITH FORCE'
+            crime_type = 'Armed Robbery & Snatching'
+        elif any(k in lower for k in ['accident', 'hit and run', 'rash driving', 'speeding', 'collision', 'ran over']):
+            cat_key = 'vehicular_accident'
+            crime_category = 'ROAD TRAFFIC OFFENCES & PUBLIC SAFETY'
+            crime_type = 'Rash Driving & Hit-and-Run Collision'
+        elif any(k in lower for k in ['assault', 'beaten', 'fracture', 'iron rod', 'hurt', 'fight', 'attacked']):
+            cat_key = 'violent_assault'
+            crime_category = 'CRIMES AGAINST BODY'
+            crime_type = 'Voluntary Causing Hurt with Weapon'
+        else:
+            cat_key = 'theft_burglary'
+            crime_category = 'CRIMES AGAINST PROPERTY'
+            crime_type = 'House Burglary & Theft'
 
-    bns_sections = BNS_STATUTORY_DB.get(cat_key, BNS_STATUTORY_DB['theft_burglary'])
-
-    # 3. BNSS Procedural Directives
-    bnss_actions = [
-        {'law': 'BNSS', 'section': 'Section 105', 'action': 'Mandatory video recording of scene inspection & seizure panchanama under BNSS Sec 105.'},
-        {'law': 'BNSS', 'section': 'Section 35', 'action': 'Serve Section 35 BNSS (41A CrPC) appearance notice within 14 days unless flight risk recorded.'},
-        {'law': 'BNSS', 'section': 'Section 173', 'action': 'Provide free authenticated copy of First Information Report to informant immediately.'}
-    ]
-
-    # 4. Prioritized Investigation Steps
-    investigation_actions = [
-        {'action': 'Issue Section 91 CrPC requisition to Telecom / Bank Nodal Officer', 'priority': 'HIGH', 'reason': 'Preserve ephemeral CDR, IP logs, and freeze beneficiary bank accounts.'},
-        {'action': 'Requisition CCTV & Highway ANPR Video Logs', 'priority': 'HIGH', 'reason': 'Establish suspect ingress/egress trajectory and verify getaway vehicle.'},
-        {'action': 'Record Complainant & Eyewitness Statements under Sec 180 BNSS', 'priority': 'MEDIUM', 'reason': 'Consolidate corroborative evidence before formal charge sheet preparation.'}
-    ]
+        bns_sections = BNS_STATUTORY_DB.get(cat_key, BNS_STATUTORY_DB['theft_burglary'])
+        summary = f'Statutory analysis completed for {crime_type}. Factual elements matched against BNS 2023 knowledge base.'
+        bnss_actions = [
+            {'law': 'BNSS', 'section': 'Section 105', 'action': 'Mandatory video recording of scene inspection & seizure panchanama under BNSS Sec 105.'},
+            {'law': 'BNSS', 'section': 'Section 35', 'action': 'Serve Section 35 BNSS (41A CrPC) appearance notice within 14 days unless flight risk recorded.'},
+            {'law': 'BNSS', 'section': 'Section 173', 'action': 'Provide free authenticated copy of First Information Report to informant immediately.'}
+        ]
+        investigation_actions = [
+            {'action': 'Issue Section 91 CrPC requisition to Telecom / Bank Nodal Officer', 'priority': 'HIGH', 'reason': 'Preserve ephemeral CDR, IP logs, and freeze beneficiary bank accounts.'},
+            {'action': 'Requisition CCTV & Highway ANPR Video Logs', 'priority': 'HIGH', 'reason': 'Establish suspect ingress/egress trajectory and verify getaway vehicle.'},
+            {'action': 'Record Complainant & Eyewitness Statements under Sec 180 BNSS', 'priority': 'MEDIUM', 'reason': 'Consolidate corroborative evidence before formal charge sheet preparation.'}
+        ]
+        missing_info = ['Forensic lab examination report confirmation', 'Independent eyewitness identity particulars']
+        source_label = 'statutory_engine_fallback'
 
     fir_num = f'FIR-2026-BBSR-{uuid.uuid4().hex[:4].upper()}'
     
@@ -241,9 +330,9 @@ async def process_raw_fir(
             'police_station': 'Kharavela Nagar Police Station',
             'district': 'Bhubaneswar Urban Police District',
             'date': datetime.now().strftime('%Y-%m-%d'),
-            'sections_cited': [s['section'] for s in bns_sections]
+            'sections_cited': [s.get('section', '') for s in bns_sections]
         },
-        'summary': f'Automated legal RAG analysis completed for {crime_type}. Factual elements matched against Bharatiya Nyaya Sanhita (BNS) 2023.',
+        'summary': summary,
         'crime_type': crime_type,
         'crime_category': crime_category,
         'incident': {
@@ -273,15 +362,12 @@ async def process_raw_fir(
             ]
         },
         'insights': [
-            'Live RAG inference generated by S.I.R.I.S Legal Reasoning Engine.',
-            'Statutory elements cross-referenced with BNS 2023 and BNSS 2023 procedural code.'
+            'Live Dynamic RAG inference generated by S.I.R.I.S Legal Reasoning Engine.',
+            'Statutory elements cross-referenced with Bharatiya Nyaya Sanhita (BNS) 2023 and BNSS 2023 procedural code.'
         ],
-        'missing_information': [
-            'Forensic lab examination report confirmation',
-            'Independent eyewitness identity particulars'
-        ],
+        'missing_information': missing_info,
         'execution_metadata': {
-            'source': 'rag_live',
+            'source': source_label,
             'timestamp': datetime.now().isoformat()
         }
     }
