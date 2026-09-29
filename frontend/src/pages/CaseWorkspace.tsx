@@ -259,6 +259,17 @@ export function CaseWorkspace() {
     return explainableIntelStore.getLeadsForCase(workspaceData?.case_id || id || '', workspaceData);
   }, [workspaceData, id]);
 
+  // Dynamically resolve exact statutory BNS legal provisions for this specific case
+  const caseProvisions = useMemo(() => {
+    if (!workspaceData?.metadata) return [];
+    const meta = workspaceData.metadata;
+    return getProvisionsForCase(
+      meta.crime_type,
+      `${meta.title || ''} ${(meta as any).summary || ''} ${meta.crime_type || ''}`,
+      meta.legal_sections
+    );
+  }, [workspaceData?.metadata]);
+
   // Explicit action: (re)project this case's PostgreSQL data into the Neo4j intelligence
   // graph. Only ever runs when the investigator clicks the button below — never on load.
   const handleGenerateIntelligence = async () => {
@@ -390,15 +401,6 @@ export function CaseWorkspace() {
   const graphNeighborhood = workspaceData.graph_neighborhood;
   const analytics = workspaceData.analytics;
   const crossIntel = workspaceData.cross_case_intelligence;
-
-  // Dynamically resolve exact statutory BNS legal provisions for this specific case
-  const caseProvisions = useMemo(() => {
-    return getProvisionsForCase(
-      meta.crime_type,
-      `${meta.title || ''} ${meta.summary || ''} ${meta.crime_type || ''}`,
-      meta.legal_sections
-    );
-  }, [meta.crime_type, meta.title, meta.summary, meta.legal_sections]);
 
   return (
     <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC] pb-24">

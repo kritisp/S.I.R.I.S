@@ -8,7 +8,7 @@
  */
 
 const BASE_URL = import.meta.env.VITE_INTEL_SERVICE_URL || 'https://siris-backend-duzn.onrender.com/api/v1/graph';
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 60000; // Increased to 60s to allow Render free-tier cold starts
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -279,7 +279,7 @@ export const graphIntelligenceService = {
    */
   async isReachable(): Promise<boolean> {
     try {
-      const res = await fetch(`${BASE_URL.replace('/graph', '')}/health`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${BASE_URL.replace('/graph', '')}/health`, { signal: AbortSignal.timeout(8000) });
       return res.ok;
     } catch {
       return false;

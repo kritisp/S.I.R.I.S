@@ -36,6 +36,8 @@ function TypeBadge({ type }: { type: NetworkNode['type'] }) {
 export function NodeDetailPanel({ node, onClose, onExpandNode }: NodeDetailPanelProps) {
   const { state, dispatch } = useMockState();
   const navigate = useNavigate();
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
 
   if (!node) return null;
 
@@ -50,9 +52,6 @@ export function NodeDetailPanel({ node, onClose, onExpandNode }: NodeDetailPanel
   const isRestricted = node.accessStatus === 'RESTRICTED' && !existingRequest?.status.includes('APPROVED');
   const hasPendingRequest = existingRequest?.status === 'PENDING';
   const hasApprovedRequest = existingRequest?.status === 'APPROVED';
-
-  const [requestSubmitting, setRequestSubmitting] = useState(false);
-  const [requestError, setRequestError] = useState<string | null>(null);
 
   // Cross-station confidence from the edges connecting this node
   const crossEdge = NETWORK_EDGES.find(e =>
