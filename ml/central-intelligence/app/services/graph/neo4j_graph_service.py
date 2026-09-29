@@ -227,15 +227,37 @@ class Neo4jGraphService:
 
                 start_node = dict(start_res)
 
-                # Fetch BFS neighborhood nodes up to depth
-                cypher = f"""
-                MATCH (start {{node_id: $node_id}})
-                MATCH path = (start)-[*1..{depth}]-(n)
+                # Fetch controlled neighborhood nodes up to depth using UNION subqueries:
+                # 1-hop: all immediate neighbors (including location & legal sections)
+                # 2-hop / 3-hop: expand ONLY through investigative entities (Person, Phone, Vehicle, Evidence, Identifier, Assessment),
+                # NOT through generic Location or LegalSection super-nodes to prevent hub explosion.
+                cypher = """
+                MATCH (start {node_id: $node_id})
+                CALL {
+                    WITH start
+                    MATCH (start)-[r1]-(n1)
+                    RETURN n1 AS n
+                    UNION
+                    WITH start
+                    MATCH (start)-[r1]-(mid)-[r2]-(n2)
+                    WHERE $depth >= 2
+                      AND NOT mid:Location AND NOT mid:LegalSection AND NOT mid:Station
+                      AND n2 <> start
+                    RETURN n2 AS n
+                    UNION
+                    WITH start
+                    MATCH (start)-[r1]-(mid1)-[r2]-(mid2)-[r3]-(n3)
+                    WHERE $depth >= 3
+                      AND NOT mid1:Location AND NOT mid1:LegalSection AND NOT mid1:Station
+                      AND NOT mid2:Location AND NOT mid2:LegalSection AND NOT mid2:Station
+                      AND n3 <> start
+                    RETURN n3 AS n
+                }
                 WITH DISTINCT n
                 LIMIT $limit
                 RETURN n.node_id AS id, labels(n) AS labels, properties(n) AS props
                 """
-                res = session.run(cypher, {"node_id": node_id, "limit": limit})
+                res = session.run(cypher, {"node_id": node_id, "depth": depth, "limit": limit})
                 neighbor_nodes = [dict(r) for r in res]
 
                 all_nodes_data = [start_node] + neighbor_nodes

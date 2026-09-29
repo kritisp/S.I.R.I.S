@@ -70,18 +70,17 @@ def get_workspace_cases(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    """
-    Returns authoritative S.I.R.I.S case registry records from PostgreSQL for case selection.
-    If station_id is provided, scopes query to the officer's jurisdiction.
-    """
+    """Returns authoritative S.I.R.I.S case registry records from PostgreSQL for case selection."""
     try:
+        limit_val = limit if isinstance(limit, int) else 100
+        offset_val = offset if isinstance(offset, int) else 0
         where_clause = ""
-        params: Dict[str, Any] = {"limit": limit, "offset": offset}
+        params: Dict[str, Any] = {"limit": limit_val, "offset": offset_val}
 
-        if station_id and station_id.upper() != "ALL":
+        if isinstance(station_id, str) and station_id.strip() and station_id.upper() != "ALL":
             where_clause = "WHERE (c.station_id = :st_id OR c.police_station ILIKE :st_name)"
-            params["st_id"] = station_id
-            params["st_name"] = f"%{station_id}%"
+            params["st_id"] = station_id.strip()
+            params["st_name"] = f"%{station_id.strip()}%"
 
         count_sql = f"SELECT count(*) FROM cases c {where_clause}"
         total_cnt = db.execute(text(count_sql), params).scalar()
@@ -126,6 +125,264 @@ def get_workspace_cases(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed retrieving workspace cases: {exc}"
         )
+
+
+def _find_genuine_cross_case_intelligence(
+    target_node_id: str,
+    fir_label: str,
+    n4j_search_id: str,
+    nodes_list: List[Dict[str, Any]],
+    edges_list: List[Dict[str, Any]],
+    db: Session,
+    db_case: Optional[Any],
+    c_dict: Optional[Dict[str, Any]],
+    persons: List[Dict[str, Any]],
+    phones: List[Dict[str, Any]],
+    vehicles: List[Dict[str, Any]]
+) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    """
+    Identifies genuine, high-confidence cross-case intelligence links.
+    Strictly filters out high-degree location (OCCURRED_AT) and legal section (CHARGED_UNDER) hub noise.
+    Surfaces only genuine links through:
+      1. Shared Persons (Suspects/Accused)
+      2. Shared Phone numbers (Telecom/CDR)
+      3. Shared Vehicles (Registration plates)
+      4. Shared Evidence / Digital identifiers (UPI/Wallet/Bank Account)
+      5. Direct Syndicate / Modus Operandi (SIMILAR_MODUS_OPERANDI, RELATIONSHIP_ASSESSMENT)
+    """
+    case_signals: Dict[str, Dict[str, Any]] = {}
+
+    def _ensure_case(cid: str):
+        if cid not in case_signals:
+            case_signals[cid] = {
+                "persons": set(),
+                "phones": set(),
+                "vehicles": set(),
+                "evidences": set(),
+                "syndicate_links": set(),
+                "rel_types": set(),
+                "confidence_weights": []
+            }
+
+    target_fir_norm = fir_label.strip().upper()
+    target_clean_norm = target_node_id.replace("case:", "").strip().upper()
+
+    # 1. GRAPH TRAVERSAL: Extract genuine shared entities from Neo4j induced subgraph
+    nodes_by_id = {n.get("id"): n for n in nodes_list if n.get("id")}
+    entity_to_cases: Dict[str, Set[str]] = {}
+
+    for e in edges_list:
+        s_id = str(e.get("source", ""))
+        t_id = str(e.get("target", ""))
+        rel_type = str(e.get("relationship") or e.get("type") or "").upper()
+        weight = float(e.get("weight") or 0.88)
+
+        # Ignore location and legal section edges entirely
+        if rel_type in ("OCCURRED_AT", "CHARGED_UNDER", "HAS_LOCATION", "HAS_LEGAL_SECTION", "LOCATED_IN"):
+            continue
+
+        s_is_case = s_id.startswith("case:") or (s_id in nodes_by_id and nodes_by_id[s_id].get("node_type") == "case")
+        t_is_case = t_id.startswith("case:") or (t_id in nodes_by_id and nodes_by_id[t_id].get("node_type") == "case")
+
+        # Direct Case <-> Case relationship (e.g., SIMILAR_MODUS_OPERANDI, RELATIONSHIP_ASSESSMENT)
+        if s_is_case and t_is_case:
+            other_id = None
+            if s_id != n4j_search_id and s_id.replace("case:", "").upper() not in (target_fir_norm, target_clean_norm):
+                other_id = s_id.replace("case:", "")
+            elif t_id != n4j_search_id and t_id.replace("case:", "").upper() not in (target_fir_norm, target_clean_norm):
+                other_id = t_id.replace("case:", "")
+
+            if other_id and rel_type not in ("OCCURRED_AT", "CHARGED_UNDER"):
+                _ensure_case(other_id)
+                case_signals[other_id]["syndicate_links"].add(rel_type)
+                case_signals[other_id]["rel_types"].add(rel_type)
+                case_signals[other_id]["confidence_weights"].append(max(weight, 0.82))
+
+        # Case <-> Entity relationship
+        elif s_is_case != t_is_case:
+            case_id = s_id if s_is_case else t_id
+            entity_id = t_id if s_is_case else s_id
+
+            ent_node = nodes_by_id.get(entity_id, {})
+            ent_type = str(ent_node.get("entity_type") or ent_node.get("label") or "").upper()
+
+            # Ignore Location and LegalSection entity nodes
+            if ent_type in ("LOCATION", "LEGALSECTION", "STATUTORY_SECTION", "STATION"):
+                continue
+
+            if entity_id not in entity_to_cases:
+                entity_to_cases[entity_id] = set()
+            entity_to_cases[entity_id].add(case_id)
+
+    target_case_aliases = {n4j_search_id, f"case:{fir_label}", fir_label, target_node_id}
+    for ent_id, linked_cases in entity_to_cases.items():
+        is_target_linked = bool(linked_cases & target_case_aliases)
+        if not is_target_linked:
+            continue
+
+        ent_node = nodes_by_id.get(ent_id, {})
+        ent_type = str(ent_node.get("entity_type") or ent_node.get("label") or "").upper()
+        ent_label = ent_node.get("label") or ent_node.get("name") or ent_id
+
+        for c_id in linked_cases:
+            if c_id in target_case_aliases:
+                continue
+            other_fir = c_id.replace("case:", "")
+            if other_fir.strip().upper() in (target_fir_norm, target_clean_norm):
+                continue
+
+            _ensure_case(other_fir)
+
+            if "PERSON" in ent_type or ent_id.startswith("person:"):
+                case_signals[other_fir]["persons"].add(str(ent_label))
+                case_signals[other_fir]["confidence_weights"].append(0.93)
+            elif "PHONE" in ent_type or ent_id.startswith("phone:"):
+                case_signals[other_fir]["phones"].add(str(ent_label))
+                case_signals[other_fir]["confidence_weights"].append(0.90)
+            elif "VEHICLE" in ent_type or ent_id.startswith("vehicle:"):
+                case_signals[other_fir]["vehicles"].add(str(ent_label))
+                case_signals[other_fir]["confidence_weights"].append(0.88)
+            else:
+                case_signals[other_fir]["evidences"].add(str(ent_label))
+                case_signals[other_fir]["confidence_weights"].append(0.86)
+
+    # 2. POSTGRESQL MULTI-ENTITY ASSOCIATION QUERY: Check relational DB for shared entities
+    curr_cid = getattr(db_case, "id", None) or (c_dict.get("id") if c_dict else None)
+    if curr_cid and db:
+        cid_str = str(curr_cid)
+        try:
+            # 2a. Shared Persons
+            person_rows = db.execute(text("""
+                SELECT DISTINCT c.fir_number, p.name, cp_other.role
+                FROM case_persons cp_curr
+                JOIN case_persons cp_other ON cp_curr.person_id = cp_other.person_id
+                JOIN cases c ON cp_other.case_id = c.id
+                JOIN persons p ON cp_curr.person_id = p.id
+                WHERE cp_curr.case_id::text = :cid AND cp_other.case_id::text != :cid
+                LIMIT 10
+            """), {"cid": cid_str}).fetchall()
+            for r in person_rows:
+                rfir, pname, prole = str(r[0]), str(r[1]), str(r[2] or "ACCUSED")
+                if rfir.strip().upper() not in (target_fir_norm, target_clean_norm):
+                    _ensure_case(rfir)
+                    case_signals[rfir]["persons"].add(f"{pname} ({prole})")
+                    case_signals[rfir]["confidence_weights"].append(0.94 if prole == "ACCUSED" else 0.88)
+
+            # 2b. Shared Phones
+            phone_rows = db.execute(text("""
+                SELECT DISTINCT c.fir_number, ph.normalized_number
+                FROM case_phones cph_curr
+                JOIN case_phones cph_other ON cph_curr.phone_id = cph_other.phone_id
+                JOIN cases c ON cph_other.case_id = c.id
+                JOIN phones ph ON cph_curr.phone_id = ph.id
+                WHERE cph_curr.case_id::text = :cid AND cph_other.case_id::text != :cid
+                LIMIT 10
+            """), {"cid": cid_str}).fetchall()
+            for r in phone_rows:
+                rfir, pnum = str(r[0]), str(r[1])
+                if rfir.strip().upper() not in (target_fir_norm, target_clean_norm):
+                    _ensure_case(rfir)
+                    case_signals[rfir]["phones"].add(pnum)
+                    case_signals[rfir]["confidence_weights"].append(0.91)
+
+            # 2c. Shared Vehicles
+            veh_rows = db.execute(text("""
+                SELECT DISTINCT c.fir_number, v.registration_number
+                FROM case_vehicles cv_curr
+                JOIN case_vehicles cv_other ON cv_curr.vehicle_id = cv_other.vehicle_id
+                JOIN cases c ON cv_other.case_id = c.id
+                JOIN vehicles v ON cv_curr.vehicle_id = v.id
+                WHERE cv_curr.case_id::text = :cid AND cv_other.case_id::text != :cid
+                LIMIT 10
+            """), {"cid": cid_str}).fetchall()
+            for r in veh_rows:
+                rfir, vreg = str(r[0]), str(r[1])
+                if rfir.strip().upper() not in (target_fir_norm, target_clean_norm):
+                    _ensure_case(rfir)
+                    case_signals[rfir]["vehicles"].add(vreg)
+                    case_signals[rfir]["confidence_weights"].append(0.89)
+
+        except Exception as sql_err:
+            try:
+                db.rollback()
+            except Exception:
+                pass
+            logger.debug("PostgreSQL cross-case query notice: %s", sql_err)
+
+    # 3. SCORE & CONSTRUCT DETAILED INVESTIGATIVE EXPLANATIONS
+    all_shared_persons = set()
+    all_shared_phones = set()
+    all_shared_vehicles = set()
+
+    related_cases_list = []
+    for other_id, sig in case_signals.items():
+        p_set = sig["persons"]
+        ph_set = sig["phones"]
+        v_set = sig["vehicles"]
+        ev_set = sig["evidences"]
+        syn_set = sig["syndicate_links"]
+
+        all_shared_persons.update(p_set)
+        all_shared_phones.update(ph_set)
+        all_shared_vehicles.update(v_set)
+
+        parts = []
+        rel_type = "CROSS_STATION_LINK"
+
+        if p_set:
+            parts.append(f"Shared Suspect: {', '.join(sorted(list(p_set))[:2])}")
+            rel_type = "SHARED_PERSON"
+        if ph_set:
+            parts.append(f"Shared Telecom: {', '.join(sorted(list(ph_set))[:2])}")
+            if not p_set:
+                rel_type = "SHARED_TELECOM"
+        if v_set:
+            parts.append(f"Shared Vehicle: {', '.join(sorted(list(v_set))[:2])}")
+            if not p_set and not ph_set:
+                rel_type = "SHARED_VEHICLE"
+        if syn_set:
+            parts.append("Syndicate Modus Operandi Pattern Match")
+            rel_type = "SIMILAR_MODUS_OPERANDI"
+        if ev_set:
+            parts.append(f"Shared Evidence Vector: {', '.join(sorted(list(ev_set))[:2])}")
+
+        if not parts:
+            continue
+
+        if len([s for s in (p_set, ph_set, v_set, syn_set) if s]) >= 2:
+            rel_type = "MULTI_VECTOR_SYNDICATE"
+
+        explanation = " · ".join(parts)
+
+        active_weights = sig["confidence_weights"]
+        base_score = max(active_weights) if active_weights else 0.85
+        num_distinct_vectors = len([s for s in (p_set, ph_set, v_set, syn_set, ev_set) if s])
+        if num_distinct_vectors > 1:
+            confidence = min(0.98, base_score + 0.03 * (num_distinct_vectors - 1))
+        else:
+            confidence = base_score
+
+        confidence = round(confidence, 2)
+
+        related_cases_list.append({
+            "target_case_id": other_id,
+            "confidence_score": confidence,
+            "relationship_type": rel_type,
+            "explanation": explanation
+        })
+
+    # Sort descending by confidence score and cap to top 4
+    related_cases_list.sort(key=lambda x: x["confidence_score"], reverse=True)
+    capped_related = related_cases_list[:4]
+
+    shared_counts = {
+        "persons": len(all_shared_persons),
+        "phones": len(all_shared_phones),
+        "vehicles": len(all_shared_vehicles),
+        "locations": 0
+    }
+
+    return capped_related, shared_counts
 
 
 @router.get("/case/{case_id}", summary="Retrieves complete, database-driven workspace for a single unique case (READ-ONLY)")
@@ -389,48 +646,22 @@ def get_case_workspace(
         "connected_components": analytics_summary["connected_components"]
     }
 
-    # 8. Cross-Case Relationship Links (Extracted from Real Neo4j Edges)
-    cross_case_related = []
-    seen_related = set()
-    for e in edges_list:
-        rel_type = e.get("relationship", "")
-        # Find cases linked via SIMILAR_MODUS_OPERANDI, OCCURRED_AT, or shared entities
-        s_id = e.get("source", "")
-        t_id = e.get("target", "")
-        other_id = None
-        if s_id.startswith("case:") and s_id != n4j_search_id:
-            other_id = s_id.replace("case:", "")
-        elif t_id.startswith("case:") and t_id != n4j_search_id:
-            other_id = t_id.replace("case:", "")
+    # 8. Cross-Case Relationship Links (Genuine Entity & Syndicate Matches)
+    cross_case_related, shared_entity_counts = _find_genuine_cross_case_intelligence(
+        target_node_id=target_node_id,
+        fir_label=fir_label,
+        n4j_search_id=n4j_search_id,
+        nodes_list=nodes_list,
+        edges_list=edges_list,
+        db=db,
+        db_case=db_case,
+        c_dict=c_dict,
+        persons=persons,
+        phones=phones,
+        vehicles=vehicles
+    )
 
-        if other_id and other_id not in seen_related:
-            seen_related.add(other_id)
-            cross_case_related.append({
-                "target_case_id": other_id,
-                "confidence_score": e.get("weight", 0.88),
-                "relationship_type": rel_type or "SHARED_SYNDICATE_OVERLAP",
-                "explanation": e.get("explanation") or f"Direct graph connection via {rel_type or 'shared entities'}"
-            })
-
-    # If no graph edges yet, synthesize top district co-occurrences
-    if not cross_case_related and db_case:
-        try:
-            rel_recs = db.execute(text("""
-                SELECT fir_number, police_station, crime_type FROM cases
-                WHERE district = :dist AND id != :cid
-                LIMIT 3
-            """), {"dist": db_case.district, "cid": db_case.id}).fetchall()
-            for rr in rel_recs:
-                cross_case_related.append({
-                    "target_case_id": str(rr[0]),
-                    "confidence_score": 0.85,
-                    "relationship_type": "DISTRICT_PATTERN_CORRELATION",
-                    "explanation": f"Correlated {rr[2]} pattern reported at {rr[1]}"
-                })
-        except Exception:
-            pass
-
-    # 8. Investigation Events / Case Diary Timeline from PostgreSQL
+    # 9. Investigation Events / Case Diary Timeline from PostgreSQL
     events_list = []
     target_case_uuid = None
     if db_case:
@@ -504,12 +735,7 @@ def get_case_workspace(
         created_at_val = "2026-01-01T00:00:00Z"
         resolved_case_id = clean_id
 
-    # 9. Graph projection status — READ-ONLY classification, never triggers a write.
-    #    available:     Neo4j has a projected neighborhood for this case.
-    #    stale:         Neo4j has a projection, but the Postgres record was updated after it.
-    #    not_projected: Case exists in Postgres but has never been projected into Neo4j.
-    #    failed:        Reserved for the explicit POST .../project endpoint's response; a GET
-    #                    never reports "failed" or "processing" since it does no work itself.
+    # 10. Graph projection status — READ-ONLY classification, never triggers a write.
     if is_in_neo4j and nodes_list:
         last_projected_at = neo4j_graph_projection_service.get_case_projection_timestamp(n4j_search_id)
         graph_status = "available"
@@ -568,12 +794,7 @@ def get_case_workspace(
         "analytics": analytics_summary,
         "cross_case_intelligence": {
             "related_cases": cross_case_related,
-            "shared_counts": {
-                "persons": len(persons),
-                "phones": len(phones),
-                "vehicles": len(vehicles),
-                "locations": len(locations)
-            }
+            "shared_counts": shared_entity_counts
         },
         "events": events_list,
         "patterns": pattern_findings,
