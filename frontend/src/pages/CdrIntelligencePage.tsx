@@ -146,7 +146,7 @@ export function CdrIntelligencePage() {
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                     : 'bg-accent/15 dark:bg-[#38BDF8]/15 border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]'
                 }`}>
-                  {isUserUploaded ? 'USER-PROVIDED CDR' : 'CCTNS-ALIGNED CDR TELEMETRY'}
+                  {isUserUploaded ? 'USER-PROVIDED CDR' : 'STRUCTURED CASE CDR TELEMETRY'}
                 </span>
               </div>
               <p className="text-xs text-text-dim dark:text-[#94A3B8] font-mono mt-0.5">

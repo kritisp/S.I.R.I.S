@@ -87,7 +87,7 @@ export function SupervisorAssignmentPage() {
 
   const handleAssign = (firNumber: string, officerName: string) => {
     setCases((prev) => prev.filter((c) => c.fir_number !== firNumber));
-    setToastMessage(`Assigned ${firNumber} to ${officerName}. CCTNS docket updated.`);
+    setToastMessage(`Assigned ${firNumber} to ${officerName}. Station docket updated.`);
     setSelectedCase(cases.find((c) => c.fir_number !== firNumber) || null);
     setTimeout(() => setToastMessage(''), 4500);
   };

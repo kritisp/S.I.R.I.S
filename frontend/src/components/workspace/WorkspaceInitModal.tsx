@@ -69,7 +69,7 @@ export function WorkspaceInitModal({ isOpen, onClose }: WorkspaceInitModalProps)
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-mono font-bold text-text uppercase tracking-wider">NEW INVESTIGATION WORKSPACE</h2>
-                <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">CCTNS 2.0</span>
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/30">S.I.R.I.S. V2</span>
               </div>
               <p className="text-[11px] font-mono text-text-dim mt-0.5">Initialize a multi-modal investigation dossier</p>
             </div>

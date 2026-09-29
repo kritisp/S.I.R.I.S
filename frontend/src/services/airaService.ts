@@ -277,9 +277,9 @@ export function processAiraQuery(query: string, context: AiraContext): AiraRespo
   if (q.includes('vehicle thefts in bhubaneswar')) {
     return {
       intent: 'VEHICLE_THEFT_ANALYSIS',
-      response: "Here is the CCTNS Crime Report for Vehicle Thefts in Bhubaneswar Urban.",
+      response: "Here is the S.I.R.I.S. Crime Report for Vehicle Thefts in Bhubaneswar Urban.",
       structuredData: {
-        title: "CCTNS Crime Report: Vehicle Theft",
+        title: "S.I.R.I.S. Crime Report: Vehicle Theft",
         stats: [
           { label: "Total Registered Dockets", value: "142 cases indexed across Bhubaneswar Urban." },
           { label: "Primary Crime Distribution", value: "Two-Wheeler Theft (98), Car Jacking (22), Commercial (15)." },
@@ -317,9 +317,9 @@ export function processAiraQuery(query: string, context: AiraContext): AiraRespo
   if (q.includes('ଗତ ମାସର') || q.includes('ଡକାୟତି ମାମଲା')) {
     return {
       intent: 'ODIA_CASE_QUERY',
-      response: "Here is the CCTNS Crime Report for Robberies in Cuttack-Bhubaneswar.",
+      response: "Here is the S.I.R.I.S. Crime Report for Robberies in Cuttack-Bhubaneswar.",
       structuredData: {
-        title: "CCTNS Crime Report: Robbery (ଡକାୟତି)",
+        title: "S.I.R.I.S. Crime Report: Robbery (ଡକାୟତି)",
         stats: [
           { label: "Total Registered Dockets", value: "୪୫ଟି ଡକାୟତି ମାମଲା (45 Robbery Cases)." },
           { label: "Top Affected Districts", value: "Bhubaneswar Urban, Cuttack Sadar, Khordha." },
@@ -395,9 +395,9 @@ export function processAiraQuery(query: string, context: AiraContext): AiraRespo
   if (q.includes('fir-2026-bbsr-4921')) {
     return {
       intent: 'SPECIFIC_CASE_INSPECT',
-      response: "Here is the CCTNS Docket Viewer for FIR-2026-BBSR-4921.",
+      response: "Here is the Case Docket Viewer for FIR-2026-BBSR-4921.",
       structuredData: {
-        title: "CCTNS Docket Viewer: FIR-2026-BBSR-4921",
+        title: "Case Docket Viewer: FIR-2026-BBSR-4921",
         stats: [
           { label: "Case Title", value: "Commercial Burglary & Pass-Through Money Trail" },
           { label: "Jurisdiction", value: "Khandagiri PS (Code: OP-KHD-01)" },

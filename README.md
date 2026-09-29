@@ -15,7 +15,7 @@
 
 **S.I.R.I.S.** (*Smart Intelligence for Real-time Investigation Support*) is an AI-assisted criminal investigation and crime intelligence platform developed by **Team Tattvas**.
 
-In modern law enforcement, critical investigative information is fragmented across disparate dockets, station registries, phone records, vehicle logs, and digital evidence lockers. S.I.R.I.S. operates as an **analytical intelligence layer alongside existing police infrastructure (such as CCTNS/ICJS)** to discover non-obvious multi-hop relationships, surface cross-case linkages, match Modus Operandi (MO), retrieve applicable Bharatiya Nyaya Sanhita (BNS 2023) provisions, and maintain tamper-evident evidence chains.
+In modern law enforcement, critical investigative information is fragmented across disparate dockets, station registries, phone records, vehicle logs, and digital evidence lockers. S.I.R.I.S. operates as an **advanced analytical intelligence layer** to discover non-obvious multi-hop relationships, surface cross-case linkages, match Modus Operandi (MO), retrieve applicable Bharatiya Nyaya Sanhita (BNS 2023) provisions, and maintain tamper-evident evidence chains.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────┐
@@ -293,7 +293,7 @@ To maintain legal and technical integrity, the following boundaries are enforced
 2. **No Live Telecom Wiretap**: CDR analysis functions on structured, lawful historical call detail records provided pursuant to formal Section 91 CrPC notices.
 3. **No Direct Banking Hack/Bypass**: Financial flow tracking is computed over structured bank statement exports and mule accounts provided by nodal authorities.
 4. **No Live Police CCTV Interception**: ANPR and camera tracking operate over structured optical logs and timestamps provided by authorized traffic monitoring cells.
-5. **No CCTNS Replacement**: S.I.R.I.S. is designed to integrate as an analytical layer alongside CCTNS and ICJS, not as a replacement for statutory government registries.
+5. **Specialized Analytical Intelligence Focus**: S.I.R.I.S. is specialized for multi-hop graph intelligence, criminal network discovery, and legal RAG support rather than serving as a basic static document store.
 
 ---
 

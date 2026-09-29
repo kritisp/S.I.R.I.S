@@ -720,7 +720,7 @@ export function NetworkExplorer() {
               <div className="flex items-center justify-between text-[9px] font-mono text-stone-600 dark:text-stone-400 border-b border-stone-400 pb-1 uppercase tracking-wider">
                 <span>VOL. LXXIV NO. 28,491</span>
                 <span className="font-bold text-stone-900 dark:text-white">ODISHA STATE POLICE · INTELLIGENCE DISPATCH</span>
-                <span>VERIFIED CCTNS MATRIX</span>
+                <span>S.I.R.I.S. INTELLIGENCE MATRIX</span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-black font-serif tracking-tight uppercase text-stone-900 dark:text-stone-100 py-1">
                 THE ODISHA POLICE GAZETTE
@@ -741,9 +741,9 @@ export function NetworkExplorer() {
                     title: 'ODISHA CID REVIEW PROGRAM — SUBJECT DOSSIER',
                     type: 'OFFICIAL POLICE DOSSIER',
                     mugshot: selectedSyndicate.kingpin.mugshot,
-                    content: `Subject ${selectedSyndicate.kingpin.name} (Alias: "${selectedSyndicate.kingpin.alias}") operating corridor: ${selectedSyndicate.primary_corridor}. Threat Level: ${selectedSyndicate.threat_level} (${selectedSyndicate.risk_score}%). Non-bailable warrants active under CCTNS.`,
+                    content: `Subject ${selectedSyndicate.kingpin.name} (Alias: "${selectedSyndicate.kingpin.alias}") operating corridor: ${selectedSyndicate.primary_corridor}. Threat Level: ${selectedSyndicate.threat_level} (${selectedSyndicate.risk_score}%). Non-bailable warrants active in State Crime Records.`,
                     date: '21 Aug 2026',
-                    stamp: 'VERIFIED CCTNS'
+                    stamp: 'VERIFIED S.I.R.I.S.'
                   })}
                   className="bg-[#fcfaf5] dark:bg-[#1f2227] text-stone-950 dark:text-stone-100 p-4 rounded-xl shadow-xl border border-stone-400 text-xs transform rotate-[-3.5deg] cursor-pointer hover:rotate-0 hover:scale-102 transition-all relative"
                 >
@@ -870,10 +870,10 @@ export function NetworkExplorer() {
 
             </div>
 
-            {/* Bottom CCTNS Linked FIR Dockets */}
+            {/* Bottom Linked FIR Dockets */}
             <div className="mt-6 pt-4 border-t-2 border-black dark:border-stone-500 font-mono">
               <span className="font-bold text-xs uppercase tracking-wider text-stone-900 dark:text-white block mb-3">
-                CCTNS LINKED CASE DOCKETS ({selectedSyndicate.connected_firs.length})
+                LINKED CASE DOCKETS ({selectedSyndicate.connected_firs.length})
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1087,7 +1087,7 @@ export function NetworkExplorer() {
                 Cross-District Criminal Syndicate Nexus Matrix
               </h3>
               <p className="text-xs text-text-dim mt-0.5">
-                Inter-state crime nexus, financial volume, corridor tracking & linked CCTNS evidence
+                Inter-state crime nexus, financial volume, corridor tracking & linked evidence records
               </p>
             </div>
             <span className="text-xs font-mono text-brand font-bold bg-brand/10 px-3 py-1 rounded-xl border border-brand/20 self-start sm:self-auto">
@@ -1162,11 +1162,11 @@ export function NetworkExplorer() {
                         onClick={() => {
                           setSelectedSyndicate(syn);
                           setSelectedEvidenceModal({
-                            title: `CCTNS CASE DOSSIER — ${syn.connected_firs[0].case_number}`,
+                            title: `CASE DOSSIER — ${syn.connected_firs[0].case_number}`,
                             type: 'CRITICAL CASE DOCKET',
                             content: `Case Number: ${syn.connected_firs[0].case_number} · ${syn.connected_firs[0].crime} (${syn.connected_firs[0].station}). Status: ${syn.connected_firs[0].status}. Note: ${syn.connected_firs[0].note}`,
                             date: syn.connected_firs[0].date,
-                            stamp: 'CCTNS SYNCED'
+                            stamp: 'S.I.R.I.S. VERIFIED'
                           });
                         }}
                         className="whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-brand text-white hover:bg-brand-bright font-bold text-xs transition-all cursor-pointer shadow-2xs"

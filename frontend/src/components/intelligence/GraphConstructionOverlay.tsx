@@ -109,7 +109,7 @@ export function GraphConstructionOverlay({ isOpen, onComplete, caseTarget }: Gra
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-brand uppercase tracking-wider">CCTNS 2.0 INTELLIGENCE ENGINE</span>
+                <span className="text-xs font-mono font-bold text-brand uppercase tracking-wider">S.I.R.I.S. INTELLIGENCE ENGINE</span>
                 <span className="px-2 py-0.5 rounded bg-brand/20 text-brand text-[10px] font-mono font-bold border border-brand/30">
                   STAGE {stage} / 5
                 </span>

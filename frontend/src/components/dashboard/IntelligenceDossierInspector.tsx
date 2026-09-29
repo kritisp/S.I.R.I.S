@@ -112,7 +112,7 @@ export function IntelligenceDossierInspector({
 
           <div className="flex justify-between items-center py-0.5">
             <span className="text-text-dim dark:text-[#64748B] uppercase">Last Seen</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">24 Sep 2026 · CCTNS-II</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">24 Sep 2026 · S.I.R.I.S. Docket</span>
           </div>
         </div>
 

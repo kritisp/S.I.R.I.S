@@ -161,7 +161,7 @@ export function Analytics() {
                   CRIME INTELLIGENCE & TELEMETRY
                 </h1>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-accent/15 dark:bg-[#38BDF8]/15 border border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]">
-                  STATEWIDE CCTNS
+                  STATEWIDE REPOSITORY
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -215,7 +215,7 @@ export function Analytics() {
           </div>
           <div className="mt-2.5 pt-2 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between text-[10px] text-text-dim dark:text-[#94A3B8]">
             <span>Statewide Repository</span>
-            <span className="text-accent dark:text-[#38BDF8] font-bold">CCTNS v4.2</span>
+            <span className="text-accent dark:text-[#38BDF8] font-bold">S.I.R.I.S. v2.4</span>
           </div>
         </div>
 
@@ -390,7 +390,7 @@ export function Analytics() {
                 Crime Classification Matrix
               </h3>
               <p className="text-[11px] text-text-dim dark:text-[#94A3B8] font-mono">
-                Statutory categories across active CCTNS records
+                Statutory categories across active investigation records
               </p>
             </div>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent/10 dark:bg-[#38BDF8]/10 text-accent dark:text-[#38BDF8] border border-accent/20 dark:border-[#38BDF8]/20 font-bold">

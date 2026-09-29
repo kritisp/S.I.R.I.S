@@ -73,7 +73,7 @@ export function BlockchainAuditTerminal() {
         </div>
 
         <div className="pt-2 border-t border-border-soft dark:border-[#1E293B]/70 mt-2 flex items-center justify-between text-[10px]">
-          <span className="text-text-dim dark:text-[#64748B]">CCTNS-II CERTIFICATE</span>
+          <span className="text-text-dim dark:text-[#64748B]">S.I.R.I.S. AUDIT CERTIFICATE</span>
           <Link to="/reports" className="text-accent dark:text-[#38BDF8] hover:underline font-bold flex items-center gap-0.5">
             <span>Export Official Diary</span>
             <ArrowUpRight size={11} />

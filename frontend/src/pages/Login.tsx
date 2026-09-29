@@ -431,7 +431,7 @@ export function Login() {
           {/* Quick Credential Hint */}
           <div className="mt-4 p-2.5 rounded-lg bg-[#0A0E17]/80 border border-[#263244] text-[10.5px] font-mono text-[#94A3B8] space-y-1">
             <div className="text-[#D1A33A] font-bold flex items-center gap-1">
-              <BadgeCheck size={12} /> CCTNS 2.0 Security Compliance
+              <BadgeCheck size={12} /> S.I.R.I.S. Security Compliance
             </div>
             <div>
               Station Isolation Active: Investigating officers only access their jurisdiction dockets. Inter-station dockets require Section 91 CrPC sanction.
@@ -675,7 +675,7 @@ function RoleSelectionScreen({ onSelect, onOpenRoster }: { onSelect: (role: User
             Smart Intelligence for Real Time Investigation Support
           </p>
           <p className="text-white/60 font-mono text-[11px] tracking-[0.2em] uppercase mt-2">
-            Odisha Police State Crime Intelligence & CCTNS 2.0 Integration
+            Odisha Police State Crime Intelligence Platform
           </p>
         </div>
 

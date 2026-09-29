@@ -78,12 +78,12 @@ export function StationOperationalHeader({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#B88922] dark:text-[#D1A33A] bg-[#B88922]/10 dark:bg-[#B88922]/15 px-2 py-0.5 rounded border border-[#B88922]/30">
-                {user?.role === 'OFFICER' ? 'IO INVESTIGATION DESK' : user?.role === 'STATION_ADMIN' ? 'STATION IIC COMMAND' : 'GOVT OF ODISHA · CCTNS 2.0'}
+                {user?.role === 'OFFICER' ? 'IO INVESTIGATION DESK' : user?.role === 'STATION_ADMIN' ? 'STATION IIC COMMAND' : 'ODISHA STATE POLICE INTELLIGENCE COMMAND'}
               </span>
               
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                CCTNS & ICJS GRID SYNCED
+                S.I.R.I.S. INTELLIGENCE GRID ACTIVE
               </span>
 
               <span className="text-[9px] font-mono font-medium text-text-dim dark:text-[#94A3B8] px-1.5 py-0.2 rounded bg-surface-2 dark:bg-[#131B2E] border border-border-soft dark:border-[#1E293B]">

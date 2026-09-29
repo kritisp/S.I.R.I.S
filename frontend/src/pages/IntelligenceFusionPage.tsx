@@ -44,7 +44,7 @@ export function IntelligenceFusionPage() {
                   INTELLIGENCE FUSION CENTER
                 </h1>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-accent/15 dark:bg-[#38BDF8]/15 border border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]">
-                  CCTNS 2.0 MATRIX
+                  S.I.R.I.S. MATRIX
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-rose-500/10 border border-rose-500/30 text-rose-400">
                   {PRIMARY_DEMO_CASE.caseNumber}

@@ -37,7 +37,7 @@ const SERVICES: ServiceStatus[] = [
     healthMetric: 'Operational · Custody verified',
   },
   {
-    name: 'CCTNS-II Data Gateway',
+    name: 'S.I.R.I.S. State Data Gateway',
     role: 'State police network interface',
     status: 'CONNECTED',
     healthMetric: 'Connected · Station link active',

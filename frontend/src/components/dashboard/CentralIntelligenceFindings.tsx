@@ -194,7 +194,7 @@ export function CentralIntelligenceFindings({ cases: propsCases }: CentralIntell
 
       {/* Footer Navigation */}
       <div className="pt-3 mt-3 border-t border-border-soft dark:border-[#1E293B] flex items-center justify-between font-mono text-[11px]">
-        <span className="text-text-dim dark:text-[#64748B]">Station intelligence verified against Odisha CCTNS database</span>
+        <span className="text-text-dim dark:text-[#64748B]">Station intelligence cross-referenced across S.I.R.I.S. database</span>
         <button
           onClick={() => navigate('/network')}
           className="text-accent dark:text-[#38BDF8] hover:underline flex items-center gap-1 font-bold cursor-pointer"

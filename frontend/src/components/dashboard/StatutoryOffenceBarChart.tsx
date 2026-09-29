@@ -155,7 +155,7 @@ export function StatutoryOffenceBarChart({ cases = [] }: StatutoryOffenceBarChar
 
       {/* Footer Info */}
       <div className="pt-2 border-t border-border-soft flex items-center justify-between text-[10px] font-mono text-text-dim">
-        <span>Verified against State CCTNS Repository</span>
+        <span>Verified against S.I.R.I.S. State Repository</span>
         {chartData[0] && (
           <span>
             Leading: <strong>{chartData[0].offence}</strong> ({chartData[0].count})

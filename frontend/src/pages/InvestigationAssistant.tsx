@@ -120,7 +120,7 @@ export function InvestigationAssistant() {
                 </div>
                 <h2 className="text-xl sm:text-2xl font-mono font-bold text-text dark:text-[#F8FAFC]">How can S.I.R.I.S assist today?</h2>
                 <p className="text-text-dim dark:text-[#94A3B8] text-xs max-w-xl">
-                  Query CCTNS crime datastores, parse FIR documents, inspect suspects, or run ANPR lookups in English, <span className="font-bold text-text dark:text-[#F8FAFC]">ଓଡ଼ିଆ (Odia)</span>, or <span className="font-bold text-text dark:text-[#F8FAFC]">हिंदी</span>.
+                  Query investigation datastores, parse FIR documents, inspect suspects, or run ANPR lookups in English, <span className="font-bold text-text dark:text-[#F8FAFC]">ଓଡ଼ିଆ (Odia)</span>, or <span className="font-bold text-text dark:text-[#F8FAFC]">हिंदी</span>.
                 </p>
               </div>
 
@@ -271,7 +271,7 @@ export function InvestigationAssistant() {
                       {msg.structuredData.connectedDockets && (
                         <div className="mt-4 pt-3 border-t border-border-soft dark:border-[#1E293B]">
                           <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-accent dark:text-[#38BDF8] mb-2">
-                            Connected CCTNS Case Dockets ({msg.structuredData.connectedDockets.length}):
+                            Connected Case Dockets ({msg.structuredData.connectedDockets.length}):
                           </div>
                           <div className="space-y-2">
                             {msg.structuredData.connectedDockets.map((docket: any, dIdx: number) => (

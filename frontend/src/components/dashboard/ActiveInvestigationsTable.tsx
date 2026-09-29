@@ -88,7 +88,7 @@ export function ActiveInvestigationsTable({
               </span>
             </h3>
             <p className="text-[11px] text-text-dim">
-              Verified CCTNS First Information Reports under station jurisdiction
+              Verified First Information Reports under station jurisdiction
             </p>
           </div>
         </div>

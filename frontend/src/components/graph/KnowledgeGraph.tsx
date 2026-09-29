@@ -654,7 +654,7 @@ export function KnowledgeGraph({
           <span>RENDERED: {stats.entityCount} NODES · {stats.edgeCount} LINKS</span>
         </div>
         <div>
-          <span>CCTNS-II SYNC: ONLINE</span>
+          <span>S.I.R.I.S. GRAPH SYNC: ONLINE</span>
         </div>
       </div>
     </div>

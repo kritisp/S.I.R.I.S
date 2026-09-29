@@ -27,7 +27,7 @@ export function AnomalyRadarPage() {
                   ANOMALY RADAR
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-accent/15 dark:bg-[#38BDF8]/15 border border-accent/30 dark:border-[#38BDF8]/30 text-accent dark:text-[#38BDF8]">
-                  ACTIVE CCTNS SCANNER
+                  ACTIVE TELEMETRY SCANNER
                 </span>
               </div>
               <p className="text-xs text-text-dim dark:text-[#94A3B8] font-mono mt-0.5">
