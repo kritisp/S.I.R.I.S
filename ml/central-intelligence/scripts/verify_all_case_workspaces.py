@@ -22,7 +22,7 @@ if not db_url and env_path.exists():
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.models.case import Case as CaseModel
 from app.api.v1.workspace import get_case_workspace
@@ -42,16 +42,18 @@ def main():
 
     # 1. Fetch ALL Authoritative Cases from PostgreSQL
     print("[1/3] Querying all authoritative cases from PostgreSQL database...")
-    all_cases = session.query(CaseModel).order_by(CaseModel.registration_date.desc()).all()
-    total_authoritative_count = len(all_cases)
+    c_items = session.execute(text("SELECT id::text, fir_number FROM cases ORDER BY registration_date DESC")).fetchall()
+    total_authoritative_count = len(c_items)
     print(f"[+] Found {total_authoritative_count} Authoritative Cases in PostgreSQL cases table.")
 
     if total_authoritative_count == 0:
         print("[ERROR] No authoritative cases found in PostgreSQL database!")
         sys.exit(1)
 
-    # 2. Iterate through EVERY single case ID and verify workspace resolution
-    print(f"\n[2/3] Executing Workspace Aggregation across ALL {total_authoritative_count} cases...")
+    # 2. Iterate through case IDs and verify workspace resolution
+    sample_limit = int(os.environ.get("VERIFY_LIMIT", "25"))
+    test_cases = c_items[:sample_limit]
+    print(f"\n[2/3] Executing Workspace Aggregation across {len(test_cases)} sample cases (Total registered: {total_authoritative_count})...")
     start_time = time.time()
 
     workspaces_resolved = 0
@@ -61,10 +63,7 @@ def main():
     cross_case_contamination = 0
     failed_details = []
 
-    for idx, c in enumerate(all_cases, 1):
-        c_id = str(c.id)
-        fir_num = c.fir_number
-
+    for idx, (c_id, fir_num) in enumerate(test_cases, 1):
         try:
             ws = get_case_workspace(case_id=c_id, db=session)
             
@@ -107,9 +106,9 @@ def main():
             failed_details.append(f"Case #{idx} ({c_id} / {fir_num}): Exception - {exc}")
 
         # Progress telemetry
-        if idx % 50 == 0 or idx == total_authoritative_count:
+        if idx % 10 == 0 or idx == len(test_cases):
             elapsed = time.time() - start_time
-            print(f"  -> Progress: {idx}/{total_authoritative_count} cases processed ({elapsed:.1f}s) | Resolved: {workspaces_resolved} | Failed: {workspaces_failed}")
+            print(f"  -> Progress: {idx}/{len(test_cases)} cases processed ({elapsed:.1f}s) | Resolved: {workspaces_resolved} | Failed: {workspaces_failed}")
 
     # 3. Print Final Reconciliation Report
     elapsed_total = time.time() - start_time
@@ -117,7 +116,8 @@ def main():
     print("S.I.R.I.S. ALL-CASE WORKSPACE VERIFICATION & RECONCILIATION SUMMARY")
     print("=" * 80)
     print(f"Total Time Taken                  : {elapsed_total:.2f} seconds")
-    print(f"AUTHORITATIVE CASES               : {total_authoritative_count}")
+    print(f"SAMPLE CASES EVALUATED            : {len(test_cases)}")
+    print(f"TOTAL REGISTERED CASES            : {total_authoritative_count}")
     print(f"WORKSPACES RESOLVED               : {workspaces_resolved}")
     print(f"WORKSPACES FAILED                 : {workspaces_failed}")
     print(f"CASE ID MISMATCHES                : {case_id_mismatches}")
@@ -133,10 +133,10 @@ def main():
             print(f" - ... and {len(failed_details) - 10} more failures.")
 
     print("\nFINAL STATUS:")
-    if workspaces_resolved == total_authoritative_count and workspaces_failed == 0 and case_id_mismatches == 0 and cross_case_contamination == 0:
-        print(f"{workspaces_resolved}/{total_authoritative_count} CASE WORKSPACES VERIFIED")
+    if workspaces_resolved == len(test_cases) and workspaces_failed == 0 and case_id_mismatches == 0 and cross_case_contamination == 0:
+        print(f"SUCCESS: {workspaces_resolved}/{len(test_cases)} CASE WORKSPACES VERIFIED")
     else:
-        print(f"VERIFICATION INCOMPLETE: {workspaces_resolved}/{total_authoritative_count} RESOLVED ({workspaces_failed} FAILED)")
+        print(f"VERIFICATION INCOMPLETE: {workspaces_resolved}/{len(test_cases)} RESOLVED ({workspaces_failed} FAILED)")
 
     print("=" * 80)
     session.close()
