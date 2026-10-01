@@ -8,7 +8,7 @@
  */
 
 const BASE_URL = import.meta.env.VITE_INTEL_SERVICE_URL || 'https://siris-backend-duzn.onrender.com/api/v1/graph';
-const TIMEOUT_MS = 60000; // Increased to 60s to allow Render free-tier cold starts
+const TIMEOUT_MS = 90000; // 90s to accommodate Render free-tier cold starts + Neo4j Aura cloud connection
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -122,18 +122,36 @@ export interface ExtractResult {
 
 // ─── HTTP Helper ─────────────────────────────────────────────────────────────
 
-async function fetchWithTimeout<T>(url: string, options: RequestInit = {}): Promise<T | null> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(timer);
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    clearTimeout(timer);
-    return null;
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithTimeout<T>(url: string, options: RequestInit = {}, maxRetries = 1): Promise<T | null> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      if (res.ok) {
+        return (await res.json()) as T;
+      }
+      // If server returned cold-start gateway error (502/503/504), retry once after delay
+      if ([502, 503, 504].includes(res.status) && attempt < maxRetries) {
+        await sleep(2000);
+        continue;
+      }
+      return null;
+    } catch (err: any) {
+      clearTimeout(timer);
+      if (attempt < maxRetries) {
+        await sleep(2000);
+        continue;
+      }
+      return null;
+    }
   }
+  return null;
 }
 
 /** Thrown by getCaseWorkspace()/projectCaseToGraph() so callers can distinguish
@@ -148,31 +166,52 @@ export class WorkspaceApiError extends Error {
 }
 
 /** Fetch that preserves HTTP status / distinguishes network failure from a real error
- * response, instead of collapsing everything to null like fetchWithTimeout(). */
-async function fetchStatusAware<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  let res: Response;
-  try {
-    res = await fetch(url, { ...options, signal: controller.signal });
-  } catch (err: any) {
-    clearTimeout(timer);
-    throw new WorkspaceApiError(
-      err?.name === 'AbortError' ? 'Central intelligence service timed out.' : `Central intelligence service unreachable: ${err?.message || err}`
-    );
-  }
-  clearTimeout(timer);
-  if (!res.ok) {
-    let detail = '';
+ * response, with automatic retry for cold-start timeouts and gateway 502/503/504 errors. */
+async function fetchStatusAware<T>(url: string, options: RequestInit = {}, maxRetries = 2): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    let res: Response;
     try {
-      const body = await res.json();
-      detail = typeof body?.detail === 'string' ? body.detail : JSON.stringify(body?.detail ?? body);
-    } catch {
-      // response body wasn't JSON; fall through with empty detail
+      res = await fetch(url, { ...options, signal: controller.signal });
+    } catch (err: any) {
+      clearTimeout(timer);
+      const isTimeout = err?.name === 'AbortError';
+      lastError = new WorkspaceApiError(
+        isTimeout ? 'Central intelligence service timed out.' : `Central intelligence service unreachable: ${err?.message || err}`
+      );
+      if (attempt < maxRetries) {
+        // Render cold start might take a moment — wait 2s before retry
+        await sleep(2000);
+        continue;
+      }
+      throw lastError;
     }
-    throw new WorkspaceApiError(detail || `Request failed with status ${res.status}`, res.status);
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      // If 502/503/504 from reverse proxy / Render cold start, retry before failing
+      if ([502, 503, 504].includes(res.status) && attempt < maxRetries) {
+        await sleep(2000);
+        continue;
+      }
+
+      let detail = '';
+      try {
+        const body = await res.json();
+        detail = typeof body?.detail === 'string' ? body.detail : JSON.stringify(body?.detail ?? body);
+      } catch {
+        // response body wasn't JSON; fall through with empty detail
+      }
+      throw new WorkspaceApiError(detail || `Request failed with status ${res.status}`, res.status);
+    }
+
+    return (await res.json()) as T;
   }
-  return (await res.json()) as T;
+
+  throw lastError || new WorkspaceApiError('Central intelligence service unavailable.');
 }
 
 // ─── Service API ──────────────────────────────────────────────────────────────
@@ -272,14 +311,21 @@ export const graphIntelligenceService = {
   },
 
   /**
-   * Check if the graph intelligence service is reachable.
+   * Non-blocking background ping to wake up free-tier cloud containers (Render / FastAPI).
    */
+  warmup(): void {
+    const healthUrl = `${BASE_URL.replace('/graph', '')}/health`;
+    fetch(healthUrl, { mode: 'cors' }).catch(() => {
+      // Non-blocking fire-and-forget
+    });
+  },
+
   /**
    * Check if the graph intelligence service is reachable.
    */
   async isReachable(): Promise<boolean> {
     try {
-      const res = await fetch(`${BASE_URL.replace('/graph', '')}/health`, { signal: AbortSignal.timeout(8000) });
+      const res = await fetch(`${BASE_URL.replace('/graph', '')}/health`, { signal: AbortSignal.timeout(10000) });
       return res.ok;
     } catch {
       return false;

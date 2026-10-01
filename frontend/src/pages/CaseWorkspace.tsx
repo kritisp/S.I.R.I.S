@@ -47,8 +47,22 @@ export function CaseWorkspace() {
 
   const [workspaceData, setWorkspaceData] = useState<CaseWorkspaceData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [coldStartWarning, setColdStartWarning] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState<boolean>(false);
+
+  // Cold-start timer: If loading takes longer than 3.5s, inform investigator about cloud container spin-up
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (loading) {
+      timer = setTimeout(() => {
+        setColdStartWarning(true);
+      }, 3500);
+    } else {
+      setColdStartWarning(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'graph' | 'analytics' | 'evidence' | 'legal' | 'reports'>('overview');
 
@@ -320,18 +334,26 @@ export function CaseWorkspace() {
   if (loading) {
     return (
       <div className="max-w-[1520px] mx-auto p-4 sm:p-6 space-y-4 font-sans select-none text-text dark:text-[#F8FAFC]">
-        <div className="p-10 rounded-xl text-center border border-border-soft dark:border-[#1E293B] bg-surface dark:bg-[#0B0F17] shadow-xs animate-pulse space-y-4">
+        <div className="p-10 rounded-xl text-center border border-border-soft dark:border-[#1E293B] bg-surface dark:bg-[#0B0F17] shadow-xs space-y-4">
           <div className="relative inline-flex">
             <Bot className="animate-spin text-accent dark:text-[#38BDF8]" size={36} />
             <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent dark:bg-[#38BDF8] rounded-full animate-ping" />
           </div>
           <div>
             <h2 className="text-base font-bold text-text dark:text-[#F8FAFC] font-mono uppercase tracking-wider">
-              Loading Case Workspace Data...
+              {coldStartWarning ? "Connecting to Cloud Intelligence Engine..." : "Loading Case Workspace Data..."}
             </h2>
-            <p className="text-xs font-mono text-text-dim dark:text-[#94A3B8] mt-1.5 max-w-md mx-auto">
-              Aggregating PostgreSQL authoritative records, Neo4j investigation graph, NetworkX analytics & intelligence engines for <span className="text-accent dark:text-[#38BDF8] font-bold">{id}</span>
+            <p className="text-xs font-mono text-text-dim dark:text-[#94A3B8] mt-1.5 max-w-lg mx-auto leading-relaxed">
+              {coldStartWarning
+                ? "Free-tier cloud backend is waking up (takes ~20-30s on initial spin-up). Establishing PostgreSQL & Neo4j Aura secure links..."
+                : `Aggregating PostgreSQL authoritative records, Neo4j investigation graph, NetworkX analytics & intelligence engines for case ${id}`}
             </p>
+            {coldStartWarning && (
+              <div className="mt-4 flex items-center justify-center gap-2 text-[11px] font-mono text-accent dark:text-[#38BDF8]">
+                <Activity size={14} className="animate-pulse" />
+                <span>Synchronizing Cloud Graph Nodes & Evidence Trails...</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LanguageProvider } from './context/LanguageContext';
+import { graphIntelligenceService } from './services/graphIntelligenceService';
 
 // SIH Layout & Pages
 import { SIHLayout } from './components/layout/SIHLayout';
@@ -86,6 +88,11 @@ function AuditReportsRouter() {
 }
 
 function App() {
+  useEffect(() => {
+    // Non-blocking pre-warm ping to spin up Render free-tier instance early
+    graphIntelligenceService.warmup();
+  }, []);
+
   return (
     <BrowserRouter>
       <ErrorBoundary>
