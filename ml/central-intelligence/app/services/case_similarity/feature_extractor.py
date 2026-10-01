@@ -1,4 +1,5 @@
 import re
+import uuid
 from datetime import date, datetime, time
 from typing import Any, Dict, List, Optional
 from app.models.case import Case
@@ -169,17 +170,22 @@ class CaseFeatureExtractor:
             for vasoc in case.vehicle_associations:
                 v = vasoc.vehicle
                 if v:
-                    norm_v = EntityNormalizationService.normalize_vehicle(v.registration_number)
+                    reg_num = getattr(v, "registration_number", str(v))
+                    v_id = str(getattr(v, "id", getattr(vasoc, "vehicle_id", uuid.uuid4())))
+                    v_type = getattr(v, "vehicle_type", None)
+                    v_make = getattr(v, "make", None)
+                    v_model = getattr(v, "model", None)
+                    norm_v = EntityNormalizationService.normalize_vehicle(reg_num)
                     role_str = vasoc.role.value if hasattr(vasoc.role, "value") else str(vasoc.role)
                     vehicles.append(
                         ExtractedVehicleEntity(
-                            vehicle_id=str(v.id),
-                            registration_number=v.registration_number,
+                            vehicle_id=v_id,
+                            registration_number=reg_num,
                             normalized_reg=norm_v.normalized_value,
                             role=role_str,
-                            vehicle_type=v.vehicle_type,
-                            make=v.make,
-                            model=v.model
+                            vehicle_type=v_type,
+                            make=v_make,
+                            model=v_model
                         )
                     )
 
@@ -188,11 +194,13 @@ class CaseFeatureExtractor:
             for phasoc in case.phone_associations:
                 ph = phasoc.phone
                 if ph:
-                    norm_ph = EntityNormalizationService.normalize_phone(ph.normalized_number)
+                    raw_num = getattr(ph, "normalized_number", str(ph))
+                    ph_id = str(getattr(ph, "id", getattr(phasoc, "phone_id", uuid.uuid4())))
+                    norm_ph = EntityNormalizationService.normalize_phone(raw_num)
                     phones.append(
                         ExtractedPhoneEntity(
-                            phone_id=str(ph.id),
-                            raw_number=ph.normalized_number,
+                            phone_id=ph_id,
+                            raw_number=raw_num,
                             normalized_e164=norm_ph.normalized_value,
                             is_valid=norm_ph.metadata.get("is_valid", True)
                         )
