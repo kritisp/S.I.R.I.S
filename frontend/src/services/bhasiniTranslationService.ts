@@ -59,6 +59,15 @@ const CRIME_TRANSLATION_DICTIONARY: Record<SupportedLanguage, Record<string, str
     'BNSS Section 105 Seizure Action': 'बीएनएसएस धारा 105 जब्ती कार्रवाई',
     'Freeze Account under BNSS 107': 'बीएनएसएस 107 के तहत खाता फ्रीज करें',
     'Suspect Identified': 'संदेही की पहचान की गई',
+    'Vehicle Intelligence': 'वाहन खुफिया विश्लेषण',
+    'Money Trail Workspace': 'धन हस्तांतरण कार्यक्षेत्र',
+    'Cross-Station Intelligence': 'अंतर-थाना खुफिया लिंकेज',
+    'Active Investigation Session': 'सक्रिय अनुसंधान सत्र',
+    'Evidence Vault': 'साक्ष्य वॉल्ट',
+    'Investigation Assistant': 'अनुसंधान सहायक',
+    'Command Center': 'कमांड सेंटर',
+    'Case dockets': 'केस फाइलें',
+    'FIR Records': 'प्राथमिकी (एफआईआर) रिकॉर्ड्स',
   },
   or: {
     'Executive Summary & Threat Assessment': 'କାର୍ଯ୍ୟକାରୀ ସାରାଂଶ ଓ ସଙ୍କଟ ମୂଲ୍ୟାଙ୍କନ',
@@ -73,6 +82,15 @@ const CRIME_TRANSLATION_DICTIONARY: Record<SupportedLanguage, Record<string, str
     'BNSS Section 105 Seizure Action': 'ବିଏନ୍ଏସ୍ଏସ୍ ଧାରା ୧୦୫ ଜବତ କାର୍ଯ୍ୟାନୁଷ୍ଠାନ',
     'Freeze Account under BNSS 107': 'ବିଏନ୍ଏସ୍ଏସ୍ ୧୦୭ ଅଧୀନରେ ଆକାଉଣ୍ଟ୍ ଫ୍ରିଜ୍',
     'Suspect Identified': 'ସନ୍ଦିଗ୍ଧ ଚିହ୍ନଟ',
+    'Vehicle Intelligence': 'ଯାନବାହନ ଗୁପ୍ତଚର ବିଶ୍ଳେଷଣ',
+    'Money Trail Workspace': 'ଅର୍ଥ ଚାଲାଣ କାର୍ଯ୍ୟସ୍ଥଳୀ',
+    'Cross-Station Intelligence': 'ଆନ୍ତଃ-ଥାନା ଗୋଇନ୍ଦା ସଂଯୋଗ',
+    'Active Investigation Session': 'ସକ୍ରିୟ ତଦନ୍ତ ଅଧିବେଶନ',
+    'Evidence Vault': 'ପ୍ରମାଣ ଭଣ୍ଡାର',
+    'Investigation Assistant': 'ତଦନ୍ତ ସହାୟକ',
+    'Command Center': 'କମାଣ୍ଡ ସେଣ୍ଟର',
+    'Case dockets': 'ମାମଲା ନଥିପତ୍ର',
+    'FIR Records': 'ଏଫ୍.ଆଇ.ଆର୍ ରେକର୍ଡ',
   },
   bn: {
     'Executive Summary & Threat Assessment': 'নির্বাহী সারাংশ এবং হুমকি মূল্যায়ন',
@@ -87,6 +105,13 @@ const CRIME_TRANSLATION_DICTIONARY: Record<SupportedLanguage, Record<string, str
     'BNSS Section 105 Seizure Action': 'বিএনএসএস ধারা ১০৫ জব্দকরণ পদক্ষেপ',
     'Freeze Account under BNSS 107': 'বিএনএসএস ১০৭ অনুযায়ী অ্যাকাউন্ট ফ্রিজ',
     'Suspect Identified': 'সন্দেহভাজন চিহ্নিত',
+    'Vehicle Intelligence': 'যানবাহন গোয়েন্দা বিশ্লেষণ',
+    'Money Trail Workspace': 'মানি ট্রেইল ওয়ার্কস্পেস',
+    'Cross-Station Intelligence': 'আন্তঃ-থানা গোয়েন্দা সংযোগ',
+    'Active Investigation Session': 'সক্রিয় তদন্ত সেশন',
+    'Evidence Vault': 'প্রমাণ ভল্ট',
+    'Investigation Assistant': 'তদন্ত সহকারী',
+    'Command Center': 'কমান্ড সেন্টার',
   },
   mr: {
     'Executive Summary & Threat Assessment': 'कार्यकारी सारांश आणि धोका मूल्यमापन',
@@ -101,16 +126,37 @@ const CRIME_TRANSLATION_DICTIONARY: Record<SupportedLanguage, Record<string, str
     'BNSS Section 105 Seizure Action': 'बीएनएसएस कलम १०५ जप्ती कारवाई',
     'Freeze Account under BNSS 107': 'बीएनएसएस १०७ अंतर्गत खाते गोठवा',
     'Suspect Identified': 'संशयित ओळखला',
+    'Vehicle Intelligence': 'वाहन गुप्तचर विश्लेषण',
+    'Money Trail Workspace': 'मनी ट्रेल कार्यक्षेत्र',
+    'Cross-Station Intelligence': 'आंतर-पोलीस स्टेशन गुप्तचर दुवा',
+    'Active Investigation Session': 'सक्रिय तपास सत्र',
+    'Evidence Vault': 'पुरावा वॉल्ट',
+    'Investigation Assistant': 'तपास सहाय्यक',
+    'Command Center': 'कमांड सेंटर',
   },
   ta: {
     'Executive Summary & Threat Assessment': 'செயல்முறை சுருக்கம் மற்றும் அச்சுறுத்தல் மதிப்பீடு',
     'Financial Crime & Money Trail Agent': 'நிதி குற்றங்கள் மற்றும் பணப் பாதை முகவர்',
+    'Telecom & CDR Intelligence Agent': 'தொலைத்தொடர்பு மற்றும் சிடிஆர் புலனாய்வு முகவர்',
+    'Statutory & Legal Enforcement Agent': 'சட்டப்பூர்வ அமலாக்க முகவர்',
     'HIGH THREAT': 'அதிக அச்சுறுத்தல்',
+    'MEDIUM THREAT': 'நடுத்தர அச்சுறுத்தல்',
+    'LOW THREAT': 'குறைந்த அச்சுறுத்தல்',
+    'Mule Account Detected': 'மியூல் வங்கி கணக்கு கண்டறியப்பட்டது',
+    'Suspect Identified': 'சந்தேக நபர் அடையாளம் காணப்பட்டார்',
+    'Investigation Assistant': 'விசாரணை உதவியாளர்',
   },
   te: {
     'Executive Summary & Threat Assessment': 'ఎగ్జిక్యూటివ్ సారాంశం మరియు ముప్పు అంచనా',
     'Financial Crime & Money Trail Agent': 'ఆర్థిక నేరాలు మరియు మనీ ట్రయల్ ఏజెంట్',
+    'Telecom & CDR Intelligence Agent': 'టెలికాం మరియు సీడీఆర్ ఇంటెలిజెన్స్ ఏజెంట్',
+    'Statutory & Legal Enforcement Agent': 'చట్టపరమైన అమలు ఏజెంట్',
     'HIGH THREAT': 'అధిక ముప్పు',
+    'MEDIUM THREAT': 'మధ్యస్థ ముప్పు',
+    'LOW THREAT': 'తక్కువ ముప్పు',
+    'Mule Account Detected': 'మ్యూల్ ఖాతా గుర్తించబడింది',
+    'Suspect Identified': 'నిందితుడు గుర్తించబడ్డాడు',
+    'Investigation Assistant': 'విచారణ సహాయకుడు',
   }
 };
 
@@ -313,21 +359,79 @@ export const bhasiniTranslationService = {
    * Web Speech API SpeechSynthesis Fallback for browser native voice synthesis
    */
   speakNativeSpeechSynthesis(text: string, language: SupportedLanguage = 'hi'): void {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      const langMap: Record<SupportedLanguage, string> = {
-        en: 'en-IN',
-        hi: 'hi-IN',
-        or: 'or-IN',
-        bn: 'bn-IN',
-        mr: 'mr-IN',
-        ta: 'ta-IN',
-        te: 'te-IN',
-      };
-      utterance.lang = langMap[language] || 'hi-IN';
-      utterance.rate = 0.95;
-      window.speechSynthesis.speak(utterance);
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/\*\*/g, '').replace(/#/g, '').replace(/\[|\]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    const langMap: Record<SupportedLanguage, string> = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      or: 'or-IN',
+      bn: 'bn-IN',
+      mr: 'mr-IN',
+      ta: 'ta-IN',
+      te: 'te-IN',
+    };
+
+    const targetCode = langMap[language] || 'en-IN';
+    utterance.lang = targetCode;
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      const prefix = targetCode.split('-')[0];
+      const match = voices.find(v => v.lang === targetCode || v.lang.toLowerCase().startsWith(prefix))
+        || voices.find(v => v.lang === 'hi-IN' || v.lang.startsWith('hi'))
+        || voices.find(v => v.lang.includes('IN') || v.name.toLowerCase().includes('india'))
+        || voices[0];
+      if (match) utterance.voice = match;
     }
+
+    window.speechSynthesis.speak(utterance);
+  },
+
+  /**
+   * 4. Unified Multilingual Voice Speaker:
+   * Translates text into target Indian language if needed, synthesizes speech via
+   * Bhasini Neural TTS, and falls back gracefully to Web Speech API.
+   */
+  async speakMultilingual(
+    text: string,
+    targetLanguage: SupportedLanguage = 'hi',
+    sourceLanguage: SupportedLanguage = 'en'
+  ): Promise<{ translatedText: string; provider: string }> {
+    if (!text || !text.trim()) return { translatedText: '', provider: 'NONE' };
+
+    let textToSpeak = text;
+
+    // Step 1: Translate to target Indian language if not English
+    if (targetLanguage !== sourceLanguage && targetLanguage !== 'en') {
+      try {
+        const transRes = await this.translateText(text, targetLanguage, sourceLanguage);
+        if (transRes.translatedText) {
+          textToSpeak = transRes.translatedText;
+        }
+      } catch (err) {
+        console.warn('[BhasiniTranslationService] Translation notice:', err);
+      }
+    }
+
+    // Step 2: Try Bhasini Cloud Neural TTS
+    try {
+      const ttsRes = await this.textToSpeech(textToSpeak, targetLanguage);
+      if (ttsRes.audioUrl) {
+        await this.playAudio(ttsRes.audioUrl);
+        return { translatedText: textToSpeak, provider: 'BHASINI_TTS_API' };
+      }
+    } catch (err) {
+      console.warn('[BhasiniTranslationService] Neural TTS playback notice:', err);
+    }
+
+    // Step 3: Web Speech API synthesis with target Indian language voice
+    this.speakNativeSpeechSynthesis(textToSpeak, targetLanguage);
+    return { translatedText: textToSpeak, provider: 'LOCAL_TTS_SYNTHESIS' };
   }
 };

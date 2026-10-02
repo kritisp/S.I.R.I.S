@@ -294,17 +294,41 @@ export function useDrishtiVoice({
   // Best Voice Selection Algorithm
   const findBestVoice = useCallback((lang: string) => {
     const voices = voicesCacheRef.current;
-    if (!voices.length) return null;
+    if (!voices || !voices.length) return null;
 
-    const prefix = lang.split('-')[0];
-    const preferredKeywords = ['india', 'ravi', 'heera', 'kalpana', 'google', 'microsoft', 'neural'];
+    const prefix = lang.split('-')[0].toLowerCase();
+    const langLower = lang.toLowerCase();
 
-    for (const kw of preferredKeywords) {
-      const v = voices.find(v => (v.lang === lang || v.lang.startsWith(prefix)) && v.name.toLowerCase().includes(kw));
+    // 1. Direct language code match
+    const exact = voices.find(v => v.lang.toLowerCase() === langLower);
+    if (exact) return exact;
+
+    // 2. Direct language prefix match (e.g. 'hi', 'bn', 'or', 'mr', 'ta', 'te')
+    const prefixMatch = voices.find(v => v.lang.toLowerCase().startsWith(prefix));
+    if (prefixMatch) return prefixMatch;
+
+    // 3. Language specific name matching
+    const langNames: Record<string, string[]> = {
+      hi: ['hindi', 'kalpana', 'hemant', 'swara', 'madhur'],
+      or: ['odia', 'oriya', 'bhubaneswar'],
+      bn: ['bengali', 'bangla', 'tapan', 'bashkar'],
+      mr: ['marathi', 'aarohi', 'manohar'],
+      ta: ['tamil', 'valluvar', 'iniya'],
+      te: ['telugu', 'mohan', 'shruti'],
+      en: ['india', 'ravi', 'heera', 'neerja', 'prabhat']
+    };
+
+    const targetKeywords = langNames[prefix] || ['india', 'hindi', 'ravi', 'google', 'microsoft'];
+    for (const kw of targetKeywords) {
+      const v = voices.find(v => v.name.toLowerCase().includes(kw));
       if (v) return v;
     }
 
-    return voices.find(v => v.lang === lang) || voices.find(v => v.lang.startsWith(prefix)) || null;
+    // 4. Fallback to any Indian voice
+    const anyIndiaVoice = voices.find(v => v.lang.includes('IN') || v.name.toLowerCase().includes('india'));
+    if (anyIndiaVoice) return anyIndiaVoice;
+
+    return voices[0] || null;
   }, []);
 
   // Speech Synthesis

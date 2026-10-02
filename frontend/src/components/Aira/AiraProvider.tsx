@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { processAiraQuery, processAiraQueryAsync } from '../../services/airaService';
 import { useDrishtiVoice } from '../../hooks/useDrishtiVoice';
 import { useMockState } from '../../mockServices/MockStateContext';
+import { bhasiniTranslationService, SupportedLanguage } from '../../services/bhasiniTranslationService';
 
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
@@ -13,6 +14,16 @@ export interface ChatMessage {
   structuredData?: any;
 }
 
+const LANG_LOCALE_MAP: Record<SupportedLanguage, string> = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  or: 'or-IN',
+  bn: 'bn-IN',
+  mr: 'mr-IN',
+  ta: 'ta-IN',
+  te: 'te-IN',
+};
+
 interface AiraContextType {
   orbState: OrbState;
   isPanelOpen: boolean;
@@ -23,8 +34,8 @@ interface AiraContextType {
   isMuted: boolean;
   setIsMuted: (muted: boolean) => void;
   toggleMute: () => void;
-  language: 'en' | 'hi';
-  setLanguage: (lang: 'en' | 'hi') => void;
+  language: SupportedLanguage;
+  setLanguage: (lang: SupportedLanguage) => void;
   liveTranscript: string;
   audioLevel: number;
   response: string;
@@ -33,7 +44,7 @@ interface AiraContextType {
   stopListening: () => void;
   toggleListening: () => void;
   sendQuery: (query: string) => void;
-  speakText: (text: string, lang?: string) => void;
+  speakText: (text: string, lang?: SupportedLanguage | string) => void;
   stopSpeaking: () => void;
   suggestions: string[];
 }
@@ -44,7 +55,7 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { state } = useMockState();
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const [language, setLanguage] = useState<SupportedLanguage>('en');
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [response, setResponse] = useState<string>('S.I.R.I.S. Investigation Support active. Query case dockets, cross-station FIR records, or legal section references.');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
@@ -76,14 +87,37 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const togglePanel = () => setIsPanelOpen(prev => !prev);
   const toggleMute = () => setIsMuted(prev => !prev);
 
-  const speakText = useCallback((text: string, lang?: string) => {
-    if (isMuted) return;
-    const targetLang = lang || (language === 'hi' ? 'hi-IN' : 'en-IN');
-    voice.speak(text, targetLang);
+  const speakText = useCallback(async (text: string, lang?: SupportedLanguage | string) => {
+    if (isMuted || !text.trim()) return;
+
+    let targetLang: SupportedLanguage = language;
+    if (lang) {
+      if (['en', 'hi', 'or', 'bn', 'mr', 'ta', 'te'].includes(lang)) {
+        targetLang = lang as SupportedLanguage;
+      } else if (lang.startsWith('hi')) targetLang = 'hi';
+      else if (lang.startsWith('or')) targetLang = 'or';
+      else if (lang.startsWith('bn')) targetLang = 'bn';
+      else if (lang.startsWith('mr')) targetLang = 'mr';
+      else if (lang.startsWith('ta')) targetLang = 'ta';
+      else if (lang.startsWith('te')) targetLang = 'te';
+      else targetLang = 'en';
+    }
+
+    try {
+      // Use Bhasini multilingual translation + neural TTS with Web Speech fallback
+      await bhasiniTranslationService.speakMultilingual(text, targetLang, 'en');
+    } catch (err) {
+      console.warn('[AiraProvider] Bhasini speak fallback notice:', err);
+      const bcp47 = LANG_LOCALE_MAP[targetLang] || 'en-IN';
+      voice.speak(text, bcp47);
+    }
   }, [isMuted, language, voice]);
 
   const stopSpeaking = useCallback(() => {
     voice.stopSpeaking();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
   }, [voice]);
 
   const sendQuery = useCallback(async (query: string) => {
@@ -121,7 +155,7 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setChatHistory(prev => [...prev, botMsg]);
 
       if (!isMuted) {
-        voice.speak(botResponseText, language === 'hi' ? 'hi-IN' : 'en-IN');
+        speakText(botResponseText, language);
       }
 
       if (res.route) {
@@ -138,12 +172,13 @@ export const AiraProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsThinking(false);
     }
-  }, [isMuted, language, voice]);
+  }, [isMuted, language, speakText, state.currentUser]);
 
   const startListening = useCallback(() => {
-    voice.stopSpeaking();
-    voice.startListening(language === 'hi' ? 'hi-IN' : 'en-IN');
-  }, [language, voice]);
+    stopSpeaking();
+    const bcp47 = LANG_LOCALE_MAP[language] || 'en-IN';
+    voice.startListening(bcp47);
+  }, [language, stopSpeaking, voice]);
 
   const stopListening = useCallback(async () => {
     const captured = await voice.stopListeningAndGetTranscript();

@@ -75,19 +75,19 @@ export function AiraVoicePanel() {
 
           <div className="flex items-center gap-2">
             {/* Language Switcher */}
-            <div className="flex rounded-lg p-0.5 bg-surface border border-border-soft text-[10px] font-mono">
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-2 py-0.5 rounded font-bold transition-all ${language === 'en' ? 'bg-brand text-bg' : 'text-text-dim hover:text-text'}`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => setLanguage('hi')}
-                className={`px-2 py-0.5 rounded font-bold transition-all ${language === 'hi' ? 'bg-brand text-bg' : 'text-text-dim hover:text-text'}`}
-              >
-                HI
-              </button>
+            <div className="flex rounded-lg p-0.5 bg-surface border border-border-soft text-[10px] font-mono overflow-x-auto max-w-[200px] sm:max-w-none">
+              {(['en', 'hi', 'or', 'bn', 'mr', 'ta', 'te'] as const).map(l => (
+                <button
+                  key={l}
+                  onClick={() => setLanguage(l)}
+                  className={`px-1.5 py-0.5 rounded font-bold uppercase transition-all whitespace-nowrap ${
+                    language === l ? 'bg-brand text-bg' : 'text-text-dim hover:text-text'
+                  }`}
+                  title={`Switch voice input/output to ${l.toUpperCase()}`}
+                >
+                  {l === 'en' ? 'EN' : l === 'hi' ? 'HI' : l === 'or' ? 'OD' : l === 'bn' ? 'BN' : l === 'mr' ? 'MR' : l === 'ta' ? 'TA' : 'TE'}
+                </button>
+              ))}
             </div>
 
             {/* Mute Toggle */}
@@ -145,40 +145,49 @@ export function AiraVoicePanel() {
                 <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
 
                 {msg.role === 'assistant' && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <div className="flex flex-wrap items-center gap-1 pt-1">
+                    <span className="text-[8px] font-mono text-text-dim mr-0.5">TTS:</span>
                     <button
-                      onClick={() => speakText(msg.content, 'en-IN')}
-                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                      onClick={() => speakText(msg.content, 'en')}
+                      className="px-1.5 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
                     >
                       🔊 EN
                     </button>
                     <button
-                      onClick={() => speakText(msg.content, 'hi-IN')}
-                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                      onClick={() => speakText(msg.content, 'hi')}
+                      className="px-1.5 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
                     >
-                      🔊 हिन्दी (HI)
+                      🔊 हिन्दी
                     </button>
                     <button
-                      onClick={async () => {
-                        const tr = await bhasiniTranslationService.translateText(msg.content, 'or');
-                        const res = await bhasiniTranslationService.textToSpeech(tr.translatedText, 'or');
-                        if (res.audioUrl) await bhasiniTranslationService.playAudio(res.audioUrl);
-                        else bhasiniTranslationService.speakNativeSpeechSynthesis(tr.translatedText, 'or');
-                      }}
-                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                      onClick={() => speakText(msg.content, 'or')}
+                      className="px-1.5 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
                     >
-                      🔊 ଓଡ଼ିଆ (OD)
+                      🔊 ଓଡ଼ିଆ
                     </button>
                     <button
-                      onClick={async () => {
-                        const tr = await bhasiniTranslationService.translateText(msg.content, 'bn');
-                        const res = await bhasiniTranslationService.textToSpeech(tr.translatedText, 'bn');
-                        if (res.audioUrl) await bhasiniTranslationService.playAudio(res.audioUrl);
-                        else bhasiniTranslationService.speakNativeSpeechSynthesis(tr.translatedText, 'bn');
-                      }}
-                      className="px-2 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                      onClick={() => speakText(msg.content, 'bn')}
+                      className="px-1.5 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
                     >
-                      🔊 বাংলা (BN)
+                      🔊 বাংলা
+                    </button>
+                    <button
+                      onClick={() => speakText(msg.content, 'mr')}
+                      className="px-1.5 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                    >
+                      🔊 मराठी
+                    </button>
+                    <button
+                      onClick={() => speakText(msg.content, 'ta')}
+                      className="px-1.5 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                    >
+                      🔊 தமிழ்
+                    </button>
+                    <button
+                      onClick={() => speakText(msg.content, 'te')}
+                      className="px-1.5 py-0.5 rounded bg-surface border border-border-soft text-[9px] font-mono font-bold text-brand hover:bg-surface-hover cursor-pointer"
+                    >
+                      🔊 తెలుగు
                     </button>
                   </div>
                 )}
