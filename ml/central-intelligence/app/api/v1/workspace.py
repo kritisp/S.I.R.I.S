@@ -429,15 +429,16 @@ def get_case_workspace(
         candidates.append(f"case:{clean_id}")
         candidates.append(clean_id)
 
-    for cand in candidates:
+    # Fast single-query candidate resolution in Neo4j
+    existing_cand_id = neo4j_graph_service.find_existing_node_id(candidates)
+    if existing_cand_id:
         try:
-            res = neo4j_graph_service.get_neighborhood(node_id=cand, depth=2, limit=80)
+            res = neo4j_graph_service.get_neighborhood(node_id=existing_cand_id, depth=2, limit=80)
             if res.get("found"):
                 neighborhood = res
-                n4j_search_id = cand
-                break
+                n4j_search_id = existing_cand_id
         except Exception as err:
-            logger.debug(f"Neighborhood query notice for {cand}: {err}")
+            logger.debug(f"Neighborhood query notice for {existing_cand_id}: {err}")
 
     if not n4j_search_id:
         n4j_search_id = candidates[0] if candidates else f"case:{clean_id}"

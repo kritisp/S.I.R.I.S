@@ -138,15 +138,36 @@ class Neo4jGraphService:
 
     def __init__(self, connection_service: Neo4jConnectionService = neo4j_connection_service):
         self.connection_service = connection_service
+        self._cached_totals: Dict[str, int] = {"nodes": 0, "edges": 0}
+        self._cached_totals_time: float = 0.0
 
     def get_global_totals(self, session) -> Dict[str, int]:
-        """Fetches total node and relationship counts in Neo4j."""
+        """Fetches total node and relationship counts in Neo4j with 60s cache."""
+        now = time.monotonic()
+        if now - self._cached_totals_time < 60.0 and self._cached_totals["nodes"] > 0:
+            return self._cached_totals
         try:
             nodes = session.run("MATCH (n) RETURN count(n) AS c").single()["c"]
             rels = session.run("MATCH ()-[r]->() RETURN count(r) AS c").single()["c"]
-            return {"nodes": nodes, "edges": rels}
+            self._cached_totals = {"nodes": nodes, "edges": rels}
+            self._cached_totals_time = now
+            return self._cached_totals
         except Exception:
-            return {"nodes": 0, "edges": 0}
+            return self._cached_totals
+
+    def find_existing_node_id(self, candidates: List[str]) -> Optional[str]:
+        """Rapidly checks which of the given candidate node_ids actually exists in Neo4j in a single query."""
+        if not candidates:
+            return None
+        try:
+            with self.connection_service.get_session() as session:
+                cypher = "MATCH (n) WHERE n.node_id IN $cands RETURN n.node_id AS id LIMIT 1"
+                rec = session.run(cypher, {"cands": candidates}).single()
+                if rec and rec["id"]:
+                    return str(rec["id"])
+        except Exception as exc:
+            logger.debug("Neo4j candidate check notice: %s", exc)
+        return None
 
     def get_overview(self, limit: int = 150, focus_node_id: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -223,7 +244,16 @@ class Neo4jGraphService:
                 ).single()
 
                 if not start_res:
-                    return graph_intelligence_service.get_neighbors(db_session=None, node_id=node_id, depth=depth, limit=limit)
+                    return {
+                        "node_id": node_id,
+                        "found": False,
+                        "nodes": [],
+                        "edges": [],
+                        "total_nodes": 0,
+                        "total_edges": 0,
+                        "source": "neo4j-live",
+                        "stats": {}
+                    }
 
                 start_node = dict(start_res)
 

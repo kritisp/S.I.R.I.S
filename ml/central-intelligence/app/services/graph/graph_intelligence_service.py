@@ -172,16 +172,25 @@ def _bfs_shortest(graph: Graph, source: str) -> Dict[str, int]:
 def compute_betweenness(graph: Graph) -> Dict[str, float]:
     """
     Brandes betweenness centrality (adapted from ARGUS graphAlgos.js).
-    Returns normalized score in [0, 1] per node.
+    Returns normalized score in [0, 1] per node with sampling for fast execution.
     """
     nodes = list(graph.nodes.keys())
     N = len(nodes)
     if N <= 2:
         return {n: 0.0 for n in nodes}
 
+    # If graph is large, sample up to 35 nodes to guarantee sub-second execution
+    source_nodes = nodes
+    sample_factor = 1.0
+    if N > 35:
+        # Prioritize nodes with higher degree for representative bridge paths
+        sorted_by_deg = sorted(nodes, key=lambda n: len(graph.neighbors(n)), reverse=True)
+        source_nodes = sorted_by_deg[:35]
+        sample_factor = N / 35.0
+
     bc: Dict[str, float] = {n: 0.0 for n in nodes}
 
-    for s in nodes:
+    for s in source_nodes:
         # Brandes forward pass
         stack: List[str] = []
         pred: Dict[str, List[str]] = {n: [] for n in nodes}
@@ -210,7 +219,7 @@ def compute_betweenness(graph: Graph) -> Dict[str, float]:
                 if sigma[w] > 0:
                     delta[v] += (sigma[v] / sigma[w]) * (1.0 + delta[w])
             if w != s:
-                bc[w] += delta[w]
+                bc[w] += delta[w] * sample_factor
 
     # Normalize by (N-1)(N-2)/2 for undirected
     norm = ((N - 1) * (N - 2)) / 2.0
