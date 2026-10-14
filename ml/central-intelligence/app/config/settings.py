@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Supabase PostgreSQL Configuration
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: Optional[str] = "postgresql://postgres:Pf7eqEttsmsw8Jdt@db.pbhhuilzqlnwsalgcvbn.supabase.co:5432/postgres"
 
     # Hybrid NLP Entity Extraction (spaCy NER + Deterministic Regex)
     ENABLE_SPACY_NER: bool = True
@@ -19,12 +19,12 @@ class Settings(BaseSettings):
     SPACY_CONFIDENCE_THRESHOLD: float = 0.50
     SPACY_FALLBACK_ON_ERROR: bool = True
 
-    # Neo4j Configuration
-    NEO4J_URI: str = "bolt://127.0.0.1:7687"
-    NEO4J_USERNAME: str = "neo4j"
-    NEO4J_USER: str = "neo4j"
-    NEO4J_PASSWORD: str = ""
-    NEO4J_DATABASE: str = "neo4j"
+    # Neo4j Configuration (Cloud Neo4j Aura Default)
+    NEO4J_URI: str = "neo4j+s://1cb4cc93.databases.neo4j.io"
+    NEO4J_USERNAME: str = "1cb4cc93"
+    NEO4J_USER: str = "1cb4cc93"
+    NEO4J_PASSWORD: str = "60RbmZa2Mo0j2ENhRf-xKIBkMVTNuR743g2p0DXemTw"
+    NEO4J_DATABASE: str = "1cb4cc93"
 
     @property
     def effective_neo4j_user(self) -> str:

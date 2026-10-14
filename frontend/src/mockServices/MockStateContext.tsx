@@ -36,6 +36,11 @@ type Action =
 const reducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
     case 'SET_USER':
+      if (action.payload) {
+        try { localStorage.setItem('siris_auth_user', JSON.stringify(action.payload)); } catch {}
+      } else {
+        try { localStorage.removeItem('siris_auth_user'); } catch {}
+      }
       return { ...state, currentUser: action.payload };
     case 'SET_CASES':
       return { ...state, cases: action.payload };
@@ -98,8 +103,20 @@ const MockStateContext = createContext<{
   refreshBackendData: () => Promise<void>;
 } | undefined>(undefined);
 
+const getStoredUser = (): User | null => {
+  try {
+    const raw = localStorage.getItem('siris_auth_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const MockStateProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, {
+    ...initialState,
+    currentUser: getStoredUser() || initialState.currentUser,
+  });
 
   // Use a ref to read currentUser inside the callback WITHOUT making it a reactive dependency.
   // This breaks the infinite loop: state.currentUser change → new callback → useEffect re-fires → API call → state change → repeat

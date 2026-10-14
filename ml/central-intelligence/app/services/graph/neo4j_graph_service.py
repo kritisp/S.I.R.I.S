@@ -161,7 +161,12 @@ class Neo4jGraphService:
             return None
         try:
             with self.connection_service.get_session() as session:
-                cypher = "MATCH (n) WHERE n.node_id IN $cands RETURN n.node_id AS id LIMIT 1"
+                cypher = """
+                    MATCH (n)
+                    WHERE n.node_id IN $cands OR n.fir_number IN $cands OR n.id IN $cands
+                    RETURN COALESCE(n.node_id, n.id, n.fir_number) AS id
+                    LIMIT 1
+                """
                 rec = session.run(cypher, {"cands": candidates}).single()
                 if rec and rec["id"]:
                     return str(rec["id"])

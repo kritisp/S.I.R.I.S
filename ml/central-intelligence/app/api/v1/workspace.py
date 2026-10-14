@@ -256,7 +256,7 @@ def _find_genuine_cross_case_intelligence(
                 SELECT DISTINCT c.fir_number, p.name, cp_other.role
                 FROM case_persons cp_curr
                 JOIN case_persons cp_other ON cp_curr.person_id = cp_other.person_id
-                JOIN cases c ON cp_other.case_id = c.id
+                JOIN cases c ON cp_other.case_id::text = c.id::text
                 JOIN persons p ON cp_curr.person_id = p.id
                 WHERE cp_curr.case_id::text = :cid AND cp_other.case_id::text != :cid
                 LIMIT 10
@@ -273,7 +273,7 @@ def _find_genuine_cross_case_intelligence(
                 SELECT DISTINCT c.fir_number, ph.normalized_number
                 FROM case_phones cph_curr
                 JOIN case_phones cph_other ON cph_curr.phone_id = cph_other.phone_id
-                JOIN cases c ON cph_other.case_id = c.id
+                JOIN cases c ON cph_other.case_id::text = c.id::text
                 JOIN phones ph ON cph_curr.phone_id = ph.id
                 WHERE cph_curr.case_id::text = :cid AND cph_other.case_id::text != :cid
                 LIMIT 10
@@ -290,7 +290,7 @@ def _find_genuine_cross_case_intelligence(
                 SELECT DISTINCT c.fir_number, v.registration_number
                 FROM case_vehicles cv_curr
                 JOIN case_vehicles cv_other ON cv_curr.vehicle_id = cv_other.vehicle_id
-                JOIN cases c ON cv_other.case_id = c.id
+                JOIN cases c ON cv_other.case_id::text = c.id::text
                 JOIN vehicles v ON cv_curr.vehicle_id = v.id
                 WHERE cv_curr.case_id::text = :cid AND cv_other.case_id::text != :cid
                 LIMIT 10

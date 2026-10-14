@@ -8,7 +8,7 @@
  */
 
 const BASE_URL = import.meta.env.VITE_INTEL_SERVICE_URL || 'https://siris-backend-duzn.onrender.com/api/v1/graph';
-const TIMEOUT_MS = 90000; // 90s to accommodate Render free-tier cold starts + Neo4j Aura cloud connection
+const TIMEOUT_MS = 30000; // 30s per attempt to handle Render spin-ups cleanly without excessive stalling
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -167,7 +167,7 @@ export class WorkspaceApiError extends Error {
 
 /** Fetch that preserves HTTP status / distinguishes network failure from a real error
  * response, with automatic retry for cold-start timeouts and gateway 502/503/504 errors. */
-async function fetchStatusAware<T>(url: string, options: RequestInit = {}, maxRetries = 2): Promise<T> {
+async function fetchStatusAware<T>(url: string, options: RequestInit = {}, maxRetries = 1): Promise<T> {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {

@@ -31,49 +31,63 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)) -> Dict[str, Any
     user_role = 'OFFICER'
     st_id = station_id or 'PS_BBSR_001'
 
-    # Try lookup in PostgreSQL users table
-    try:
-        user_rec = None
-        if officer_id:
-            user_rec = db.execute(text("""
-                SELECT id, name, role, station_id, rank_title, email
-                FROM users
-                WHERE id = :oid OR email = :oid OR name ILIKE :name_pat
-                LIMIT 1
-            """), {"oid": officer_id, "name_pat": f"%{officer_id}%"}).fetchone()
-        
-        if not user_rec and station_id:
-            # Fallback to station's IIC or first officer if only station given
-            user_rec = db.execute(text("""
-                SELECT id, name, role, station_id, rank_title, email
-                FROM users
-                WHERE station_id = :sid
-                ORDER BY CASE WHEN role = 'STATION_ADMIN' THEN 1 ELSE 2 END
-                LIMIT 1
-            """), {"sid": station_id}).fetchone()
+    if officer_id == 'USR-HQ-001' or role_name == 'SUPER_ADMIN':
+        officer_id = 'USR-HQ-001'
+        officer_name = 'Dr. Sudhanshu Sarangi, IPS'
+        badge_id = 'OD-POL-0001'
+        rank_str = 'Director General of Police / Commissioner'
+        user_role = 'SUPER_ADMIN'
+        st_id = 'ALL'
+        email_str = 'dgp.odishapolice@odishapolice.gov.in'
+        station_name = 'State Police Headquarters, Odisha'
+        district_str = 'Odisha State Command'
+        city_str = 'Bhubaneswar'
+    else:
+        email_str = f"{officer_id.lower()}@odishapolice.gov.in"
+        # Try lookup in PostgreSQL users table
+        try:
+            user_rec = None
+            if officer_id:
+                user_rec = db.execute(text("""
+                    SELECT id, name, role, station_id, rank_title, email
+                    FROM users
+                    WHERE id = :oid OR email = :oid OR name ILIKE :name_pat
+                    LIMIT 1
+                """), {"oid": officer_id, "name_pat": f"%{officer_id}%"}).fetchone()
+            
+            if not user_rec and station_id:
+                # Fallback to station's IIC or first officer if only station given
+                user_rec = db.execute(text("""
+                    SELECT id, name, role, station_id, rank_title, email
+                    FROM users
+                    WHERE station_id = :sid
+                    ORDER BY CASE WHEN role = 'STATION_ADMIN' THEN 1 ELSE 2 END
+                    LIMIT 1
+                """), {"sid": station_id}).fetchone()
 
-        if user_rec:
-            officer_id = str(user_rec[0])
-            officer_name = user_rec[1]
-            user_role = user_rec[2]
-            st_id = user_rec[3] or station_id or 'PS_BBSR_001'
-            rank_str = user_rec[4] or 'Sub-Inspector of Police'
-            badge_id = f"OD-POL-{officer_id[-4:] if len(officer_id) >= 4 else '1001'}"
-    except Exception:
-        pass
+            if user_rec:
+                officer_id = str(user_rec[0])
+                officer_name = user_rec[1]
+                user_role = user_rec[2]
+                st_id = user_rec[3] or station_id or 'PS_BBSR_001'
+                rank_str = user_rec[4] or 'Sub-Inspector of Police'
+                email_str = user_rec[5] or email_str
+                badge_id = f"OD-POL-{officer_id[-4:] if len(officer_id) >= 4 else '1001'}"
+        except Exception:
+            pass
 
-    station_name = 'Kharavela Nagar Police Station'
-    district_str = 'Khordha (Bhubaneswar)'
-    city_str = 'Bhubaneswar'
+        station_name = 'Kharavela Nagar Police Station'
+        district_str = 'Khordha (Bhubaneswar)'
+        city_str = 'Bhubaneswar'
 
-    try:
-        st_rec = db.execute(text('SELECT name, district, city FROM police_stations WHERE id = :code LIMIT 1'), {'code': st_id}).fetchone()
-        if st_rec:
-            station_name = st_rec[0] or station_name
-            district_str = st_rec[1] or district_str
-            city_str = st_rec[2] or city_str
-    except Exception:
-        pass
+        try:
+            st_rec = db.execute(text('SELECT name, district, city FROM police_stations WHERE id = :code LIMIT 1'), {'code': st_id}).fetchone()
+            if st_rec:
+                station_name = st_rec[0] or station_name
+                district_str = st_rec[1] or district_str
+                city_str = st_rec[2] or city_str
+        except Exception:
+            pass
 
     token_val = f'siris_jwt_{uuid.uuid4().hex}'
     refresh_val = f'siris_ref_{uuid.uuid4().hex}'
@@ -87,9 +101,12 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)) -> Dict[str, Any
             'id': officer_id,
             'name': officer_name,
             'badgeId': badge_id,
+            'badgeNumber': badge_id,
             'rank': rank_str,
             'stationId': st_id,
-            'role': user_role
+            'role': user_role,
+            'email': email_str,
+            'status': 'ACTIVE'
         },
         'station': {
             'id': st_id,
@@ -112,9 +129,12 @@ def get_me(db: Session = Depends(get_db)) -> Dict[str, Any]:
             'id': 'USR-KHN-002',
             'name': 'SI Ranjan Kumar Samal',
             'badgeId': 'OD-POL-4412',
+            'badgeNumber': 'OD-POL-4412',
             'rank': 'Sub-Inspector of Police (SI)',
             'stationId': 'PS_BBSR_001',
-            'role': 'OFFICER'
+            'role': 'OFFICER',
+            'email': 'ranjan.samal@odishapolice.gov.in',
+            'status': 'ACTIVE'
         },
         'station': {
             'id': 'PS_BBSR_001',
@@ -137,9 +157,12 @@ def refresh_token(payload: RefreshPayload) -> Dict[str, Any]:
             'id': 'USR-KHN-002',
             'name': 'SI Ranjan Kumar Samal',
             'badgeId': 'OD-POL-4412',
+            'badgeNumber': 'OD-POL-4412',
             'rank': 'Sub-Inspector of Police (SI)',
             'stationId': 'PS_BBSR_001',
-            'role': 'OFFICER'
+            'role': 'OFFICER',
+            'email': 'ranjan.samal@odishapolice.gov.in',
+            'status': 'ACTIVE'
         },
         'station': {
             'id': 'PS_BBSR_001',

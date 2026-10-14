@@ -41,7 +41,7 @@ export class ApiError extends Error {
 
 export async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit & { timeoutMs?: number } = {}
 ): Promise<T> {
   const token = getAuthToken();
   const url = endpoint.startsWith('http')
@@ -57,13 +57,19 @@ export async function request<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  const controller = new AbortController();
+  const timeoutMs = options.timeoutMs ?? 8000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   const config: RequestInit = {
     ...options,
     headers,
+    signal: options.signal || controller.signal,
   };
 
   try {
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
 
     if (response.status === 401) {
       clearAuthState();
@@ -95,10 +101,15 @@ export async function request<T>(
 
     return data as T;
   } catch (error) {
+    clearTimeout(timeoutId);
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError((error as Error).message || 'Network error', 500);
+    const isAbort = (error as any)?.name === 'AbortError';
+    throw new ApiError(
+      isAbort ? 'Request timed out' : (error as Error).message || 'Network error',
+      isAbort ? 408 : 500
+    );
   }
 }
 

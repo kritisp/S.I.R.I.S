@@ -27,18 +27,11 @@ class SpringBootPostgresAdapter:
 
     def fetch_case_dict_by_id(self, case_id: Any) -> Optional[Dict[str, Any]]:
         """Fetch a single CaseRecord by string or UUID ID or FIR number from PostgreSQL."""
-        case_id_str = str(case_id).strip()
         conn = self._get_connection()
         try:
-            from sqlalchemy import inspect
-            has_case_records = False
-            try:
-                has_case_records = inspect(conn).has_table("case_records")
-            except Exception:
-                pass
-
             result = None
-            if has_case_records:
+            # Fast check: query case_records if present, otherwise fall back to cases
+            try:
                 query_sb = text("""
                     SELECT
                         c.id,
@@ -59,10 +52,9 @@ class SpringBootPostgresAdapter:
                     LEFT JOIN police_stations ps ON c.station_id = ps.id
                     WHERE CAST(c.id AS VARCHAR) = :case_id OR c.fir_number = :case_id
                 """)
-                try:
-                    result = conn.execute(query_sb, {"case_id": case_id_str}).mappings().first()
-                except Exception:
-                    result = None
+                result = conn.execute(query_sb, {"case_id": case_id_str}).mappings().first()
+            except Exception:
+                result = None
 
             # Fallback to legacy schema table 'cases' if 'case_records' does not exist or yields no result
             if not result:

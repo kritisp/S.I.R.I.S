@@ -33,7 +33,7 @@ export function Cases() {
 
   useEffect(() => {
     setIsLoading(true);
-    graphIntelligenceService.getWorkspaceCases(1500, 0)
+    graphIntelligenceService.getWorkspaceCases(250, 0)
       .then((res) => {
         if (res && res.cases) {
           setDbCases(res.cases);
@@ -47,7 +47,7 @@ export function Cases() {
     setIsRefreshing(true);
     try {
       if (refreshBackendData) await refreshBackendData();
-      const res = await graphIntelligenceService.getWorkspaceCases(1500, 0);
+      const res = await graphIntelligenceService.getWorkspaceCases(250, 0);
       if (res?.cases) setDbCases(res.cases);
     } catch (err) {
       console.warn('Cases refresh error:', err);
